@@ -1,7 +1,7 @@
 import { Kafka } from 'kafkajs'
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry'
 import { Connection, WorkflowClient } from '@temporalio/client'
-import { FindPosition } from './interfaces/workflows'
+import { PriceAction } from './interfaces/workflows'
 import { PremarketData } from './interfaces/premarketData'
 
 // need to connect to kafka topic and cosume the message
@@ -34,17 +34,17 @@ const run = async () => {
       
       // connect to the Temporal Server and start workflow
       const temporalConnection = new Connection({
-        address: 'replace with Server hostname and optional port. Port defaults to 7233 if address contains only host.'
+        address: '10.244.0.27:7233'
       })
       const temporalClient = new WorkflowClient(temporalConnection.service, {
-        namespace: 'replace with the temporal server namespace'
+        namespace: 'default'
       })
-      const findPositionResult = temporalClient.execute<FindPosition>('findPosition', {
+      const priceActionResult = temporalClient.execute<PriceAction>('priceAction', {
         args: [decodedMessage],
-        workflowId: 'findPosition',
-        taskQueue: 'findPosition'
+        workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
+        taskQueue: 'priceActionPositions'
       })
-      return findPositionResult
+      return priceActionResult
     }
   })
 }

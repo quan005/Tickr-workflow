@@ -1,4 +1,4 @@
 export interface SupplyDemandZones {
-  double: number,
-  string: number
+  double: number;
+  string: string
 }

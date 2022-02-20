@@ -1,4 +1,9 @@
+import { SupplyDemandZones } from "./supplyDemandZones"
 export interface PremarketData {
+  limit: number,
+  budget: number,
+  client_id: string,
+  account_id: string,
   token: {
     access_token: string,
     refresh_token: string,
@@ -17,12 +22,8 @@ export interface PremarketData {
   sentiment: string,
   keyLevels: number[],
   supportResistance: {support: number, resistance: number},
-  demandZones: [
-    object[]
-  ],
-  supplyZones:[
-    object[]
-  ],
+  demandZones: SupplyDemandZones[][],
+  supplyZones: SupplyDemandZones[][],
   userPrinciples: {
     userId: string,
     userCdDomainId: string,
