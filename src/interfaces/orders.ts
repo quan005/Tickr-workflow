@@ -53,8 +53,8 @@ export interface GetOrderResponse {
   tag?: string,
   accountId?: number,
   orderActivityCollection?: OrderActivity,
-  replacingOrderCollection?: any,
-  childOrderStrategies?: any,
+  replacingOrderCollection?: object[] | null,
+  childOrderStrategies?: object[] | null,
   statusDescription?: string
 }
 

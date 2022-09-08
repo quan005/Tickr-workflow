@@ -2,10 +2,11 @@ import { Kafka } from 'kafkajs'
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry'
 import { Connection, WorkflowClient } from '@temporalio/client'
 import { PriceAction } from './interfaces/workflows'
+import { priceAction } from './workflows/priceAction'
 import { PremarketData } from './interfaces/premarketData'
 
 // need to connect to kafka topic and cosume the message
-var broker = <string> process.env.BROKER
+const broker = <string> process.env.BROKER
 const schemaRegistryUrl = <string> process.env.SCHEMA_REGISTRY_URL
 
 const kafka = new Kafka({
@@ -18,7 +19,8 @@ const schemaRegistry = new SchemaRegistry({
 })
 
 const consumer = kafka.consumer({
-  groupId: 'find-position-group'
+  groupId: 'find-position-group',
+  sessionTimeout: 28800000
 })
 
 const run = async () => {
@@ -29,22 +31,25 @@ const run = async () => {
 
   await consumer.run({
     eachMessage: async ({topic, partition, message}) => {
-      // decode the kafka message using schema registry
-      const decodedMessage: PremarketData = await schemaRegistry.decode(<Buffer> message.value)
-      
-      // connect to the Temporal Server and start workflow
-      const temporalConnection = new Connection({
-        address: '10.244.0.27:7233'
+      new Promise( async (resolve, reject) => {
+        // decode the kafka message using schema registry
+        const decodedMessage: PremarketData = await schemaRegistry.decode(<Buffer> message.value)
+        
+        // connect to the Temporal Server and start workflow
+        const temporalConnection = new Connection({
+          address: '10.244.0.27:7233'
+        })
+        const temporalClient = new WorkflowClient(temporalConnection.service, {
+          namespace: 'default'
+        })
+        const priceActionResult = await temporalClient.execute(priceAction, {
+          args: [decodedMessage],
+          workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
+          taskQueue: 'price-action-positions'
+        })
+        
+        return resolve(priceActionResult)
       })
-      const temporalClient = new WorkflowClient(temporalConnection.service, {
-        namespace: 'default'
-      })
-      const priceActionResult = temporalClient.execute<PriceAction>('priceAction', {
-        args: [decodedMessage],
-        workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
-        taskQueue: 'priceActionPositions'
-      })
-      return priceActionResult
     }
   })
 }

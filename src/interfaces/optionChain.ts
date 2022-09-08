@@ -63,6 +63,74 @@ export declare enum OptionType {
   NS = "NS",
   ALL = "ALL"
 }
+
+export interface optionDeliverables {
+  symbol: string,
+  assetType: string,
+  deliverableUnits: string,
+  currencyType: string
+}
+
+export interface OptionDetails {
+  putCall: string,
+  symbol: string,
+  description: string,
+  exchangeName: string,
+  bid: number,
+  ask: number,
+  last: number,
+  mark: number,
+  bidSize: number,
+  askSize: number,
+  bidAskSize: string,
+  lastSize: number,
+  highPrice: number,
+  lowPrice: number,
+  openPrice: number,
+  closePrice: number,
+  totalVolume: number,
+  tradeDate: string | null,
+  tradeTimeInLong: number,
+  quoteTimeInLong: number,
+  netChange: number,
+  volatility: number,
+  delta: number,
+  gamma: number,
+  theta: number,
+  vega: number,
+  rho: number,
+  openInterest: number,
+  timeValue: number,
+  theoreticalOptionValue: number,
+  theoreticalVolatility: number,
+  optionDeliverablesList: optionDeliverables[] | null,
+  strikePrice: number,
+  expirationDate: number,
+  daysToExpiration: number,
+  expirationType: string,
+  lastTradingDay: number,
+  multiplier: number,
+  settlementType: string,
+  deliverableNote: string,
+  isIndexOption: boolean | null,
+  percentChange: number,
+  markChange: number,
+  markPercentChange: number,
+  intrinsicValue: number,
+  nonStandard: boolean,
+  pennyPilot: boolean,
+  inTheMoney: boolean,
+  mini: boolean
+}
+
+export interface StrikeArray {
+  [key: string]: OptionDetails[]
+}
+
+export interface ExpDateMap{
+  [key: string]: StrikeArray
+}
+
 export interface OptionChainResponse {
   symbol: string;
   status: string;
@@ -75,8 +143,8 @@ export interface OptionChainResponse {
   interestRate: number;
   underlyingPrice: number;
   volatility: number;
-  callExpDateMap: any;
-  putExpDateMap: any;
+  callExpDateMap: ExpDateMap;
+  putExpDateMap: ExpDateMap;
   monthlyStrategyList: MonthlyStrategy[];
 }
 export interface Underlying {

@@ -1,19 +1,43 @@
 import { WebSocket } from "ws"
+import { Context } from "@temporalio/activity"
+import path from "path"
+import fs from "fs"
+import https from "https"
+import url from "url"
+import { tdLogin } from "../tda/middleware/tdLogin"
+import { tdAuthUrl } from "../tda/middleware/tdAuthUrl"
 import { CurrentPriceData } from "../interfaces/currentPriceData"
 import { SupportKeyLevels } from "../interfaces/supportKeyLevels"
 import { SupplyDemandZones } from "../interfaces/supplyDemandZones"
 import { PositionSetup } from "../interfaces/positionSetup"
 import { OptionsSelection } from "../interfaces/optionsSelection"
 import { OpenPositionSignal } from "../interfaces/openPositionSignal"
-import { ClosePositionSignal } from "../interfaces/closePositionSignal"
-import { TdaClient } from "../tda/connection/tdaClient"
-import { ContractType, OptionType } from "../tda/models/optionChain"
-import { AssetType, ComplexOrderStrategyType, CurrencyType, DurationType, InstructionType, OptionInstrument, OptionInstrumentType, OrderLegType, OrderStrategyType, OrderType, PositionEffect, PutCall, SessionType, PlaceOrdersResponse } from "../tda/models/order"
-let moment = require('moment-timezone')
+import { UserPrinciples } from "../interfaces/UserPrinciples"
+import { Token } from "../interfaces/token"
+import { 
+  GetOrderResponse, 
+  OrdersConfig, 
+  PlaceOrdersResponse, 
+  AssetType, 
+  ComplexOrderStrategyType, 
+  DurationType, 
+  InstructionType, 
+  OrderLegType, 
+  OrderStrategyType, 
+  OrderType, 
+  PositionEffect, 
+  PutCall, 
+  SessionType 
+} from "../interfaces/orders"
+import { SecuritiesAccount } from "../interfaces/account"
+import { OptionChainConfig, OptionChainResponse, ContractType  } from "../interfaces/optionChain"
+import { SocketResponse } from "../interfaces/websocketEvent"
+import moment from "moment-timezone"
 
 
 
-// let data = {
+
+// const data = {
 //   "access_token":"De5IoN1Y5xCGA2mfLREl14IoTud9cAaVc4CQuoOhhYAl932zeJ3FY7apAFE0l8SAW3i8ulmzJ7RgIq9lRFPS+a/fF2aSW4HXLkc9GJZXlPd6V57SlFzfGYHhQ0WJJSEZv8+cYr8PtaYlM80ea0rf4a9svviMkQpn3o0wY7FwOUl0t6yEno1PeJ3goi/g8hy/pJ0IKjLFJAfTamVg9lHs6AQ+ktuCagWTgWnl5ixj3wSd0jkFSWDJZDFp/IcWi5RQpBFHsgbFdoaOOE/w2ZepEQiSY8bVFyv1t/6eGEjQXBoYVyQviYFZ3Y7jASMLnl+NupSMweucHO0KMvpfve/DSzLyUFDwJCtSlhSd/LNpGcbqlKLTvmiprSIlhosCPvnzOWB39IGWXfZj2Id4W3oi/882Vfpab8uxEXqH7dLbJImBXseLaHfqQiOpiRxTD+IaonvrMZtCkxGth6g0s05+kTT5+vxj9+zxgEMvtgIA0sKhVQdUiM6xKeBVs/IEYOEZgl/AR06cMaJQNS6bnkz1Ddqgfx0vlb5ty87s0bbuA+s0yByCR100MQuG4LYrgoVi/JHHvl2bVnGHF4m3p7JzpgqOlAXOvCfzuOug6Dg6XsAU2M07mxi+QxN5YUFveYn4GZf49/W5HHStYpoObRak/eVs215eo72ScC/2hEjWm8fGdUpOEG0e9YpRWDa08pzsUTBce+a30KFk4mJ2wvrlvsHs/dPwpIZLAKnW7ObzUuJJoskolxkfwE72grjVtJal83g2nBGpEJVLsVTylLq1zGN3e7wPxRMkLASOvKBJHJeznQUhAu8gSxBNf6RPKdK3q4CT/Dw6LfmSq4ERbiCZxhQC9tjzGCzfAOsI0qnmUb4Wbp7UNkQRVEp4s2hVh1J5P8wpMj203WVt7L4NxZ7rVLmac2F38mNk8BGO0PdsbQqTP2LFwq2l9OMNm7cuYHthKDBSzD3FnH0VacDTVoLq+bi7bjb2COUOgGk6dRIVeSipTnA7wuEgeCSDRf03MBMSLQCezC3TjjWI2odARtggaIg2yPFajjzxiZ9qZrcS0AnAmXQ/UsJjNidaD8N4XNEhwFaphHOMVAeMOD/pzEuMvHew0jupJf7RrnWkJEZsAhYwIQpeZLkWJQ==212FD3x19z9sWBHDJACbC00B75E",
 //   "symbol":"PFE",
 //   "score":7,
@@ -122,10 +146,11 @@ export async function is_market_open(): Promise<boolean> {
   // waits for time to reach 9:50am newyork time then
   // returns true
 
-  let marketOpen = await moment().tz('America/New_York').format('H:mm')
+  let marketOpen = moment().tz('America/New_York').format('H:mm')
 
   while (marketOpen !== '9:50') {
-    marketOpen = await moment().tz('America/New_York').format('H:mm')
+    marketOpen = moment().tz('America/New_York').format('H:mm')
+    Context.current().heartbeat();
   }
 
   return true
@@ -135,6 +160,7 @@ export async function get_surrounding_key_levels(current_price: number, key_leve
   // 
 
   for (let i = 0; i < key_levels.length; i++){
+    Context.current().heartbeat();
     if (i == 0){
       if (current_price < key_levels[i] && current_price > key_levels[i + 1]) {
         return {
@@ -233,7 +259,7 @@ export async function is_demand_zone(current_price: number, demand_zones: Supply
   // finds the demand zone that the price currently resides in else return null
   for (let i = 0; i < 7; i++) {
     if (current_price > demand_zones[i][0].double && current_price < demand_zones[i][1].double) {
-      let zone = [[demand_zones[i][0].double, demand_zones[i][1].double]]
+      const zone = [[demand_zones[i][0].double, demand_zones[i][1].double]]
       return zone
     } else {
       continue
@@ -244,16 +270,16 @@ export async function is_demand_zone(current_price: number, demand_zones: Supply
 }
 
 export async function find_demand_zone(current_price: number, demand_zones: SupplyDemandZones[][]): Promise<number[][] | null> {
-  let demandZone = await is_demand_zone(current_price, demand_zones)
-  let surroundingZones = []
+  const demandZone = await is_demand_zone(current_price, demand_zones)
+  const surroundingZones = []
 
   if (demandZone !== null) {
     return demandZone
   } else {
     for (let i = 0; i < demand_zones.length; i++) {
       if (i < demand_zones.length - 1 && (current_price < demand_zones[i][1].double && current_price > demand_zones[i+1][0].double)) {
-        let zone1 = [demand_zones[i][0].double, demand_zones[i][1].double]
-        let zone2 = [demand_zones[i+1][0].double, demand_zones[i+1][1].double]
+        const zone1 = [demand_zones[i][0].double, demand_zones[i][1].double]
+        const zone2 = [demand_zones[i+1][0].double, demand_zones[i+1][1].double]
         surroundingZones.push(zone1, zone2)
         return surroundingZones
       } else {
@@ -269,7 +295,7 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
   // finds the supply zone that the price currently resides in or is closest too
   for (let i = 0; i < supply_zones.length; i++) {
     if (current_price < supply_zones[i][0].double && current_price > supply_zones[i][1].double) {
-      let zone = [[supply_zones[i][0].double, supply_zones[i][1].double]]
+      const zone = [[supply_zones[i][0].double, supply_zones[i][1].double]]
       return zone
     } else {
       continue
@@ -280,16 +306,16 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
 }
 
 export async function find_supply_zone(current_price: number, supply_zones: SupplyDemandZones[][]): Promise<number[][] | null> {
-  let supplyZone = await is_supply_zone(current_price, supply_zones)
-  let surroundingZones = []
+  const supplyZone = await is_supply_zone(current_price, supply_zones)
+  const surroundingZones = []
 
   if (supplyZone !== null) {
     return supplyZone
   } else {
     for (let i = 0; i < supply_zones.length; i++) {
       if (i < supply_zones.length - 1 && (current_price < supply_zones[i][0].double && current_price > supply_zones[i+1][1].double)) {
-        let zone1 = [supply_zones[i][0].double, supply_zones[i][1].double]
-        let zone2 = [supply_zones[i+1][0].double, supply_zones[i+1][1].double]
+        const zone1 = [supply_zones[i][0].double, supply_zones[i][1].double]
+        const zone2 = [supply_zones[i+1][0].double, supply_zones[i+1][1].double]
         surroundingZones.push(zone1, zone2)
         return surroundingZones
       } else {
@@ -301,30 +327,43 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-//@ts-ignore
 export async function get_current_price(wsUri:string, request:object, demand_zones: SupplyDemandZones[][], supply_zones: SupplyDemandZones[][]): Promise<CurrentPriceData> {
   // makes a request to td ameritrade User Principals endpoint using the token
   // to get the info needed to make a ameritrade streaming request
 
-  const websocket = new WebSocket(wsUri)
   let closePrice = 0
   let currentPriceData: CurrentPriceData = {
     closePrice: closePrice,
     demandZone: [[0]],
     supplyZone: [[0]]
   }
-  let marketClose = await moment().tz('America/New_York').format('Hmm')
+  let marketClose = moment().tz('America/New_York').format('Hmm')
+  let messageCount = 0
+  const messages: SocketResponse[] | null = []
 
-  websocket.onmessage = async function(event) {
-    marketClose = await moment().tz('America/New_York').format('Hmm')
+  return new Promise(async (resolve, reject) => {
+    const websocket = new WebSocket(wsUri)
 
-    //@ts-ignore
-    if (event.data[0].service === 'CHART_EQUITY') {
-      //@ts-ignore
-      closePrice = event.data[0].content[0]["4"] 
+    websocket.onmessage = async function(event) {
+      marketClose = moment().tz('America/New_York').format('Hmm')
 
-      let demandZone = await find_demand_zone(closePrice, demand_zones)
-      let supplyZone = await find_supply_zone(closePrice, supply_zones)
+      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
+        websocket.close()
+      }
+
+      const data = JSON.parse(JSON.stringify(event.data))
+      
+      if (data[0].service === 'QUOTE') {
+        messages.push(data[0])
+        messageCount += 1
+      }
+    }
+
+    websocket.onclose = async function() {
+      closePrice = messages[0].content[0]["3"] 
+
+      const demandZone = await find_demand_zone(closePrice, demand_zones)
+      const supplyZone = await find_supply_zone(closePrice, supply_zones)
 
       if (demandZone?.length === 1 && supplyZone?.length === 1) {
         currentPriceData = {
@@ -332,33 +371,29 @@ export async function get_current_price(wsUri:string, request:object, demand_zon
           demandZone,
           supplyZone
         }
-        websocket.close()
       } else if (demandZone?.length === 1) {
         currentPriceData = {
           closePrice,
           demandZone,
           supplyZone: [[0]]
         }
-        websocket.close()
       } else if (supplyZone?.length === 1) {
         currentPriceData = {
           closePrice,
           demandZone: [[0]],
           supplyZone
         }
-        websocket.close()
-      } else if (parseInt(marketClose) >= 1600) {
-        websocket.close()
       }
+
+      return resolve(currentPriceData)
     }
-  }
 
-  websocket.onclose = function(event) {
-    return currentPriceData
-  }
-  
-  websocket.send(JSON.stringify(request))
-
+    websocket.onerror = function(err) {
+      return reject(err)
+    }
+    
+    websocket.send(JSON.stringify(request))
+  })
 }
 
 export async function get_position_setup(support_key_levels: SupportKeyLevels, demand_zone: number[][], supply_zone: number[][]): Promise<PositionSetup> {
@@ -478,25 +513,20 @@ export async function get_position_setup(support_key_levels: SupportKeyLevels, d
   }
 }
 
-export async function getOptionsSelection(position_setup: PositionSetup, symbol: string, access_token: string, client_id: string, refresh_token: string): Promise<OptionsSelection> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
+export async function getOptionsSelection(position_setup: PositionSetup, symbol: string, access_token: string): Promise<OptionsSelection> {
 
   let callOptionResponse = null
   let callStrike = ''
   let putOptionResponse = null
   let putStrike = ''
-  let toDate = moment().add((moment().isoWeekday() % 5), 'day').format('YYYY-MM-DD')
-  let fromDate = moment().add((moment().isoWeekday() % 5), 'day').subtract(1, 'day').format('YYYY-MM-DD')
-  let numberOfDaysAway = (moment().isoWeekday() % 5 ) - 1
-  let optionString = `${fromDate}:${numberOfDaysAway}`
+  const toDate = moment().add((moment().isoWeekday() % 5), 'day').format('YYYY-MM-DD')
+  const fromDate = moment().add((moment().isoWeekday() % 5), 'day').subtract(1, 'day').format('YYYY-MM-DD')
+  const numberOfDaysAway = (moment().isoWeekday() % 5 ) - 1
+  const optionString = `${fromDate}:${numberOfDaysAway}`
 
   if (position_setup.demand !== null) {
     callStrike = (Math.ceil(position_setup.demand.takeProfit / 5) * 5).toFixed(1)
-    callOptionResponse = await tdaclient.getOptionChain({
+    callOptionResponse = await getOptionChain(access_token, {
       symbol: symbol,
       contractType: ContractType.CALL,
       strike: parseFloat(callStrike),
@@ -508,7 +538,7 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
 
   if (position_setup.supply !== null) {
     putStrike = (Math.floor(position_setup.supply.takeProfit / 5) * 5).toFixed(1)
-    putOptionResponse = await tdaclient.getOptionChain({
+    putOptionResponse = await getOptionChain(access_token, {
       symbol: symbol,
       contractType: ContractType.PUT,
       strike: parseFloat(putStrike),
@@ -519,10 +549,10 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
   }
 
   if (callOptionResponse !== null && putOptionResponse !== null) {
-    let callInfo = callOptionResponse.callExpDateMap[optionString]
-    let call = callInfo[callStrike][0]
-    let putInfo = putOptionResponse.putExpDateMap[optionString]
-    let put = putInfo[putStrike][0]
+    const callInfo = callOptionResponse.callExpDateMap[optionString]
+    const call = callInfo[callStrike][0]
+    const putInfo = putOptionResponse.putExpDateMap[optionString]
+    const put = putInfo[putStrike][0]
 
     return {
       CALL: {
@@ -555,8 +585,8 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
       }
     }
   } else if (callOptionResponse !== null) {
-    let callInfo = callOptionResponse.callExpDateMap[optionString]
-    let call = callInfo[callStrike][0]
+    const callInfo = callOptionResponse.callExpDateMap[optionString]
+    const call = callInfo[callStrike][0]
 
     return {
       CALL: {
@@ -576,8 +606,8 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
       PUT: null
     }
   } else if (putOptionResponse !== null) {
-    let putInfo = putOptionResponse.putExpDateMap[optionString]
-    let put = putInfo[putStrike][0]
+    const putInfo = putOptionResponse.putExpDateMap[optionString]
+    const put = putInfo[putStrike][0]
 
     return {
       CALL: null,
@@ -604,55 +634,43 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
   }
 }
 
-export async function checkAccountAvailableBalance(access_token: string, client_id: string, refresh_token: string): Promise<number> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
-
-  let getAccountResponse = await tdaclient.getAccount()
-  let availableBalance = getAccountResponse.projectBalances.cashAvailableForTrading
+export async function checkAccountAvailableBalance(access_token: string, account_id: string): Promise<number> {
+  const getAccountResponse = await getAccount(access_token, account_id)
+  const availableBalance = getAccountResponse.projectBalances.cashAvailableForTrading
 
   return availableBalance
 }
 
-export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<PlaceOrdersResponse | null> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
-
+export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse | null> {
   let price = 0
   let quantity = 0
   let symbol = ''
 
   if (options.CALL !== null && options.PUT !== null) {
-    let quantityCall = Math.floor(budget / options.CALL.ask)
-    let quantityPut = Math.floor(budget / options.PUT.ask)
+    const quantityCall = Math.floor(budget / options.CALL.ask)
+    const quantityPut = Math.floor(budget / options.PUT.ask)
     price = optionType === 'CALL' ? options.CALL.ask : options.PUT.ask
     symbol = optionType === 'CALL' ? options.CALL.symbol : options.PUT.symbol
     quantity = optionType === 'CALL' ? quantityCall : quantityPut
   } else if (options.CALL !== null) {
-    let quantityCall = Math.floor(budget / options.CALL.ask)
+    const quantityCall = Math.floor(budget / options.CALL.ask)
     price = options.CALL.ask
     symbol = options.CALL.symbol
     quantity = quantityCall
   } else if (options.PUT !== null) {
-    let quantityPut = Math.floor(budget / options.PUT.ask)
+    const quantityPut = Math.floor(budget / options.PUT.ask)
     price = options.PUT.ask
     symbol = options.PUT.symbol
     quantity = quantityPut
   }
 
-  let accountBalance = await checkAccountAvailableBalance(access_token, client_id, refresh_token)
+  const accountBalance = await checkAccountAvailableBalance(access_token, account_id)
 
   if (accountBalance < price) {
     return null
   }
 
-  let openPositionResponse = await tdaclient.placeOrder({
+  const openPositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
     order: {
       orderType: OrderType.LIMIT,
@@ -678,17 +696,8 @@ export async function openPosition(options: OptionsSelection, optionType: string
   return openPositionResponse
 }
 
-export async function checkIfPositionFilled(order_id:PlaceOrdersResponse, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<number> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
-
-  let position = await tdaclient.getOrder({
-    accountId: account_id,
-    orderId: order_id.orderId
-  })
+export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, account_id: string, access_token: string): Promise<number> {
+  const position = await getOrder(access_token, account_id, order_id.orderId)
 
   if(position.status === 'FILLED' && position.filledQuantity) {
     return position.filledQuantity
@@ -697,77 +706,78 @@ export async function checkIfPositionFilled(order_id:PlaceOrdersResponse, accoun
   }
 }
 
-export async function waitToSignalOpenPosition(wsUri:string, request:object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<OpenPositionSignal> {
-  const websocket = new WebSocket(wsUri)
+export async function waitToSignalOpenPosition(wsUri:string, request:object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string): Promise<OpenPositionSignal> {
   let closePrice
   let position: PlaceOrdersResponse | null = null
-  let noGoodBuys: boolean = false
-  let demandOrSupply: string = ''
-  let marketClose = await moment().tz('America/New_York').format('Hmm')
+  let noGoodBuys = false
+  let demandOrSupply = ''
+  let callOrPut = ''
+  let marketClose = moment().tz('America/New_York').format('Hmm')
 
-  websocket.onmessage = async function(event) {
-    marketClose = await moment().tz('America/New_York').format('Hmm')
+  return new Promise(async (resolve, reject) => {
+    const websocket = new WebSocket(wsUri)
 
-    if (parseInt(marketClose) >= 1600) {
-      noGoodBuys = true
-      websocket.close()
-    }
+    websocket.onmessage = async function(event) {
+      Context.current().heartbeat();
+      marketClose = moment().tz('America/New_York').format('Hmm')
 
-    //@ts-ignore
-    if (event.data[0].service === 'CHART_EQUITY') {
-      //@ts-ignore
-      closePrice = event.data[0].content[0]["4"] 
+      if (parseInt(marketClose) >= 1600) {
+        noGoodBuys = true
+        websocket.close()
+      }
 
-      if (position_setup.demand && position_setup.supply) {
-        if (closePrice >= position_setup.demand.entry) {
-          position = await openPosition(options, 'CALL', budget, account_id, access_token, client_id, refresh_token)
-          demandOrSupply = 'DEMAND'
-          websocket.close()
-        } else if (closePrice <= position_setup.supply.entry) {
-          position = await openPosition(options, 'PUT', budget, account_id, access_token, client_id, refresh_token)
-          demandOrSupply = 'SUPPLY'
-          websocket.close()
-        }
-      } else if (position_setup.demand) {
-        if (closePrice >= position_setup.demand.entry) {
-          position = await openPosition(options, 'CALL', budget, account_id, access_token, client_id, refresh_token)
-          demandOrSupply = 'DEMAND'
-          websocket.close()
-        }
-      } else if (position_setup.supply) {
-        if (closePrice <= position_setup.supply.entry) {
-          position = await openPosition(options, 'PUT', budget, account_id, access_token,  client_id, refresh_token)
-          demandOrSupply = 'SUPPLY'
-          websocket.close()
+      const data = JSON.parse(JSON.stringify(event.data))
+
+      if (data[0].service === 'QUOTE') {
+        closePrice = data[0].content[0]["3"] 
+
+        if (position_setup.demand && position_setup.supply) {
+          if (closePrice >= position_setup.demand.entry) {
+            callOrPut = 'CALL'
+            demandOrSupply = 'DEMAND'
+            websocket.close()
+          } else if (closePrice <= position_setup.supply.entry) {
+            callOrPut = 'PUT'
+            demandOrSupply = 'SUPPLY'
+            websocket.close()
+          }
+        } else if (position_setup.demand) {
+          if (closePrice >= position_setup.demand.entry) {
+            callOrPut = 'CALL'
+            demandOrSupply = 'DEMAND'
+            websocket.close()
+          }
+        } else if (position_setup.supply) {
+          if (closePrice <= position_setup.supply.entry) {
+            callOrPut = 'PUT' 
+            demandOrSupply = 'SUPPLY'
+            websocket.close()
+          }
         }
       }
     }
-  }
 
-  websocket.onclose = function(event) {
-    console.log('waitToSignalOpenPosition socket closed')
-  }
+    websocket.onclose = async function() {
+      console.log('waitToSignalOpenPosition socket closed')
+      position = await openPosition(options, callOrPut , budget, account_id, access_token)
 
-  websocket.send(JSON.stringify(request))
+      return resolve({
+        position,
+        noGoodBuys,
+        demandOrSupply
+      })
+    }
 
-  return {
-    position,
-    noGoodBuys,
-    demandOrSupply
-  }
+    websocket.onerror = function(err) {
+      return reject(err)
+    }
+
+    websocket.send(JSON.stringify(request))
+  })
 }
 
-export async function getOptionSymbol(order_id:PlaceOrdersResponse, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<string> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
-
-  let option = await tdaclient.getOrder({
-    accountId: account_id,
-    orderId: order_id.orderId
-  })
+export async function getOptionSymbol(order_id:PlaceOrdersResponse, account_id: string, access_token: string): Promise<string> {
+  const option = await getOrder(access_token, account_id, order_id.orderId)
 
   if (option.orderLegCollection?.instrument.symbol) {
     return option.orderLegCollection?.instrument.symbol
@@ -777,16 +787,10 @@ export async function getOptionSymbol(order_id:PlaceOrdersResponse, account_id: 
 
 }
 
-export async function cutPosition(symbol:string, quantity:number, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<PlaceOrdersResponse> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
+export async function cutPosition(symbol:string, quantity:number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+  const newQuantity = Math.floor(quantity / 2)
 
-  let newQuantity = Math.floor(quantity / 2)
-
-  let cutPositionResponse = await tdaclient.placeOrder({
+  const cutPositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
     order: {
       orderType: OrderType.MARKET,
@@ -810,14 +814,8 @@ export async function cutPosition(symbol:string, quantity:number, account_id: st
   return cutPositionResponse
 }
 
-export async function closePosition(symbol:string, quantity:number, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<PlaceOrdersResponse> {
-  const tdaclient = await TdaClient.from({
-    access_token,
-    client_id,
-    refresh_token
-  })
-
-  let closePositionResponse = await tdaclient.placeOrder({
+export async function closePosition(symbol:string, quantity:number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+  const closePositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
     order: {
       orderType: OrderType.MARKET,
@@ -837,157 +835,418 @@ export async function closePosition(symbol:string, quantity:number, account_id: 
       complexOrderStrategyType: ComplexOrderStrategyType.NONE
     }
   })
+
   return closePositionResponse
-}
+} 
 
-export async function waitToSignalClosePosition(wsUri:string, request:object, symbol:string, quantity:number, demandOrSupply:string, position_setup: PositionSetup, account_id: string, access_token: string, client_id: string, refresh_token: string): Promise<ClosePositionSignal> {
-  const websocket = new WebSocket(wsUri)
-  let closePrice
+export async function waitToSignalCutPosition(wsUri:string, request:object, symbol:string, quantity:number, demandOrSupply:string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<number> {
+  let cutPrice
   let position: PlaceOrdersResponse | null = null
-  let noGoodBuys: boolean = false
-  let marketClose = await moment().tz('America/New_York').format('Hmm')
-  let cut = false
-  let remainingQuantity = quantity - Math.floor(quantity / 2)
-  let cutFilled: number | null
-  let closeFilled: number | null
-  let waited: number = 0
+  let skipCut = false
+  let marketClose = moment().tz('America/New_York').format('Hmm')
+  let cutFilled = 0
 
-  websocket.onmessage = async function(event) {
-    marketClose = await moment().tz('America/New_York').format('Hmm')
+  return new Promise(async (resolve, reject) => {
+    const websocket = new WebSocket(wsUri)
 
-    if (parseInt(marketClose) >= 1600) {
-      noGoodBuys = true
-      websocket.close()
-    }
+    websocket.onmessage = async function(event) {
+      Context.current().heartbeat();
+      marketClose = moment().tz('America/New_York').format('Hmm')
 
-    //@ts-ignore
-    if (event.data[0].service === 'CHART_EQUITY') {
-      //@ts-ignore
-      closePrice = event.data[0].content[0]["4"]  
+      if (parseInt(marketClose) >= 1600 || quantity < 2) {
+        skipCut = true
+        websocket.close()
+      }
 
-      if (demandOrSupply === 'DEMAND' && position_setup.demand) {
-        if (cut === false && quantity > 1) {
-          if (closePrice < position_setup.demand.cutPosition && closePrice >= position_setup.demand.entry) {
+      const data = JSON.parse(JSON.stringify(event.data))
+
+      if (data[0].service === 'QUOTE') {
+        cutPrice = data[0].content[0]["3"]  
+
+        if (demandOrSupply === 'DEMAND' && position_setup.demand) {
+          if (cutPrice < position_setup.demand.cutPosition && cutPrice >= position_setup.demand.entry) {
             console.log('waiting to cut position')
-          } else if (closePrice >= position_setup.demand.cutPosition && closePrice < position_setup.demand.takeProfit) {
-            position = await cutPosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            cutFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-  
-            if (cutFilled > 0) {
-              cut = true
-            } else {
-              cut = false
-            }
-  
-          } else if (closePrice >= position_setup.demand.takeProfit) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice <= position_setup.demand.stopLoss) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
+          } else if (cutPrice >= position_setup.demand.cutPosition && cutPrice < position_setup.demand.takeProfit) {
+            websocket.close()
+          } else if (cutPrice >= position_setup.demand.takeProfit) {
+            skipCut = true
+            websocket.close()
+          } else if (cutPrice <= position_setup.demand.stopLoss) {
+            skipCut = true
+            websocket.close()
           }
-        } else if (cut === true || quantity === 1) {
-          if (closePrice >= position_setup.demand.cutPosition && closePrice < position_setup.demand.takeProfit || closePrice < position_setup.demand.cutPosition && closePrice > position_setup.demand.entry) {
-            console.log('waiting to take profit')
-            waited ++
-          } else if (closePrice >= position_setup.demand.takeProfit) {
-            position = await closePosition(symbol, remainingQuantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice >= position_setup.demand.cutPosition && closePrice < position_setup.demand.takeProfit && waited > 5) {
-            position = await closePosition(symbol, remainingQuantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice <= position_setup.demand.stopLoss) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          }
-        }
-      } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
-        if (cut === false && quantity > 1) {
-          if (closePrice > position_setup.supply.cutPosition && closePrice <= position_setup.supply.entry) {
+        } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
+          if (cutPrice > position_setup.supply.cutPosition && cutPrice <= position_setup.supply.entry) {
             console.log('waiting to cut position')
-          } else if (closePrice <= position_setup.supply.cutPosition && closePrice > position_setup.supply.takeProfit) {
-            position = await cutPosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            cutFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-  
-            if (cutFilled > 0) {
-              cut = true
-            } else {
-              cut = false
-            }
-          } else if (closePrice <= position_setup.supply.takeProfit) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice >= position_setup.supply.stopLoss) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          }
-        } else if (cut === true  || quantity === 1) {
-          if (closePrice <= position_setup.supply.cutPosition && closePrice > position_setup.supply.takeProfit || closePrice > position_setup.supply.cutPosition && closePrice < position_setup.supply.entry) {
-            console.log('waiting to take profit')
-            waited ++
-          } else if (closePrice <= position_setup.supply.takeProfit) {
-            position = await closePosition(symbol, remainingQuantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice <= position_setup.supply.cutPosition && closePrice > position_setup.supply.takeProfit && waited > 5) {
-            position = await closePosition(symbol, remainingQuantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
-          } else if (closePrice >= position_setup.supply.stopLoss) {
-            position = await closePosition(symbol, quantity, account_id, access_token, client_id, refresh_token)
-            closeFilled = await checkIfPositionFilled(position, account_id, access_token, client_id, refresh_token)
-
-            if (closeFilled > 0) {
-              websocket.close()
-            }
+          } else if (cutPrice <= position_setup.supply.cutPosition && cutPrice > position_setup.supply.takeProfit) {
+            websocket.close()
+          } else if (cutPrice <= position_setup.supply.takeProfit) {
+            skipCut = true
+            websocket.close()
+          } else if (cutPrice >= position_setup.supply.stopLoss) {
+            skipCut = true
+            websocket.close()
           }
         }
       }
     }
+
+    websocket.onclose = async function() {
+      console.log('waitToSignalClosePosition socket closed')
+      if (skipCut) {
+        return resolve(cutFilled)
+      }
+
+      position = await cutPosition(symbol, quantity, account_id, access_token)
+      cutFilled = await checkIfPositionFilled(position, account_id, access_token)
+
+      return resolve(cutFilled)
+    }
+
+    websocket.onerror = function(err) {
+      return reject(err)
+    }
+
+    websocket.send(JSON.stringify(request))
+  })
+}
+
+export async function waitToSignalClosePosition(wsUri:string, request:object, symbol:string, quantity:number, demandOrSupply:string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+  let closePrice
+  let position: PlaceOrdersResponse
+  let marketClose = moment().tz('America/New_York').format('Hmm')
+  let closeFilled = 0
+  let remainingQuantity = 0
+  let waited = 0
+
+  return new Promise(async (resolve, reject) => {
+    const websocket = new WebSocket(wsUri)
+
+    websocket.onmessage = async function(event) {
+      Context.current().heartbeat();
+      marketClose = moment().tz('America/New_York').format('Hmm')
+
+      if (parseInt(marketClose) >= 1600) {
+        websocket.close()
+      }
+
+      const data = JSON.parse(JSON.stringify(event.data))
+
+      if (data[0].service === 'QUOTE') {
+        closePrice = data[0].content[0]["3"]  
+
+        if (demandOrSupply === 'DEMAND' && position_setup.demand) {
+          if (closePrice >= position_setup.demand.cutPosition && closePrice < position_setup.demand.takeProfit || closePrice < position_setup.demand.cutPosition && closePrice > position_setup.demand.entry) {
+            console.log('waiting to take profit')
+            waited ++
+          } else if (closePrice >= position_setup.demand.takeProfit) {
+            websocket.close()
+          } else if (closePrice >= position_setup.demand.cutPosition && closePrice < position_setup.demand.takeProfit && waited > 5) {
+            websocket.close()
+          } else if (closePrice <= position_setup.demand.stopLoss) {
+            websocket.close()
+          }
+        } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
+          if (closePrice <= position_setup.supply.cutPosition && closePrice > position_setup.supply.takeProfit || closePrice > position_setup.supply.cutPosition && closePrice < position_setup.supply.entry) {
+            console.log('waiting to take profit')
+            waited ++
+          } else if (closePrice <= position_setup.supply.takeProfit) {
+            websocket.close()
+          } else if (closePrice <= position_setup.supply.cutPosition && closePrice > position_setup.supply.takeProfit && waited > 5) {
+            websocket.close()
+          } else if (closePrice >= position_setup.supply.stopLoss) {
+            websocket.close()
+          }
+        }
+      }
+    }
+
+    websocket.onclose = async function() {
+      console.log('waitToSignalClosePosition socket closed')
+
+      while (remainingQuantity > 0 ) {
+        position = await closePosition(symbol, quantity, account_id, access_token)
+        closeFilled = await checkIfPositionFilled(position, account_id, access_token)
+        remainingQuantity = quantity - closeFilled        
+      }
+
+      return resolve(position)
+    }
+
+    websocket.onerror = function(err) {
+      return reject(err)
+    }
+
+    websocket.send(JSON.stringify(request))
+  })
+}
+
+export async function getLoginCredentials (client_id: string): Promise<string> {
+  const address = await tdAuthUrl(client_id)
+
+  const urlCode = await tdLogin(address)
+  const parseUrl = url.parse(urlCode, true).query
+  const code = parseUrl.code
+  const postData = JSON.stringify(code);
+  const encodedPassword = encodeURIComponent(postData)
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/auth',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length':  Buffer.byteLength(encodedPassword)
+    },
+    rejectUnauthorized: false
   }
 
-  websocket.onclose = function(event) {
-    console.log('waitToSignalClosePosition socket closed')
+  let token: Token
+
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        token = await JSON.parse(parseJson)
+        const access_token_expire = Date.now() + token.expires_in
+        const refresh_token_expire = Date.now() + token.refresh_token_expires_in
+        const tokenJSON = {
+          access_token: token.access_token,
+          refresh_token: token.refresh_token,
+          access_token_expires_at: access_token_expire,
+          refresh_token_expires_at: refresh_token_expire,
+          logged_in: true,
+          access_token_expires_at_date: moment(access_token_expire).toISOString(),
+          refresh_token_expires_at_date: moment(refresh_token_expire).toISOString()
+        }
+  
+        fs.writeFile(path.resolve(__dirname, "../tda/token.json"), JSON.stringify(tokenJSON, null, 1), function (err) {
+          if (err) console.log(err)
+        })
+
+        return resolve(token.access_token)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
+
+    response.write(encodedPassword);
+    response.end();
+  })
+}
+
+export async function getUserPrinciples (access_token: string): Promise<UserPrinciples> {
+  const encodedtoken = encodeURIComponent(access_token)
+
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/streamer-auth',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length':  Buffer.byteLength(encodedtoken)
+    },
+    rejectUnauthorized: false
   }
 
-  websocket.send(JSON.stringify(request))
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        return resolve(parseJson)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
 
-  return {
-    position,
-    noGoodBuys
+    response.write(encodedtoken);
+    response.end();
+  })
+}
+
+export async function getAccount (access_token: string, account_id: string): Promise<SecuritiesAccount> {
+  const encodedtoken = encodeURIComponent(access_token)
+
+  const postData = {
+    token: encodedtoken,
+    accountId: account_id,
   }
+
+  const postDataAsString = JSON.stringify(postData)
+
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/td-account',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length':  Buffer.byteLength(postDataAsString)
+    },
+    rejectUnauthorized: false
+  }
+
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        return resolve(parseJson)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
+
+    response.write(postDataAsString);
+    response.end();
+  })
+}
+
+export async function placeOrder (access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
+  const encodedtoken = encodeURIComponent(access_token)
+
+  const postData = {
+    token: encodedtoken,
+    accountId: account_id,
+    orderData: order_data
+  }
+
+  const postDataAsString = JSON.stringify(postData)
+
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/td-place-order',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length':  Buffer.byteLength(postDataAsString)
+    },
+    rejectUnauthorized: false
+  }
+
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        return resolve(parseJson)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
+
+    response.write(postDataAsString);
+    response.end();
+  })
+}
+
+export async function getOrder (access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
+  const encodedtoken = encodeURIComponent(access_token)
+
+  const postData = {
+    token: encodedtoken,
+    accountId: account_id,
+    orderId: order_id
+  }
+
+  const postDataAsString = JSON.stringify(postData)
+
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/td-get-order',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length':  Buffer.byteLength(postDataAsString)
+    },
+    rejectUnauthorized: false
+  }
+
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        return resolve(parseJson)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
+
+    response.write(postDataAsString);
+    response.end();
+  })
+}
+
+export async function getOptionChain (access_token: string, option_chain_config: OptionChainConfig): Promise<OptionChainResponse> {
+  const encodedtoken = encodeURIComponent(access_token)
+
+  const postData = {
+    token: encodedtoken,
+    optionChainConfig: option_chain_config,
+  }
+
+  const postDataAsString = JSON.stringify(postData)
+
+  const authOptions = {
+    hostname: 'localhost',
+    port: 4000,
+    path: '/api/td-option-chain',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length':  Buffer.byteLength(postDataAsString)
+    },
+    rejectUnauthorized: false
+  }
+
+  return new Promise( async (resolve, reject) => {
+    const response = https.request(authOptions, (resp) => {
+      let data = ''
+      resp.on('data', (chunk) => {
+        data += chunk
+      })
+  
+      resp.on('end', async () => {
+        const parseJson = await JSON.parse(data)
+        return resolve(parseJson)
+      })
+    }).on('error', (e) => {
+      console.error('error', e);
+      return reject(e)
+    });
+
+    response.write(postDataAsString);
+    response.end();
+  })
 }

@@ -1,6 +1,9 @@
 export interface AccountConfig {
   accountId?: string;
-  fields?: any;
+  accessToken?: string;
+  fields?: {
+    [key: string]: string
+  };
 }
 export interface InitialBalances {
   accruedInterest: number;
