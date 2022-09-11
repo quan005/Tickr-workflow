@@ -1,7 +1,6 @@
 import { Kafka } from 'kafkajs'
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry'
 import { Connection, WorkflowClient } from '@temporalio/client'
-import { PriceAction } from './interfaces/workflows'
 import { priceAction } from './workflows/priceAction'
 import { PremarketData } from './interfaces/premarketData'
 
