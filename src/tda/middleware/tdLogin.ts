@@ -17,10 +17,10 @@ const tdLogin = (address: string) => {
       await page.goto(address)
     
       await page.click('#username0');
-      await page.keyboard.type('Quan0005'); //save in a env
+      await page.keyboard.type(`${process.env.TD_USERNAME}`);
     
       await page.click('#password1');
-      await page.keyboard.type('bF%9.APR^fgVcDv'); //save in a env
+      await page.keyboard.type(`${process.env.TD_PASSWORD}`);
       await page.waitForSelector('#accept')
     
       await page.click('#accept');
@@ -38,13 +38,13 @@ const tdLogin = (address: string) => {
       let selectedAnswer = ''
     
       if (secretQuestionTextSelection === "Question: What was your high school mascot?") {
-        selectedAnswer += 'aztec' //save in a env
+        selectedAnswer += `${process.env.TD_ANSWER_1}`
       } else if (secretQuestionTextSelection === "Question: What is your father's middle name?"){
-        selectedAnswer += 'lavon' //save in a env
+        selectedAnswer += `${process.env.TD_ANSWER_2}` 
       } else if (secretQuestionTextSelection === "Question: In what city were you married? (Enter full name of city only.)") {
-        selectedAnswer += 'chandler' //save in a env
+        selectedAnswer += `${process.env.TD_ANSWER_3}`
       } else {
-        selectedAnswer += 'bear' //save in a env
+        selectedAnswer += `${process.env.TD_ANSWER_4}`
       }
     
       await page.click('#secretquestion0');

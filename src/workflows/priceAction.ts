@@ -21,7 +21,7 @@ const {
 })
 
 export async function priceAction( premarketData: PremarketData ): Promise<string> {
-  const limit = premarketData.limit
+  // const limit = premarketData.limit
   const budget = premarketData.budget
   const clientId = premarketData.client_id
   const accountId = premarketData.account_id
@@ -98,19 +98,15 @@ export async function priceAction( premarketData: PremarketData ): Promise<strin
       const remainingQuantity = quantity - cutFilled
       const signalClosePosition = await waitToSignalClosePosition(wsUri, request, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token)
 
-      // if (signalClosePosition) {
+      // if (signalClosePosition.orderId) {
       //   return ''
-      // } else if (signalClosePosition.noGoodBuys) {
-      //   return 'SWING' // send message to kafka to swing position
       // } else {
-      //   return ''
+      //   return 'SWING' // send message to kafka to swing position
       // }
 
       return signalClosePosition.orderId
-    } else if (signalOpenPosition.noGoodBuys) {
-      return 'NOGOODPOSITIONS'
     } else {
-      return ''
+      return 'NOGOODPOSITIONS'
     }
   } else {
     return 'MARKETCLOSED'

@@ -36,112 +36,6 @@ import moment from "moment-timezone"
 
 
 
-
-// const data = {
-//   "access_token":"De5IoN1Y5xCGA2mfLREl14IoTud9cAaVc4CQuoOhhYAl932zeJ3FY7apAFE0l8SAW3i8ulmzJ7RgIq9lRFPS+a/fF2aSW4HXLkc9GJZXlPd6V57SlFzfGYHhQ0WJJSEZv8+cYr8PtaYlM80ea0rf4a9svviMkQpn3o0wY7FwOUl0t6yEno1PeJ3goi/g8hy/pJ0IKjLFJAfTamVg9lHs6AQ+ktuCagWTgWnl5ixj3wSd0jkFSWDJZDFp/IcWi5RQpBFHsgbFdoaOOE/w2ZepEQiSY8bVFyv1t/6eGEjQXBoYVyQviYFZ3Y7jASMLnl+NupSMweucHO0KMvpfve/DSzLyUFDwJCtSlhSd/LNpGcbqlKLTvmiprSIlhosCPvnzOWB39IGWXfZj2Id4W3oi/882Vfpab8uxEXqH7dLbJImBXseLaHfqQiOpiRxTD+IaonvrMZtCkxGth6g0s05+kTT5+vxj9+zxgEMvtgIA0sKhVQdUiM6xKeBVs/IEYOEZgl/AR06cMaJQNS6bnkz1Ddqgfx0vlb5ty87s0bbuA+s0yByCR100MQuG4LYrgoVi/JHHvl2bVnGHF4m3p7JzpgqOlAXOvCfzuOug6Dg6XsAU2M07mxi+QxN5YUFveYn4GZf49/W5HHStYpoObRak/eVs215eo72ScC/2hEjWm8fGdUpOEG0e9YpRWDa08pzsUTBce+a30KFk4mJ2wvrlvsHs/dPwpIZLAKnW7ObzUuJJoskolxkfwE72grjVtJal83g2nBGpEJVLsVTylLq1zGN3e7wPxRMkLASOvKBJHJeznQUhAu8gSxBNf6RPKdK3q4CT/Dw6LfmSq4ERbiCZxhQC9tjzGCzfAOsI0qnmUb4Wbp7UNkQRVEp4s2hVh1J5P8wpMj203WVt7L4NxZ7rVLmac2F38mNk8BGO0PdsbQqTP2LFwq2l9OMNm7cuYHthKDBSzD3FnH0VacDTVoLq+bi7bjb2COUOgGk6dRIVeSipTnA7wuEgeCSDRf03MBMSLQCezC3TjjWI2odARtggaIg2yPFajjzxiZ9qZrcS0AnAmXQ/UsJjNidaD8N4XNEhwFaphHOMVAeMOD/pzEuMvHew0jupJf7RrnWkJEZsAhYwIQpeZLkWJQ==212FD3x19z9sWBHDJACbC00B75E",
-//   "symbol":"PFE",
-//   "score":7,
-//   "sentiment":"Negative",
-//   "keyLevels":[61.71,61.17,60.52,59.58,58.49,57.6,55.46,40.94,33.36],
-//   "supportResistance":{"support":59.58,"resistance":60.52},
-//   "demandZones":[
-//     [{"double":58.87},{"double":59.515},{"string":"2021-12-17 20:55:00"}],
-//     [{"double":59.7101},{"double":60.41},{"string":"2021-12-17 18:50:00"}],
-//     [{"double":59.19},{"double":60.1},{"string":"2021-12-17 15:10:00"}],
-//     [{"double":59.19},{"double":60.73},{"string":"2021-12-17 14:40:00"}],
-//     [{"double":59.095},{"double":59.82},{"string":"2021-12-16 15:50:00"}],
-//     [{"double":57.8},{"double":58.54},{"string":"2021-12-16 14:45:00"}],
-//     [{"double":58.17},{"double":58.735},{"string":"2021-12-15 20:05:00"}],
-//     [{"double":57.266},{"double":57.81},{"string":"2021-12-15 15:50:00"}],
-//     [{"double":55.47},{"double":56.61},{"string":"2021-12-15 14:30:00"}],
-//     [{"double":54.44},{"double":55.32},{"string":"2021-12-13 15:00:00"}],
-//     [{"double":52.7},{"double":53.94},{"string":"2021-12-13 14:30:00"}],
-//     [{"double":51.97},{"double":52.7699},{"string":"2021-12-09 15:05:00"}],
-//     [{"double":51.145},{"double":51.905},{"string":"2021-12-07 20:30:00"}],
-//     [{"double":51.47},{"double":52.225},{"string":"2021-12-07 15:05:00"}],
-//     [{"double":50.4},{"double":51.32},{"string":"2021-12-07 14:35:00"}]
-//   ],
-//   "supplyZones":[
-//     [{"double":60.71},{"double":60.28},{"string":"2021-12-17 14:45:00"}],
-//     [{"double":61.0},{"double":60.49},{"string":"2021-12-16 18:35:00"}],
-//     [{"double":55.46},{"double":54.8999},{"string":"2021-12-14 15:00:00"}],
-//     [{"double":51.5},{"double":50.9605},{"string":"2021-12-08 14:55:00"}],
-//     [{"double":51.74},{"double":52.25},{"string":"2021-12-08 14:30:00"}],
-//     [{"double":54.55},{"double":54.04},{"string":"2021-12-02 15:35:00"}],
-//     [{"double":54.205},{"double":53.705},{"string":"2021-11-30 19:05:00"}],
-//     [{"double":53.82},{"double":53.315},{"string":"2021-11-30 15:45:00"}],
-//     [{"double":53.99},{"double":53.6},{"string":"2021-11-26 17:10:00"}],
-//     [{"double":54.63},{"double":54.22},{"string":"2021-11-26 15:30:00"}],
-//     [{"double":50.93},{"double":53.535},{"string":"2021-11-26 14:30:00"}],
-//     [{"double":51.05},{"double":50.545},{"string":"2021-11-22 14:50:00"}],
-//     [{"double":51.49},{"double":50.96},{"string":"2021-11-18 15:05:00"}],
-//     [{"double":50.71},{"double":50.205},{"string":"2021-11-17 15:45:00"}],
-//     [{"double":48.38},{"double":47.83},{"string":"2021-11-09 14:30:00"}]
-//   ],
-//   "userPrinciples": {
-//     "userId":"quan0005",
-//     "userCdDomainId":"A000000084163920",
-//     "primaryAccountId":"277420951",
-//     "lastLoginTime":"2021-12-20T14:46:42+0000",
-//     "tokenExpirationTime":"2021-12-20T15:16:43+0000",
-//     "loginTime":"2021-12-20T14:46:43+0000",
-//     "accessLevel":"CUS",
-//     "stalePassword":false,
-//     "streamerInfo": {
-//       "streamerSocketUrl":"streamer-ws.tdameritrade.com",
-//       "accessLevel":"ACCT",
-//       "streamerBinaryUrl":"streamer-bin.tdameritrade.com",
-//       "appId":"Quan0005",
-//       "acl":"AKBOBPCNCVDRDTDWESF7G1G3G5G7GKGLH1H3H5LTM1MROLPNQ2QSRFSDTETFTOTTUAURXBXNXOD2D4D6D8E2E4E6E8F2F4F6H7I1",
-//       "userGroup":"ACCT",
-//       "tokenTimestamp":"2021-12-20T14:46:44+0000",
-//       "token":"7bca36bce8568d3192d719c2db16c2971bd27135"
-//     },
-//     "professionalStatus":"NON_PROFESSIONAL",
-//     "quotes": {
-//       "isForexDelayed":true,
-//       "isOpraDelayed":false,
-//       "isAmexDelayed":false,
-//       "isNasdaqDelayed":false,
-//       "isIceDelayed":true,
-//       "isCmeDelayed":true,
-//       "isNyseDelayed":false
-//     },
-//     "streamerSubscriptionKeys": {
-//       "keys": [
-//         {"key":"b511cde4c261eaff0030aa0ca7de27498eb27e3881de3f9680ac89fcab93a68429b6abf2149599a9a3aac1681f24b7994"}
-//       ]
-//     },
-//     "exchangeAgreements": {
-//       "OPRA_EXCHANGE_AGREEMENT":"ACCEPTED",
-//       "NASDAQ_EXCHANGE_AGREEMENT":"ACCEPTED",
-//       "NYSE_EXCHANGE_AGREEMENT":"ACCEPTED"
-//     },
-//     "accounts": [
-//       {
-//         "accountId":"277420951",
-//         "displayName":"quan0005",
-//         "accountCdDomainId":"A000000084163919",
-//         "company":"AMER",
-//         "segment":"AMER",
-//         "acl":"AKBOBPCNCVDRDTDWESF7G1G3G5G7GKGLH1H3H5LTM1MROLPNQ2QSRFSDTETFTOTTUAURXBXNXO",
-//         "authorizations": {
-//           "levelTwoQuotes": {"boolean":true},
-//           "optionTradingLevel": {"string":"LONG"},
-//           "streamerAccess": {"boolean":true},
-//           "marginTrading": {"boolean":false},
-//           "streamingNews": {"boolean":false},
-//           "scottradeAccount": {"boolean":false},
-//           "advancedMargin": {"boolean":false},
-//           "apex": {"boolean":false},
-//           "stockTrading": {"boolean":true}
-//         }
-//       }
-//     ]
-//   }
-// }
-
-
 export async function is_market_open(): Promise<boolean> {
   // waits for time to reach 9:50am newyork time then
   // returns true
@@ -990,8 +884,8 @@ export async function getLoginCredentials (client_id: string): Promise<string> {
   const postData = JSON.stringify(code);
   const encodedPassword = encodeURIComponent(postData)
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/auth',
     method: 'POST',
     headers: {
@@ -1045,8 +939,8 @@ export async function getUserPrinciples (access_token: string): Promise<UserPrin
   const encodedtoken = encodeURIComponent(access_token)
 
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/streamer-auth',
     method: 'POST',
     headers: {
@@ -1088,8 +982,8 @@ export async function getAccount (access_token: string, account_id: string): Pro
   const postDataAsString = JSON.stringify(postData)
 
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/td-account',
     method: 'POST',
     headers: {
@@ -1132,8 +1026,8 @@ export async function placeOrder (access_token: string, account_id: string, orde
   const postDataAsString = JSON.stringify(postData)
 
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/td-place-order',
     method: 'POST',
     headers: {
@@ -1176,8 +1070,8 @@ export async function getOrder (access_token: string, account_id: string, order_
   const postDataAsString = JSON.stringify(postData)
 
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/td-get-order',
     method: 'POST',
     headers: {
@@ -1219,8 +1113,8 @@ export async function getOptionChain (access_token: string, option_chain_config:
   const postDataAsString = JSON.stringify(postData)
 
   const authOptions = {
-    hostname: 'localhost',
-    port: 4000,
+    hostname: `${process.env.API_HOSTNAME}`,
+    port: process.env.API_PORT,
     path: '/api/td-option-chain',
     method: 'POST',
     headers: {

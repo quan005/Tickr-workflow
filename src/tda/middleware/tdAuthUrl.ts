@@ -3,13 +3,13 @@ const tdAuthUrl = async (clientId: string): Promise<string> =>  {
 
   const params = new URLSearchParams({
     'response_type': 'code',
-    'redirect_uri': 'https://localhost',  //save in a env (process.env.REDIRECT_URI)
+    'redirect_uri': `${process.env.REDIRECT_URI}`,
     'client_id': clientCode
   });
 
   const paramsString = params.toString()
 
-  const url = 'https://auth.tdameritrade.com/auth?' + paramsString
+  const url = `${process.env.TD_AUTH_URL}` + paramsString
 
   return url
 }

@@ -10,7 +10,6 @@
     "lint": "eslint . --fix",
     "start": "ts-node src/worker.ts",
     "start:activities": "ts-node ./src/activities/priceActionPosition.ts",
-    "start:server": "ts-node-dev ./src/tda/index.ts",
     "start.watch": "nodemon src/worker.ts",
     "workflow": "ts-node src/client.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
