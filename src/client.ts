@@ -5,7 +5,7 @@ import { priceAction } from './workflows/priceAction'
 import { PremarketData } from './interfaces/premarketData'
 
 // need to connect to kafka topic and cosume the message
-const broker = <string> process.env.BROKER
+const broker = <string> process.env.KAFKA_BROKER
 const schemaRegistryUrl = <string> process.env.SCHEMA_REGISTRY_URL
 
 const kafka = new Kafka({
@@ -36,7 +36,7 @@ const run = async () => {
         
         // connect to the Temporal Server and start workflow
         const temporalConnection = new Connection({
-          address: '10.244.0.27:7233'
+          address: `${process.env.TEMPORAL_CLUSTER_ADDRESS}`
         })
         const temporalClient = new WorkflowClient(temporalConnection.service, {
           namespace: 'default'

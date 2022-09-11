@@ -68,7 +68,7 @@
     "kafkajs": "^1.15.0",
     "moment-timezone": "^0.5.34",
     "puppeteer": "^13.5.0",
-    "temporalio": "^0.16.4",
+    "temporalio": "^1.2.0",
     "tunnel": "^0.0.6",
     "ws": "^8.4.0"
   }
