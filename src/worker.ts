@@ -3,8 +3,12 @@ import * as activities from "./activities/priceActionPosition"
 
 const workflowOption = () =>
   process.env.NODE_ENV === 'production'
-    ? { workflowBundle: { path: require.resolve('../workflow-bundle.js') } }
-    : { workflowsPath: require.resolve('./workflows') };
+    ? { 
+        workflowBundle: { 
+          codePath: require.resolve('../lib/workflow-bundle.js') 
+        },
+      }
+    : { workflowsPath: require.resolve('./workflows/priceAction') };
   
 async function run() {
   const worker = await Worker.create({

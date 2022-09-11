@@ -33,19 +33,22 @@ const run = async () => {
       new Promise( async (resolve, reject) => {
         // decode the kafka message using schema registry
         const decodedMessage: PremarketData = await schemaRegistry.decode(<Buffer> message.value)
-        
+
         // connect to the Temporal Server and start workflow
-        const temporalConnection = new Connection({
+        const connection = await Connection.connect({
           address: `${process.env.TEMPORAL_CLUSTER_ADDRESS}`
-        })
-        const temporalClient = new WorkflowClient(temporalConnection.service, {
+        });
+        
+        const temporalClient = new WorkflowClient({
+          connection,
           namespace: 'default'
-        })
+        });
+
         const priceActionResult = await temporalClient.execute(priceAction, {
           args: [decodedMessage],
           workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
           taskQueue: 'price-action-positions'
-        })
+        });
         
         return resolve(priceActionResult)
       })
