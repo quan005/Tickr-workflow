@@ -4,8 +4,8 @@
   "description": "Temporal worflow for Tickr",
   "main": "index.js",
   "scripts": {
-    "build": "tsc --build ./tsconfig.json",
-    "postbuild": "npm-run-all -l --sequential start:worker start:client",
+    "build": "tsc --build",
+    "postbuild": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "build:tickr": "tsc --build ./tsconfig.json",
     "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "lint": "eslint . --fix",
