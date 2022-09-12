@@ -5,12 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --build",
-    "postbuild": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "build:tickr": "tsc --build ./tsconfig.json",
     "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "lint": "eslint . --fix",
     "start": "npm-run-all -l --sequential start:worker start:client",
-    "start:wokflowBundle": "node ./lib/scripts/build-workflow-bundle.js",
     "start:worker": "NODE_ENV=production node ./lib/worker.js",
     "start:client": "node ./lib/client.js",
     "dev:activities": "ts-node ./src/activities/priceActionPosition.ts",
