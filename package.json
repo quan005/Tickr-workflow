@@ -4,7 +4,7 @@
   "description": "Temporal worflow for Tickr",
   "main": "index.js",
   "scripts": {
-    "prebuild": "node ./lib/src/scripts/build-workflow-bundle.js",
+    "prebuild": "node ./src/scripts/build-workflow-bundle.js",
     "build": "tsc --build ./tsconfig.json",
     "postbuild": "npm run-all -l --sequential start:worker start:client",
     "build:tickr": "tsc --build ./tsconfig.json",
