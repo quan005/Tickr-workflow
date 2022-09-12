@@ -5,10 +5,10 @@ const workflowOption = () =>
   process.env.NODE_ENV === 'production'
     ? { 
         workflowBundle: { 
-          codePath: require.resolve('../lib/workflow-bundle.js') 
+          codePath: require.resolve('../workflow-bundle.js') 
         },
       }
-    : { workflowsPath: require.resolve('./workflows/priceAction') };
+    : { workflowsPath: require.resolve('./workflows') };
   
 async function run() {
   const worker = await Worker.create({

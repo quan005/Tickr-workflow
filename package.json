@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --build ./tsconfig.json",
+    "postbuild": "npm-run-all -l --sequential start:worker start:client",
     "build:tickr": "tsc --build ./tsconfig.json",
-    "build:workflow": "node ./lib/scripts/build-workflow-bundle.js",
+    "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "lint": "eslint . --fix",
     "start": "npm-run-all -l --sequential start:worker start:client",
     "start:wokflowBundle": "node ./lib/scripts/build-workflow-bundle.js",

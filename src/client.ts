@@ -1,7 +1,7 @@
 import { Kafka } from 'kafkajs'
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry'
 import { Connection, WorkflowClient } from '@temporalio/client'
-import { priceAction } from './workflows/priceAction'
+import { priceAction } from './workflows'
 import { PremarketData } from './interfaces/premarketData'
 
 // need to connect to kafka topic and cosume the message

@@ -1,8 +1,8 @@
 import { proxyActivities } from '@temporalio/workflow'
-import * as activities from "../activities/priceActionPosition"
-import { PremarketData } from "../interfaces/premarketData";
-import { tdValidateTokens } from "../tda/middleware/tdValidateTokens";
-import TokenJSON from "../tda/token.json"
+import * as activities from "./activities/priceActionPosition"
+import { PremarketData } from "./interfaces/premarketData";
+import { tdValidateTokens } from "./tda/middleware/tdValidateTokens";
+import TokenJSON from "./tda/token.json"
 
 const { 
   is_market_open, 
