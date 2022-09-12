@@ -1,18 +1,18 @@
 import { Worker } from '@temporalio/worker'
 import * as activities from "./activities/priceActionPosition"
 
-const workflowOption = () =>
-  process.env.NODE_ENV === 'production'
-    ? { 
-        workflowBundle: { 
-          codePath: require.resolve('../workflow-bundle.js') 
-        },
-      }
-    : { workflowsPath: require.resolve('./workflows') };
+// const workflowOption = () =>
+//   process.env.NODE_ENV === 'production'
+//     ? { 
+//         workflowBundle: { 
+//           codePath: require.resolve('../workflow-bundle.js') 
+//         },
+//       }
+//     : {workflowsPath: require.resolve('./workflows')  };
   
 async function run() {
   const worker = await Worker.create({
-    ...workflowOption(),
+    workflowsPath: require.resolve('./workflows'),
     activities,
     taskQueue: 'price-action-positions'
   })
