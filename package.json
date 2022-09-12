@@ -8,7 +8,7 @@
     "build:tickr": "tsc --build ./tsconfig.json",
     "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "lint": "eslint . --fix",
-    "start": "node lib/worker.js",
+    "start": "node lib/worker.js && node lib/client.js",
     "start:worker": "node ./lib/worker.js",
     "start:client": "node ./lib/client.js",
     "dev:activities": "ts-node ./src/activities/priceActionPosition.ts",
