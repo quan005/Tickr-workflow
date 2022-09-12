@@ -6,7 +6,7 @@ async function bundle() {
   const { code } = await bundleWorkflowCode({
     workflowsPath: require.resolve('../workflows/priceAction'),
   });
-  const bundlePath = path.join(__dirname, '../../lib/workflow-bundle.js');
+  const bundlePath = path.join(__dirname, '../workflow-bundle.js');
 
   await writeFile(bundlePath, code);
 
