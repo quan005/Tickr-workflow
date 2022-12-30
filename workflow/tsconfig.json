@@ -9,5 +9,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
   },
-  "include": ["src/**/*", "proxy"]
+  "include": ["./src/**/*", "proxy"]
 }
