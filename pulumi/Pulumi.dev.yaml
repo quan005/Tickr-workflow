@@ -1,0 +1,20 @@
+config:
+  azure-native:location: EastUS
+  tickr-temporal:API_HOSTNAME: api.tickrbot.com
+  tickr-temporal:API_PORT: "4000"
+  tickr-temporal:KAFKA_BROKER: 165.227.191.69:9092
+  tickr-temporal:REDIRECT_URI: https://localhost
+  tickr-temporal:SCHEMA_REGISTRY_URL: http://165.227.191.69:8081
+  tickr-temporal:TD_ANSWER_1:
+    secure: AAABAGNHREtJtqFNXquuaRhbV81YPM5fIKhvSZUb4RUIgiIVCQ==
+  tickr-temporal:TD_ANSWER_2:
+    secure: AAABALjwp3qWJ2crpMiH2U5F9C7SMpA1Xvjy2PCT3V6OR66Qkw==
+  tickr-temporal:TD_ANSWER_3:
+    secure: AAABAJUF7MyxN9oKb1MVt8Ewv9h7lLi2uiC6Ro4VuTFR+uz48QtfUQ==
+  tickr-temporal:TD_ANSWER_4:
+    secure: AAABABAIQRROrIPQXuH+fDEdFazSNweZjM8/CpQNCJHORK91
+  tickr-temporal:TD_AUTH_URL: https://auth.tdameritrade.com/auth?
+  tickr-temporal:TD_PASSWORD:
+    secure: AAABAEMoaPubInTo+CNKwHOnV/5/m9Zy78sShcvr+Zl1Z/A/0HZxLq/ecfXjcfg=
+  tickr-temporal:TD_USERNAME:
+    secure: AAABAAJkPNfciJIUqic+n54vNjrsJ/nBDNPUV1GhF796zdc2OTmmDA==
