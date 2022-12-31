@@ -17,6 +17,6 @@ jobs:
       - uses: pulumi/actions@v3
         with:
           command: up
-          stack-name: tickr-temporal # When using an individual account, only use stack-name.
+          stack-name: tickr-temporal-dev # When using an individual account, only use stack-name.
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
