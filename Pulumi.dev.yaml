@@ -1,5 +1,10 @@
 config:
+  azure-native:clientId: edace132-d100-460c-839b-832b08de434e
+  azure-native:clientSecret:
+    secure: AAABAJkffAhr5HcgX11Qy47502LHvHrdt8k7wlqoym50fg/h3fHl92LYcnjCcJ2jfulPtB9Kifp/fVKi1RyC90vqmpN3xELL
   azure-native:location: EastUS
+  azure-native:subscriptionId: 7392e0ba-8175-4003-81b3-f5ff935d2965
+  azure-native:tenantId: 015df723-6c23-40c4-aaa4-2cafa77aff02
   tickr-temporal:API_HOSTNAME: api.tickrbot.com
   tickr-temporal:API_PORT: "4000"
   tickr-temporal:KAFKA_BROKER: 165.227.191.69:9092
