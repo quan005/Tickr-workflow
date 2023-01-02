@@ -7,7 +7,7 @@ config:
   azure-native:tenantId: 015df723-6c23-40c4-aaa4-2cafa77aff02
   tickr-temporal:API_HOSTNAME: api.tickrbot.com
   tickr-temporal:API_PORT: "4000"
-  tickr-temporal:KAFKA_BROKER: 165.227.191.69:9092
+  tickr-temporal:KAFKA_BROKER: 165.227.191.69
   tickr-temporal:REDIRECT_URI: https://localhost
   tickr-temporal:SCHEMA_REGISTRY_URL: http://165.227.191.69:8081
   tickr-temporal:TD_ANSWER_1:

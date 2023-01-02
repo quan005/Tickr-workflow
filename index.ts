@@ -19,14 +19,14 @@ const database = new MySql("mysql", {
 const temporal = new Temporal("temporal", {
     resourceGroupName: resourceGroup.name,
     location: resourceGroup.location,
-    version: "1.1.1",
+    version: "1.18.3",
     storage: {
         type: "mysql",
         hostName: database.hostName,
         login: database.administratorLogin,
         password: database.administratorPassword,
     },
-    app:{
+    app: {
         folder: "./workflow",
         port: 8080,
     },

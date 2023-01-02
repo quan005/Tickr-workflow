@@ -1,4 +1,8 @@
 import { SupplyZones, DemandZones } from "./supplyDemandZones";
+
+export interface PremarketMessage {
+  Premarket: PremarketData
+}
 export interface PremarketData {
   limit: number,
   budget: number,
