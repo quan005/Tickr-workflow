@@ -22,6 +22,8 @@ export interface TemporalArgs {
   location: pulumi.Input<string>;
   version: string;
   uiVersion: string;
+  uiPort: string;
+  uiEnabled: string;
   storage: MySqlArgs;
   app: AppArgs;
 }
@@ -60,8 +62,8 @@ export class Temporal extends pulumi.ComponentResource {
         ports: [{ port: 7233 }],
         resources: {
           requests: {
-            memoryInGB: 1,
-            cpu: 1,
+            memoryInGB: 4,
+            cpu: 2,
           },
         },
         environmentVariables: env,
@@ -77,12 +79,12 @@ export class Temporal extends pulumi.ComponentResource {
       osType: "Linux",
       ipAddress: {
         type: "Public",
-        ports: [{ protocol: "TCP", port: 8088 }],
+        ports: [{ protocol: "TCP", port: 8080 }],
       },
       containers: [{
         name: "temporalio-ui",
-        image: pulumi.interpolate`temporalio/ui:${args.uiVersion}`,
-        ports: [{ port: 8088 }],
+        image: pulumi.interpolate`temporalio/ui-server:${args.uiVersion}`,
+        ports: [{ port: 8080 }],
         resources: {
           requests: {
             memoryInGB: 1,
@@ -90,12 +92,14 @@ export class Temporal extends pulumi.ComponentResource {
           },
         },
         environmentVariables: [
-          { name: "TEMPORAL_GRPC_ENDPOINT", value: this.serverEndpoint },
+          { name: "TEMPORAL_ADDRESS", value: this.serverEndpoint },
+          { name: "TEMPORAL_UI_PORT", value: args.uiPort },
+          { name: "TEMPORAL_UI_ENABLED", value: args.uiEnabled },
         ],
       }],
     }, { parent: this });
 
-    this.webEndpoint = pulumi.interpolate`http://${temporalWeb.ipAddress.apply(ip => ip?.ip)}:8088`;
+    this.webEndpoint = pulumi.interpolate`http://${temporalWeb.ipAddress.apply(ip => ip?.ip)}:8080`;
 
     const customImage = "temporal-tickr";
 

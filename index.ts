@@ -21,6 +21,8 @@ const temporal = new Temporal("temporal", {
     location: resourceGroup.location,
     version: "1.17.4",
     uiVersion: "2.9.0",
+    uiPort: "8080",
+    uiEnabled: "true"
     storage: {
         type: "mysql",
         hostName: database.hostName,
