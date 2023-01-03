@@ -22,8 +22,11 @@ export interface TemporalArgs {
   location: pulumi.Input<string>;
   version: string;
   uiVersion: string;
-  uiPort: string;
+  uiPort: number;
   uiEnabled: string;
+  uiTlsServerName: string;
+  uiTlsCertData: string;
+  uiTlsCertKeyData: string;
   storage: MySqlArgs;
   app: AppArgs;
 }
@@ -95,6 +98,9 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TEMPORAL_ADDRESS", value: this.serverEndpoint },
           { name: "TEMPORAL_UI_PORT", value: args.uiPort },
           { name: "TEMPORAL_UI_ENABLED", value: args.uiEnabled },
+          { name: "TEMPORAL_TLS_SERVER_NAME", value: args.uiTlsServerName },
+          { name: "TEMPORAL_TLS_CERT_DATA ", value: args.uiTlsCertData },
+          { name: "TEMPORAL_TLS_KEY_DATA", value: args.uiTlsCertKeyData },
         ],
       }],
     }, { parent: this });
@@ -170,6 +176,8 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TD_ANSWER_2", value: config.requireSecret("TD_ANSWER_2") },
           { name: "TD_ANSWER_3", value: config.requireSecret("TD_ANSWER_3") },
           { name: "TD_ANSWER_4", value: config.requireSecret("TD_ANSWER_4") },
+          { name: "TLS_CERT", value: args.uiTlsCertData },
+          { name: "TLS_KEY", value: args.uiTlsCertKeyData },
         ],
       }],
     }, { parent: this });
