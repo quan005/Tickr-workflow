@@ -22,7 +22,7 @@ const temporal = new Temporal("temporal", {
     version: "1.17.4",
     uiVersion: "2.9.0",
     uiPort: "8080",
-    uiEnabled: "true"
+    uiEnabled: "true",
     storage: {
         type: "mysql",
         hostName: database.hostName,
