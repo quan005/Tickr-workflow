@@ -83,7 +83,7 @@ export class Temporal extends pulumi.ComponentResource {
       },
       containers: [{
         name: "temporalio-ui",
-        image: pulumi.interpolate`temporalio/ui-server:${args.uiVersion}`,
+        image: pulumi.interpolate`temporalio/ui:${args.uiVersion}`,
         ports: [{ port: 8080 }],
         resources: {
           requests: {
