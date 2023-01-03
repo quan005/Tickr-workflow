@@ -62,8 +62,8 @@ export class Temporal extends pulumi.ComponentResource {
         ports: [{ port: 7233 }],
         resources: {
           requests: {
-            memoryInGB: 4,
-            cpu: 2,
+            memoryInGB: 1,
+            cpu: 1,
           },
         },
         environmentVariables: env,
