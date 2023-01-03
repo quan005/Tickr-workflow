@@ -21,6 +21,7 @@ export interface TemporalArgs {
   resourceGroupName: pulumi.Input<string>;
   location: pulumi.Input<string>;
   version: string;
+  uiVersion: string;
   storage: MySqlArgs;
   app: AppArgs;
 }
