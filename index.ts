@@ -1,5 +1,5 @@
 import * as resources from "@pulumi/azure-native/resources";
-import * as azure_native from "@pulumi/azure-native";
+import * as tls_self_signed_cert from "@pulumi/tls-self-signed-cert";
 
 import { mysqlPassword } from "./config";
 import { MySql } from "./mySql";
@@ -9,10 +9,14 @@ import { Temporal } from "./temporal";
 const resourceGroup = new resources.ResourceGroup("tickrResourceGroup");
 
 // Create an Azure Resource SSL Certificate
-const certificate = new azure_native.web.Certificate("certificate", {
-    resourceGroupName: resourceGroup.name,
-    location: resourceGroup.location,
-    password: mysqlPassword,
+const certificate = new tls_self_signed_cert.SelfSignedCertificate("certificate", {
+    dnsName: "tickrbot.com",
+    validityPeriodHours: 807660,
+    localValidityPeriodHours: 17520,
+    subject: {
+        commonName: "temporal-cert",
+        organization: "tickr LLC",
+    },
 });
 
 // Create an Azure MySql resource
@@ -32,8 +36,9 @@ const temporal = new Temporal("temporal", {
     uiPort: "8080",
     uiEnabled: "true",
     uiTlsServerName: "ui-tls-server",
-    uiTlsCertData: certificate.cerBlob,
-    uiTlsCertKeyData: certificate.publicKeyHash,
+    uiTlsCertData: certificate.pem,
+    uiTlsCertKeyData: certificate.privateKey,
+    uiTlsCertCaData: certificate.caCert,
     storage: {
         type: "mysql",
         hostName: database.hostName,

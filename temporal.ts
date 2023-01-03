@@ -27,6 +27,7 @@ export interface TemporalArgs {
   uiTlsServerName: string;
   uiTlsCertData: pulumi.Output<string>;
   uiTlsCertKeyData: pulumi.Output<string>;
+  uiTlsCertCaData: pulumi.Output<string>;
   storage: MySqlArgs;
   app: AppArgs;
 }
@@ -101,6 +102,7 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TEMPORAL_TLS_SERVER_NAME", value: args.uiTlsServerName },
           { name: "TEMPORAL_TLS_CERT_DATA ", value: args.uiTlsCertData },
           { name: "TEMPORAL_TLS_KEY_DATA", value: args.uiTlsCertKeyData },
+          { name: "TEMPORAL_TLS_CA_DATA ", value: args.uiTlsCertCaData },
         ],
       }],
     }, { parent: this });
