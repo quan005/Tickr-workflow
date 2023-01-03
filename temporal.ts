@@ -25,8 +25,8 @@ export interface TemporalArgs {
   uiPort: number;
   uiEnabled: string;
   uiTlsServerName: string;
-  uiTlsCertData: string;
-  uiTlsCertKeyData: string;
+  uiTlsCertData: pulumi.Output<string>;
+  uiTlsCertKeyData: pulumi.Output<string>;
   storage: MySqlArgs;
   app: AppArgs;
 }
