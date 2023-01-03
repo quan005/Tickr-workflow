@@ -79,8 +79,8 @@ export class Temporal extends pulumi.ComponentResource {
         ports: [{ protocol: "TCP", port: 8088 }],
       },
       containers: [{
-        name: "temporalio-web",
-        image: pulumi.interpolate`temporalio/web:${args.version}`,
+        name: "temporalio-ui",
+        image: pulumi.interpolate`temporalio/ui:${args.uiVersion}`,
         ports: [{ port: 8088 }],
         resources: {
           requests: {

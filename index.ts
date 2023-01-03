@@ -20,6 +20,7 @@ const temporal = new Temporal("temporal", {
     resourceGroupName: resourceGroup.name,
     location: resourceGroup.location,
     version: "1.17.4",
+    uiVersion: "2.9.0",
     storage: {
         type: "mysql",
         hostName: database.hostName,
