@@ -4,13 +4,16 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
+const cert = Buffer.from(process.env.TLS_CERT, "utf-8");
+const key = Buffer.from(process.env.TLS_KEY, "utf-8");
+
 async function run() {
   const connection = await NativeConnection.connect({
     address: `${process.env.TEMPORAL_GRPC_ENDPOINT}:7233`,
     tls: {
       clientCertPair: {
-        crt: process.env.TLS_CERT,
-        key: process.env.TLS_KEY,
+        crt: cert,
+        key: key,
       }
     }
   });

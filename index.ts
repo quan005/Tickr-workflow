@@ -10,7 +10,7 @@ const resourceGroup = new resources.ResourceGroup("tickrResourceGroup");
 
 // Create an Azure Resource SSL Certificate
 const certificate = new tls_self_signed_cert.SelfSignedCertificate("certificate", {
-    dnsName: "tickrbot.com",
+    dnsName: "*.tickrbot.com",
     validityPeriodHours: 807660,
     localValidityPeriodHours: 17520,
     subject: {
