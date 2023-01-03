@@ -22,7 +22,7 @@ export interface TemporalArgs {
   location: pulumi.Input<string>;
   version: string;
   uiVersion: string;
-  uiPort: number;
+  uiPort: string;
   uiEnabled: string;
   uiTlsServerName: string;
   uiTlsCertData: pulumi.Output<string>;
