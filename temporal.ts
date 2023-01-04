@@ -76,7 +76,7 @@ export class Temporal extends pulumi.ComponentResource {
     this.serverEndpoint = pulumi.interpolate`${temporalServer.ipAddress.apply(ip => ip?.ip)}:7233`;
 
     const ca: caCert = createCaCertificate();
-    const cert: cert = createSignedCertificate(ca, `${temporalServer.ipAddress.apply(ip => ip?.ip)}`);
+    const cert: cert = createSignedCertificate(ca, `${temporalServer.ipAddress}`);
 
     const temporalWeb = new containerinstance.ContainerGroup("temporal-web", {
       resourceGroupName: args.resourceGroupName,
