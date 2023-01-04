@@ -102,9 +102,9 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TEMPORAL_UI_PORT", value: args.uiPort },
           { name: "TEMPORAL_UI_ENABLED", value: args.uiEnabled },
           { name: "TEMPORAL_TLS_SERVER_NAME", value: args.uiTlsServerName },
-          { name: "TEMPORAL_TLS_CERT_DATA ", value: cert.certificate },
-          { name: "TEMPORAL_TLS_KEY_DATA", value: cert.privateKey },
-          { name: "TEMPORAL_TLS_CA_DATA ", value: ca.caCertificate },
+          { name: "TEMPORAL_TLS_CERT_DATA ", value: `${cert.certificate}` },
+          { name: "TEMPORAL_TLS_KEY_DATA", value: `${cert.privateKey}` },
+          { name: "TEMPORAL_TLS_CA_DATA ", value: `${ca.caCertificate}` },
         ],
       }],
     }, { parent: this });
@@ -180,8 +180,8 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TD_ANSWER_2", value: config.requireSecret("TD_ANSWER_2") },
           { name: "TD_ANSWER_3", value: config.requireSecret("TD_ANSWER_3") },
           { name: "TD_ANSWER_4", value: config.requireSecret("TD_ANSWER_4") },
-          { name: "TLS_CERT", value: cert.certificate },
-          { name: "TLS_KEY", value: cert.privateKey },
+          { name: "TLS_CERT", value: `${cert.certificate}` },
+          { name: "TLS_KEY", value: `${cert.privateKey}` },
         ],
       }],
     }, { parent: this });
