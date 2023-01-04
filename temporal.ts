@@ -3,6 +3,8 @@ import * as docker from "@pulumi/docker";
 import * as containerinstance from "@pulumi/azure-native/containerinstance";
 import * as containerregistry from "@pulumi/azure-native/containerregistry";
 
+import { caCert, cert, createCaCertificate, createSignedCertificate } from "./cert"
+
 const config = new pulumi.Config();
 
 export interface MySqlArgs {
@@ -25,9 +27,6 @@ export interface TemporalArgs {
   uiPort: string;
   uiEnabled: string;
   uiTlsServerName: string;
-  uiTlsCertData: pulumi.Output<string>;
-  uiTlsCertKeyData: pulumi.Output<string>;
-  uiTlsCertCaData: pulumi.Output<string>;
   storage: MySqlArgs;
   app: AppArgs;
 }
@@ -76,6 +75,9 @@ export class Temporal extends pulumi.ComponentResource {
 
     this.serverEndpoint = pulumi.interpolate`${temporalServer.ipAddress.apply(ip => ip?.ip)}:7233`;
 
+    const ca: caCert = createCaCertificate();
+    const cert: cert = createSignedCertificate(ca, `${temporalServer.ipAddress.apply(ip => ip?.ip)}`);
+
     const temporalWeb = new containerinstance.ContainerGroup("temporal-web", {
       resourceGroupName: args.resourceGroupName,
       containerGroupName: pulumi.interpolate`${args.resourceGroupName}-web`,
@@ -100,9 +102,9 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TEMPORAL_UI_PORT", value: args.uiPort },
           { name: "TEMPORAL_UI_ENABLED", value: args.uiEnabled },
           { name: "TEMPORAL_TLS_SERVER_NAME", value: args.uiTlsServerName },
-          { name: "TEMPORAL_TLS_CERT_DATA ", value: args.uiTlsCertData },
-          { name: "TEMPORAL_TLS_KEY_DATA", value: args.uiTlsCertKeyData },
-          { name: "TEMPORAL_TLS_CA_DATA ", value: args.uiTlsCertCaData },
+          { name: "TEMPORAL_TLS_CERT_DATA ", value: cert.certificate },
+          { name: "TEMPORAL_TLS_KEY_DATA", value: cert.privateKey },
+          { name: "TEMPORAL_TLS_CA_DATA ", value: ca.caCertificate },
         ],
       }],
     }, { parent: this });
@@ -178,8 +180,8 @@ export class Temporal extends pulumi.ComponentResource {
           { name: "TD_ANSWER_2", value: config.requireSecret("TD_ANSWER_2") },
           { name: "TD_ANSWER_3", value: config.requireSecret("TD_ANSWER_3") },
           { name: "TD_ANSWER_4", value: config.requireSecret("TD_ANSWER_4") },
-          { name: "TLS_CERT", value: args.uiTlsCertData },
-          { name: "TLS_KEY", value: args.uiTlsCertKeyData },
+          { name: "TLS_CERT", value: cert.certificate },
+          { name: "TLS_KEY", value: cert.privateKey },
         ],
       }],
     }, { parent: this });
