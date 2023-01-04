@@ -73,7 +73,7 @@ export const createCaCertificate = () => {
   }
 };
 
-export const createSignedCertificate = (caCertificate: caCert, ip: string) => {
+export const createSignedCertificate = (caCertificate: caCert) => {
   const certificate = pki.createCertificate();
   certificate.publicKey = keys.publicKey;
   certificate.serialNumber = getSerial();
@@ -133,10 +133,6 @@ export const createSignedCertificate = (caCertificate: caCert, ip: string) => {
         {
           type: 2,
           value: "localhost.localdomain",
-        },
-        {
-          type: 7,
-          ip: ip,
         },
       ],
     },
