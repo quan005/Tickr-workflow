@@ -174,15 +174,15 @@ export class Temporal extends pulumi.ComponentResource {
           "environment": [
             {
               "name": "TEMPORAL_ADDRESS",
-              "value": this.serverEndpoint,
+              "value": `${this.serverEndpoint}`,
             },
             {
               "name": "TEMPORAL_UI_PORT",
-              "value": 8080,
+              "value": "8080",
             },
             {
               "name": "TEMPORAL_UI_ENABLED",
-              "value": true,
+              "value": "true",
             },
             {
               "name": "TEMPORAL_TLS_SERVER_NAME",
@@ -190,15 +190,15 @@ export class Temporal extends pulumi.ComponentResource {
             },
             {
               "name": "TEMPORAL_TLS_CERT_DATA ",
-              "value": cert.certificate,
+              "value": `${cert.certificate}`,
             },
             {
               "name": "TEMPORAL_TLS_KEY_DATA",
-              "value": cert.privateKey,
+              "value": `${cert.privateKey}`,
             },
             {
               "name": "TEMPORAL_TLS_CA_DATA ",
-              "value": ca.caCertificate,
+              "value": `${ca.caCertificate}`,
             },
           ],
         }]),
@@ -246,7 +246,7 @@ export class Temporal extends pulumi.ComponentResource {
         "environment": [
           {
             "name": "TEMPORAL_GRPC_ENDPOINT",
-            "value": this.serverEndpoint,
+            "value": `${this.serverEndpoint}`,
           },
           {
             "name": "API_HOSTNAME",
