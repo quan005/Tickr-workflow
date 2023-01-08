@@ -1,5 +1,5 @@
 import * as aws from "@pulumi/aws";
-import * as awsx from "@pulumi/awsx";
+import * as docker from "@pulumi/docker";
 import * as pulumi from "@pulumi/pulumi";
 
 import { caCert, cert, createCaCertificate, createSignedCertificate } from "./cert";
@@ -37,7 +37,6 @@ export class Temporal extends pulumi.ComponentResource {
 
     const alb = new aws.lb.LoadBalancer(`${name}-alb`, {
       loadBalancerType: "network",
-      securityGroups: args.securityGroupIds,
       subnets: args.subnetIds,
     }, { parent: this });
 
@@ -85,8 +84,8 @@ export class Temporal extends pulumi.ComponentResource {
 
     const temporalServerTaskName = `${name}-server-task`;
     const temporalServerContainerName = `${name}-server-container`;
-    const temporalServerTaskDefinition = pulumi.all([args.dbType, args.dbHost, args.dbPort, args.dbName, args.dbUsername, args.dbPassword, args.serverVersion]).
-      apply(([dbType, dbHost, dbPort, dbName, dbUsername, dbPassword, serverVersion]) =>
+    const temporalServerTaskDefinition = pulumi.all([args.dbType, args.dbHost, args.dbPort, args.dbName, args.dbUsername, args.dbPassword]).
+      apply(([dbType, dbHost, dbPort, dbName, dbUsername, dbPassword]) =>
         new aws.ecs.TaskDefinition(temporalServerTaskName, {
           family: `${temporalServerTaskName}-definition`,
           cpu: "1024",
@@ -96,7 +95,7 @@ export class Temporal extends pulumi.ComponentResource {
           executionRoleArn: role.arn,
           containerDefinitions: JSON.stringify([{
             "name": temporalServerContainerName,
-            "image": pulumi.interpolate`temporalio/auto-setup:${serverVersion}`,
+            "image": pulumi.interpolate`temporalio/auto-setup:${args.serverVersion}`,
             "portMappings": [{
               "containerPort": 7233,
               "hostPort": 7233,
@@ -146,7 +145,7 @@ export class Temporal extends pulumi.ComponentResource {
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },
-    }, { dependsOn: [temporalServerListener], parent: this });
+    }, { dependsOn: [rpa, temporalServerListener], parent: this });
 
     this.serverEndpoint = pulumi.interpolate`${alb.dnsName}:7233`;
 
@@ -215,18 +214,22 @@ export class Temporal extends pulumi.ComponentResource {
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },
-    }, { dependsOn: [temporalUiListener], parent: this });
+    }, { dependsOn: [rpa, temporalUiListener], parent: this });
 
     this.uiEndpoint = pulumi.interpolate`${alb.dnsName}:8080`;
 
-    const customImage = "temporal-tickr-worker-image";
-    const repository = new awsx.ecr.Repository(`${name}-repository`, { forceDelete: true });
-    const workerImg = new awsx.ecr.Image(customImage, {
-      repositoryUrl: repository.repository.repositoryUrl,
-      path: args.app.folder,
-    }).imageUri;
+    const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true });
+    const imageName = repo.repositoryUrl;
 
-    console.log('workerImg is: ', pulumi.interpolate`${workerImg}`);
+    const customImage = "temporal-tickr-worker-image";
+    const customImageVersion = "v1.0.0";
+
+    const workerImg = new docker.Image(customImage, {
+      build: args.app.folder,
+      imageName: pulumi.interpolate`${imageName}:${customImageVersion}`
+    });
+
+    console.log('workerImg is: ', workerImg.imageName);
 
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
@@ -239,7 +242,7 @@ export class Temporal extends pulumi.ComponentResource {
       executionRoleArn: role.arn,
       containerDefinitions: JSON.stringify([{
         "name": temporalWorkerContainerName,
-        "image": workerImg,
+        "image": workerImg.imageName,
         "portMappings": [{
           "containerPort": args.app.port,
           "hostPort": args.app.port,
@@ -320,7 +323,7 @@ export class Temporal extends pulumi.ComponentResource {
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },
-    }, { dependsOn: [temporalWorkerListener], parent: this });
+    }, { dependsOn: [rpa, temporalWorkerListener], parent: this });
 
     this.registerOutputs();
   };
