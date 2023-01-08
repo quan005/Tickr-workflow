@@ -226,7 +226,7 @@ export class Temporal extends pulumi.ComponentResource {
       path: args.app.folder,
     }).imageUri;
 
-    console.log('workerImg is: ', workerImg)
+    console.log('workerImg is: ', pulumi.interpolate`${workerImg}`);
 
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
