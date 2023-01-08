@@ -5,4 +5,4 @@ const password = new random.RandomPassword("mysql-password", {
     length: 16,
 });
 
-export const mysqlPassword = pulumi.secret(password.result);
+export const postgresqlPassword = pulumi.secret(password.result);

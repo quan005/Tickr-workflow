@@ -9,7 +9,7 @@ const key = Buffer.from(process.env.TLS_KEY, "utf-8");
 
 async function run() {
   const connection = await NativeConnection.connect({
-    address: `${process.env.TEMPORAL_GRPC_ENDPOINT}:7233`,
+    address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
     tls: {
       clientCertPair: {
         crt: cert,

@@ -1,25 +1,24 @@
 config:
-  azure-native:clientId: edace132-d100-460c-839b-832b08de434e
-  azure-native:clientSecret:
-    secure: AAABAJkffAhr5HcgX11Qy47502LHvHrdt8k7wlqoym50fg/h3fHl92LYcnjCcJ2jfulPtB9Kifp/fVKi1RyC90vqmpN3xELL
-  azure-native:location: EastUS
-  azure-native:subscriptionId: 7392e0ba-8175-4003-81b3-f5ff935d2965
-  azure-native:tenantId: 015df723-6c23-40c4-aaa4-2cafa77aff02
+  aws:region: us-east-1
   tickr-temporal:API_HOSTNAME: api.tickrbot.com
   tickr-temporal:API_PORT: "4000"
   tickr-temporal:KAFKA_BROKER: 165.227.191.69
   tickr-temporal:REDIRECT_URI: https://localhost
   tickr-temporal:SCHEMA_REGISTRY_URL: http://165.227.191.69:8081
+  tickr-temporal:TD_ACCOUNT_ID:
+    secure: AAABANaYnsqW3yln97WkRIkFE4FltrWzZ9wMZVQmtHi7LeCVpeeI2Sc=
   tickr-temporal:TD_ANSWER_1:
-    secure: AAABAGNHREtJtqFNXquuaRhbV81YPM5fIKhvSZUb4RUIgiIVCQ==
+    secure: AAABAGBongRKtuJWg9AhmV/jxsHS1YpxqB4Nt9AnMFJ7gc1sXw==
   tickr-temporal:TD_ANSWER_2:
-    secure: AAABALjwp3qWJ2crpMiH2U5F9C7SMpA1Xvjy2PCT3V6OR66Qkw==
+    secure: AAABAHlez6hKeHZmidRS8NP1apBg7iEuXyEBNKjqDgzAOqXzuA==
   tickr-temporal:TD_ANSWER_3:
-    secure: AAABAJUF7MyxN9oKb1MVt8Ewv9h7lLi2uiC6Ro4VuTFR+uz48QtfUQ==
+    secure: AAABADlN5iiAyJNi7m2Mgf5NVLLR+J4KElzL3qEMOtIO2+Lwz4y5ig==
   tickr-temporal:TD_ANSWER_4:
-    secure: AAABABAIQRROrIPQXuH+fDEdFazSNweZjM8/CpQNCJHORK91
+    secure: AAABAEhPfQJ8dC7zGjzilNIyNfCTxBYmlzShiTlIWXikTfjR
   tickr-temporal:TD_AUTH_URL: https://auth.tdameritrade.com/auth?
+  tickr-temporal:TD_CLIENT_ID:
+    secure: AAABALTdjOLQna7/n+blly+E38U5VRuSuZZWZWQi6gawPj/yMnYhvu7XXBERbZnxK4K7dEPWBnNopks0BO5b8Q==
   tickr-temporal:TD_PASSWORD:
-    secure: AAABAEMoaPubInTo+CNKwHOnV/5/m9Zy78sShcvr+Zl1Z/A/0HZxLq/ecfXjcfg=
+    secure: AAABAEac/izjV1P7Kp7hQSmNDQST+6osGf2123ZkgbsOA7TVjewp4s4SCFrEdw==
   tickr-temporal:TD_USERNAME:
-    secure: AAABAAJkPNfciJIUqic+n54vNjrsJ/nBDNPUV1GhF796zdc2OTmmDA==
+    secure: AAABAJ6CQbL0qN+AglJ8E5ars/o9bu6lLtmhnCTdGGSCB7lhlQuKnw==

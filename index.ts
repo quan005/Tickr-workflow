@@ -1,41 +1,43 @@
-import * as resources from "@pulumi/azure-native/resources";
-
-import { mysqlPassword } from "./config";
-import { MySql } from "./mySql";
+import { postgresqlPassword } from "./config";
+import { Vpc } from "./vpc";
+import { Postgresql } from "./postgresql";
 import { Temporal } from "./temporal";
 
-// Create an Azure Resource Group
-const resourceGroup = new resources.ResourceGroup("tickrResourceGroup");
+const appName = "tickr-temporal";
 
-// Create an Azure MySql resource
-const database = new MySql("mysql", {
-    resourceGroupName: resourceGroup.name,
-    location: resourceGroup.location,
-    administratorLogin: "daquan-tickr",
-    administratorPassword: mysqlPassword,
-})
+const vpc = new Vpc(`${appName}-net`, {});
 
-// Create an Azure resource (Temporal Cluster)
-const temporal = new Temporal("temporal", {
-    resourceGroupName: resourceGroup.name,
-    location: resourceGroup.location,
-    version: "1.17.4",
-    uiVersion: "2.9.0",
-    uiPort: "8080",
-    uiEnabled: "true",
-    uiTlsServerName: "ui-tls-server",
-    storage: {
-        type: "mysql",
-        hostName: database.hostName,
-        login: database.administratorLogin,
-        password: database.administratorPassword,
-    },
-    app: {
-        folder: "./workflow",
-        port: 8080,
-    },
-})
+const postgres = new Postgresql(`${appName}-db`, {
+  dbName: "tickr-temporal-db",
+  dbUsername: "daquan@tickr",
+  dbPassword: postgresqlPassword,
+  subnetIds: vpc.subnetIds,
+  securityGroupIds: vpc.rdsSecurityGroupIds,
+  engine: "PostreSQL",
+  engineVersion: "13.8",
+  allocatedStorage: 30,
+  maxAllocatedStorage: 90,
+  instanceClass: "db.t4g.micro",
+  storageType: "gp2"
+});
+
+const temporal = new Temporal(`${appName}`, {
+  dbType: "postgresql",
+  dbHost: postgres.dbAddress,
+  dbName: postgres.dbName,
+  dbUsername: postgres.dbUsername,
+  dbPassword: postgres.dbPassword,
+  dbPort: "5432",
+  serverVersion: "1.17.4",
+  uiVersion: "2.9.0",
+  vpcId: vpc.vpcId,
+  subnetIds: vpc.subnetIds,
+  securityGroupIds: vpc.feSecurityGroupIds,
+  app: {
+    folder: "./workflow",
+    port: 9090
+  },
+});
 
 export const serverEndpoint = temporal.serverEndpoint;
-export const webEndpoint = temporal.webEndpoint;
-export const starterEndpoint = temporal.starterEndpoint;
+export const uiEndpoint = temporal.uiEndpoint;

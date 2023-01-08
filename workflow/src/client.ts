@@ -43,7 +43,7 @@ const run = async () => {
 
         // connect to the Temporal Server and start workflow
         const connection = await Connection.connect({
-          address: `${process.env.TEMPORAL_GRPC_ENDPOINT}:7233`,
+          address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
           tls: {
             clientCertPair: {
               crt: cert,
