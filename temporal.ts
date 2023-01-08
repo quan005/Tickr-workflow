@@ -226,6 +226,8 @@ export class Temporal extends pulumi.ComponentResource {
       path: args.app.folder,
     }).imageUri;
 
+    console.log('workerImg is: ', workerImg)
+
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
     const temporalWorkerTaskDefinition = new aws.ecs.TaskDefinition(temporalWorkerTaskName, {
