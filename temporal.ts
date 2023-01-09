@@ -247,7 +247,7 @@ export class Temporal extends pulumi.ComponentResource {
 
     const rrpa = new aws.iam.RolePolicyAttachment(`${name}-repository-policy`, {
       role: repositoryRole.name,
-      policyArn: `arn:aws:ecr:${config.require("region")}:${config.requireSecret("AWS_ACCOUNT")}:repository/*`,
+      policyArn: `arn:aws:ecr:${config.require("aws:region")}:${config.requireSecret("aws:AWS_ACCOUNT")}:repository/*`,
     }, { parent: this });
 
     const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true }, { dependsOn: [rrpa], parent: this });
