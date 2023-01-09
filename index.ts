@@ -8,7 +8,7 @@ const appName = "tickr-temporal";
 const vpc = new Vpc(`${appName}-net`, {});
 
 const postgres = new Postgresql(`${appName}-db`, {
-  dbName: "tickr-temporal-db",
+  dbName: "tickrtemporaldb",
   dbUsername: "daquan@tickr",
   dbPassword: postgresqlPassword,
   subnetIds: vpc.subnetIds,

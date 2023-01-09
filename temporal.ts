@@ -40,10 +40,18 @@ export class Temporal extends pulumi.ComponentResource {
       subnets: args.subnetIds,
     }, { parent: this });
 
+    const temporalServertg = new aws.lb.TargetGroup(`${name}-server-tg`, {
+      port: 7233,
+      protocol: "TCP",
+      targetType: "ip",
+      vpcId: args.vpcId,
+    }, { parent: this });
+
     const temporalServerListener = new aws.lb.Listener(`${name}-server-listener`, {
       defaultActions: [
         {
-          type: "forward"
+          type: "forward",
+          targetGroupArn: temporalServertg.arn,
         }
       ],
       loadBalancerArn: alb.arn,
@@ -51,10 +59,18 @@ export class Temporal extends pulumi.ComponentResource {
       protocol: "TCP"
     }, { parent: this });
 
+    const temporalUitg = new aws.lb.TargetGroup(`${name}-ui-tg`, {
+      port: 8080,
+      protocol: "TCP",
+      targetType: "ip",
+      vpcId: args.vpcId,
+    }, { parent: this });
+
     const temporalUiListener = new aws.lb.Listener(`${name}-ui-listener`, {
       defaultActions: [
         {
-          type: "forward"
+          type: "forward",
+          targetGroupArn: temporalUitg.arn,
         }
       ],
       loadBalancerArn: alb.arn,
@@ -62,10 +78,18 @@ export class Temporal extends pulumi.ComponentResource {
       protocol: "TCP"
     }, { parent: this });
 
+    const temporalWorkertg = new aws.lb.TargetGroup(`${name}-worker-tg`, {
+      port: args.app.port,
+      protocol: "TCP",
+      targetType: "ip",
+      vpcId: args.vpcId,
+    }, { parent: this });
+
     const temporalWorkerListener = new aws.lb.Listener(`${name}-worker-listener`, {
       defaultActions: [
         {
-          type: "forward"
+          type: "forward",
+          targetGroupArn: temporalWorkertg.arn,
         }
       ],
       loadBalancerArn: alb.arn,
