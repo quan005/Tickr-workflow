@@ -63,14 +63,16 @@ export class Temporal extends pulumi.ComponentResource {
 
     const assumeRolePolicy = {
       "Version": "2008-10-17",
-      "Statement": [{
-        "Sid": "",
-        "Effect": "Allow",
-        "Principal": {
-          "Service": "ecs-tasks.amazonaws.com",
+      "Statement": [
+        {
+          "Sid": "",
+          "Effect": "Allow",
+          "Principal": {
+            "Service": "ecs-tasks.amazonaws.com",
+          },
+          "Action": "sts:AssumeRole",
         },
-        "Action": "sts:AssumeRole",
-      }],
+      ],
     };
 
     const role = new aws.iam.Role(`${name}-task-role`, {
@@ -188,7 +190,7 @@ export class Temporal extends pulumi.ComponentResource {
               "value": `${name}-ui-tls`,
             },
             {
-              "name": "TEMPORAL_TLS_CERT_DATA ",
+              "name": "TEMPORAL_TLS_CERT_DATA",
               "value": `${cert.certificate}`,
             },
             {
@@ -196,7 +198,7 @@ export class Temporal extends pulumi.ComponentResource {
               "value": `${cert.privateKey}`,
             },
             {
-              "name": "TEMPORAL_TLS_CA_DATA ",
+              "name": "TEMPORAL_TLS_CA_DATA",
               "value": `${ca.caCertificate}`,
             },
           ],
@@ -218,7 +220,37 @@ export class Temporal extends pulumi.ComponentResource {
 
     this.uiEndpoint = pulumi.interpolate`${alb.dnsName}:8080`;
 
-    const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true });
+    const repositoryRolePolicy = {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "GetAuthorizationToken",
+          "Effect": "Allow",
+          "Action": [
+            "ecr:GetAuthorizationToken"
+          ],
+          "Resource": "*"
+        },
+        {
+          "Sid": "AllowAll",
+          "Effect": "Allow",
+          "Action": [
+            "ecr:*",
+          ],
+        }
+      ]
+    };
+
+    const repositoryRole = new aws.iam.Role(`${name}-repository-role`, {
+      assumeRolePolicy: JSON.stringify(repositoryRolePolicy),
+    }, { parent: this });
+
+    const rrpa = new aws.iam.RolePolicyAttachment(`${name}-repository-policy`, {
+      role: repositoryRole.name,
+      policyArn: `arn:aws:ecr:${config.require("region")}:${config.requireSecret("AWS_ACCOUNT")}:repository/*`,
+    }, { parent: this });
+
+    const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true }, { dependsOn: [rrpa], parent: this });
     const imageName = repo.repositoryUrl;
 
     const customImage = "temporal-tickr-worker-image";
@@ -227,7 +259,7 @@ export class Temporal extends pulumi.ComponentResource {
     const workerImg = new docker.Image(customImage, {
       build: args.app.folder,
       imageName: pulumi.interpolate`${imageName}:${customImageVersion}`
-    });
+    }, { dependsOn: [rrpa], parent: this });
 
     console.log('workerImg is: ', workerImg.imageName);
 
@@ -266,7 +298,7 @@ export class Temporal extends pulumi.ComponentResource {
             "value": config.require("KAFKA_BROKER"),
           },
           {
-            "name": "SCHEMA_REGISTRY_URL ",
+            "name": "SCHEMA_REGISTRY_URL",
             "value": config.require("SCHEMA_REGISTRY_URL"),
           },
           {
@@ -274,39 +306,39 @@ export class Temporal extends pulumi.ComponentResource {
             "value": config.require("REDIRECT_URI"),
           },
           {
-            "name": "TD_AUTH_URL ",
+            "name": "TD_AUTH_URL",
             "value": config.require("TD_AUTH_URL"),
           },
           {
-            "name": "TD_USERNAME ",
+            "name": "TD_USERNAME",
             "value": config.requireSecret("TD_USERNAME"),
           },
           {
-            "name": "TD_PASSWORD ",
+            "name": "TD_PASSWORD",
             "value": config.requireSecret("TD_PASSWORD"),
           },
           {
-            "name": "TD_ANSWER_1 ",
+            "name": "TD_ANSWER_1",
             "value": config.requireSecret("TD_ANSWER_1"),
           },
           {
-            "name": "TD_ANSWER_2 ",
+            "name": "TD_ANSWER_2",
             "value": config.requireSecret("TD_ANSWER_2"),
           },
           {
-            "name": "TD_ANSWER_3 ",
+            "name": "TD_ANSWER_3",
             "value": config.requireSecret("TD_ANSWER_3"),
           },
           {
-            "name": "TD_ANSWER_4 ",
+            "name": "TD_ANSWER_4",
             "value": config.requireSecret("TD_ANSWER_4"),
           },
           {
-            "name": "TLS_CERT ",
+            "name": "TLS_CERT",
             "value": cert.certificate,
           },
           {
-            "name": "TLS_KEY ",
+            "name": "TLS_KEY",
             "value": cert.privateKey,
           },
         ],

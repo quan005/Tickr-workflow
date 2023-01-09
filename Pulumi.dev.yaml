@@ -1,4 +1,6 @@
 config:
+  aws:AWS_ACCOUNT:
+    secure: AAABAOHY0OuUjXZPbsVoQ0xjcoN2IGOhQOk/KLRTPt/ng/zYOpJrMIWypuM=
   aws:region: us-east-1
   tickr-temporal:API_HOSTNAME: api.tickrbot.com
   tickr-temporal:API_PORT: "4000"
