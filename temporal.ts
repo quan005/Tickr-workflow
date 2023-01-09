@@ -224,16 +224,14 @@ export class Temporal extends pulumi.ComponentResource {
       "Version": "2012-10-17",
       "Statement": [
         {
-          "Sid": "AllowAll",
+          "Sid": "",
           "Effect": "Allow",
-          "Principle": {
+          "Principal": {
             "Service": "ecr.amazonaws.com",
           },
-          "Action": [
-            "ecr:*",
-          ],
-        }
-      ]
+          "Action": "sts:AssumeRole",
+        },
+      ],
     };
 
     const repositoryRole = new aws.iam.Role(`${name}-repository-role`, {
