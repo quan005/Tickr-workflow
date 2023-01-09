@@ -97,7 +97,7 @@ export class Temporal extends pulumi.ComponentResource {
           executionRoleArn: role.arn,
           containerDefinitions: JSON.stringify([{
             "name": temporalServerContainerName,
-            "image": pulumi.interpolate`temporalio/auto-setup:${args.serverVersion}`,
+            "image": `temporalio/auto-setup:${args.serverVersion}`,
             "portMappings": [{
               "containerPort": 7233,
               "hostPort": 7233,
@@ -166,7 +166,7 @@ export class Temporal extends pulumi.ComponentResource {
         executionRoleArn: role.arn,
         containerDefinitions: JSON.stringify([{
           "name": temporalUiContainerName,
-          "image": pulumi.interpolate`temporalio/ui:${args.uiVersion}`,
+          "image": `temporalio/ui:${args.uiVersion}`,
           "portMappings": [{
             "containerPort": 8080,
             "hostPort": 8080,
@@ -258,10 +258,8 @@ export class Temporal extends pulumi.ComponentResource {
 
     const workerImg = new docker.Image(customImage, {
       build: args.app.folder,
-      imageName: pulumi.interpolate`${imageName}:${customImageVersion}`
+      imageName: `${imageName}:${customImageVersion}`
     }, { dependsOn: [rrpa], parent: this });
-
-    console.log('workerImg is: ', workerImg.imageName);
 
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
@@ -274,7 +272,7 @@ export class Temporal extends pulumi.ComponentResource {
       executionRoleArn: role.arn,
       containerDefinitions: JSON.stringify([{
         "name": temporalWorkerContainerName,
-        "image": workerImg.imageName,
+        "image": `${workerImg.registryServer}/${workerImg.imageName}`,
         "portMappings": [{
           "containerPort": args.app.port,
           "hostPort": args.app.port,
