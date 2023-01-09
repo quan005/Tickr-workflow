@@ -41,21 +41,33 @@ export class Temporal extends pulumi.ComponentResource {
     }, { parent: this });
 
     const temporalServerListener = new aws.lb.Listener(`${name}-server-listener`, {
-      defaultActions: [],
+      defaultActions: [
+        {
+          type: "forward"
+        }
+      ],
       loadBalancerArn: alb.arn,
       port: 7233,
       protocol: "TCP"
     }, { parent: this });
 
     const temporalUiListener = new aws.lb.Listener(`${name}-ui-listener`, {
-      defaultActions: [],
+      defaultActions: [
+        {
+          type: "forward"
+        }
+      ],
       loadBalancerArn: alb.arn,
       port: 8080,
       protocol: "TCP"
     }, { parent: this });
 
     const temporalWorkerListener = new aws.lb.Listener(`${name}-worker-listener`, {
-      defaultActions: [],
+      defaultActions: [
+        {
+          type: "forward"
+        }
+      ],
       loadBalancerArn: alb.arn,
       port: args.app.port,
       protocol: "TCP",
@@ -220,30 +232,36 @@ export class Temporal extends pulumi.ComponentResource {
 
     this.uiEndpoint = pulumi.interpolate`${alb.dnsName}:8080`;
 
-    const repositoryRolePolicy = {
-      "Version": "2012-10-17",
-      "Statement": [
-        {
-          "Sid": "",
-          "Effect": "Allow",
-          "Principal": {
-            "Service": "ecr.amazonaws.com",
-          },
-          "Action": "sts:AssumeRole",
-        },
-      ],
-    };
+    const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true }, { parent: this });
 
-    const repositoryRole = new aws.iam.Role(`${name}-repository-role`, {
-      assumeRolePolicy: JSON.stringify(repositoryRolePolicy),
-    }, { parent: this });
+    const repositoryPolicy = new aws.ecr.RepositoryPolicy(`${name}-repository-policy`, {
+      repository: repo.id,
+      policy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [{
+          Sid: "new policy",
+          Effect: "Allow",
+          Principal: "*",
+          Action: [
+            "ecr:GetDownloadUrlForLayer",
+            "ecr:BatchGetImage",
+            "ecr:BatchCheckLayerAvailability",
+            "ecr:PutImage",
+            "ecr:InitiateLayerUpload",
+            "ecr:UploadLayerPart",
+            "ecr:CompleteLayerUpload",
+            "ecr:DescribeRepositories",
+            "ecr:GetRepositoryPolicy",
+            "ecr:ListImages",
+            "ecr:DeleteRepository",
+            "ecr:BatchDeleteImage",
+            "ecr:SetRepositoryPolicy",
+            "ecr:DeleteRepositoryPolicy"
+          ]
+        }]
+      })
+    });
 
-    const rrpa = new aws.iam.RolePolicyAttachment(`${name}-repository-policy`, {
-      role: repositoryRole.name,
-      policyArn: `arn:aws:ecr:${config.require("REGION")}:${config.requireSecret("AWS_ACCOUNT")}:repository/*`,
-    }, { parent: this });
-
-    const repo = new aws.ecr.Repository(`${name}-repository`, { forceDelete: true }, { dependsOn: [rrpa], parent: this });
     const imageName = repo.repositoryUrl;
 
     const customImage = "temporal-tickr-worker-image";
@@ -252,7 +270,7 @@ export class Temporal extends pulumi.ComponentResource {
     const workerImg = new docker.Image(customImage, {
       build: args.app.folder,
       imageName: pulumi.interpolate`${imageName}:${customImageVersion}`
-    }, { dependsOn: [rrpa], parent: this });
+    }, { dependsOn: [repositoryPolicy], parent: this });
 
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;

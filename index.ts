@@ -13,7 +13,7 @@ const postgres = new Postgresql(`${appName}-db`, {
   dbPassword: postgresqlPassword,
   subnetIds: vpc.subnetIds,
   securityGroupIds: vpc.rdsSecurityGroupIds,
-  engine: "PostreSQL",
+  engine: "postgres",
   engineVersion: "13.8",
   allocatedStorage: 30,
   maxAllocatedStorage: 90,
