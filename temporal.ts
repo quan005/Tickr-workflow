@@ -226,7 +226,7 @@ export class Temporal extends pulumi.ComponentResource {
         {
           "Sid": "AllowAll",
           "Effect": "Allow",
-          "Principle": "*S",
+          "Principle": "*",
           "Action": [
             "ecr:*",
           ],
@@ -265,7 +265,7 @@ export class Temporal extends pulumi.ComponentResource {
       executionRoleArn: role.arn,
       containerDefinitions: JSON.stringify([{
         "name": temporalWorkerContainerName,
-        "image": pulumi.interpolate`${workerImg.registryServer}/${workerImg.imageName}`,
+        "image": `${workerImg.registryServer}/${workerImg.imageName}`,
         "portMappings": [{
           "containerPort": args.app.port,
           "hostPort": args.app.port,
