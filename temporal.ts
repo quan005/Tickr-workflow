@@ -226,6 +226,7 @@ export class Temporal extends pulumi.ComponentResource {
         {
           "Sid": "AllowAll",
           "Effect": "Allow",
+          "Principle": "*S",
           "Action": [
             "ecr:*",
           ],
