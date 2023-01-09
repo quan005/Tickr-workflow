@@ -1,11 +1,12 @@
 config:
-  aws:AWS_ACCOUNT:
-    secure: AAABAOHY0OuUjXZPbsVoQ0xjcoN2IGOhQOk/KLRTPt/ng/zYOpJrMIWypuM=
   aws:region: us-east-1
   tickr-temporal:API_HOSTNAME: api.tickrbot.com
   tickr-temporal:API_PORT: "4000"
+  tickr-temporal:AWS_ACCOUNT:
+    secure: AAABADgLli1nsyRBdDTivu8HxwcYDhugWsScAq4IzD6bfKt4imYRuvQXMc8=
   tickr-temporal:KAFKA_BROKER: 165.227.191.69
   tickr-temporal:REDIRECT_URI: https://localhost
+  tickr-temporal:REGION: us-east-1
   tickr-temporal:SCHEMA_REGISTRY_URL: http://165.227.191.69:8081
   tickr-temporal:TD_ACCOUNT_ID:
     secure: AAABANaYnsqW3yln97WkRIkFE4FltrWzZ9wMZVQmtHi7LeCVpeeI2Sc=
