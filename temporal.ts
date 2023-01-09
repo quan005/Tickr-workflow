@@ -224,14 +224,6 @@ export class Temporal extends pulumi.ComponentResource {
       "Version": "2012-10-17",
       "Statement": [
         {
-          "Sid": "GetAuthorizationToken",
-          "Effect": "Allow",
-          "Action": [
-            "ecr:GetAuthorizationToken"
-          ],
-          "Resource": "*"
-        },
-        {
           "Sid": "AllowAll",
           "Effect": "Allow",
           "Action": [
@@ -258,7 +250,7 @@ export class Temporal extends pulumi.ComponentResource {
 
     const workerImg = new docker.Image(customImage, {
       build: args.app.folder,
-      imageName: `${imageName}:${customImageVersion}`
+      imageName: pulumi.interpolate`${imageName}:${customImageVersion}`
     }, { dependsOn: [rrpa], parent: this });
 
     const temporalWorkerTaskName = `${name}-worker-task`;
@@ -272,7 +264,7 @@ export class Temporal extends pulumi.ComponentResource {
       executionRoleArn: role.arn,
       containerDefinitions: JSON.stringify([{
         "name": temporalWorkerContainerName,
-        "image": `${workerImg.registryServer}/${workerImg.imageName}`,
+        "image": pulumi.interpolate`${workerImg.registryServer}/${workerImg.imageName}`,
         "portMappings": [{
           "containerPort": args.app.port,
           "hostPort": args.app.port,
