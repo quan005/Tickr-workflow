@@ -226,7 +226,9 @@ export class Temporal extends pulumi.ComponentResource {
         {
           "Sid": "AllowAll",
           "Effect": "Allow",
-          "Principle": "*",
+          "Principle": {
+            "Service": "ecr.amazonaws.com",
+          },
           "Action": [
             "ecr:*",
           ],
