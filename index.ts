@@ -1,3 +1,5 @@
+import * as pulumi from "@pulumi/pulumi";
+
 import { postgresqlPassword } from "./config";
 import { Vpc } from "./vpc";
 import { Postgresql } from "./postgresql";
@@ -39,5 +41,5 @@ const temporal = new Temporal(`${appName}`, {
   },
 });
 
-export const serverEndpoint = temporal.serverEndpoint;
-export const uiEndpoint = temporal.uiEndpoint;
+export const serverEndpoint = pulumi.interpolate`http://${temporal.serverEndpoint}`;
+export const uiEndpoint = pulumi.interpolate`http://${temporal.uiEndpoint}`;
