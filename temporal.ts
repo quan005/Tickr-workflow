@@ -336,11 +336,15 @@ export class Temporal extends pulumi.ComponentResource {
     const customImage = "temporal-tickr-worker-image";
 
     const workerImg = new docker.Image(customImage, {
-      build: "./workflow",
       imageName: repo.repositoryUrl,
-      registry: registry,
+      build: { context: "args.app.folder" },
+      registry: {
+        server: registry.server,
+        username: registry.username,
+        password: registry.password
+      },
       skipPush: false,
-    });
+    }, { parent: this });
 
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
