@@ -110,7 +110,7 @@ export class Temporal extends pulumi.ComponentResource {
       }),
     });
 
-    new aws.iam.RolePolicyAttachment(`${name}-task-exec-policy`, {
+    const execPolicyAttachment = new aws.iam.RolePolicyAttachment(`${name}-task-exec-policy`, {
       role: execRole.name,
       policyArn: "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy",
     });
@@ -131,7 +131,7 @@ export class Temporal extends pulumi.ComponentResource {
       }),
     });
 
-    new aws.iam.RolePolicyAttachment(`${name}-task-access-policy`, {
+    const taskPolicyAttachment = new aws.iam.RolePolicyAttachment(`${name}-task-access-policy`, {
       role: taskRole.name,
       policyArn: aws.iam.ManagedPolicy.AmazonECSFullAccess,
     });
@@ -190,7 +190,7 @@ export class Temporal extends pulumi.ComponentResource {
         }, { parent: this }),
       );
 
-    new aws.ecs.Service(`${name}-server-service`, {
+    const temporalServerService = new aws.ecs.Service(`${name}-server-service`, {
       cluster: cluster.arn,
       desiredCount: 1,
       launchType: "EC2",
@@ -265,7 +265,7 @@ export class Temporal extends pulumi.ComponentResource {
       }, { parent: this }),
     );
 
-    new aws.ecs.Service(`${name}-ui-service`, {
+    const temporalUiService = new aws.ecs.Service(`${name}-ui-service`, {
       cluster: cluster.arn,
       desiredCount: 1,
       launchType: "EC2",
@@ -336,9 +336,10 @@ export class Temporal extends pulumi.ComponentResource {
     const customImage = "temporal-tickr-worker-image";
 
     const workerImg = new docker.Image(customImage, {
-      build: args.app.folder,
+      build: "./workflow",
       imageName: repo.repositoryUrl,
-      registry: registry
+      registry: registry,
+      skipPush: false,
     });
 
     const temporalWorkerTaskName = `${name}-worker-task`;
@@ -424,7 +425,7 @@ export class Temporal extends pulumi.ComponentResource {
       }]),
     }, { parent: this });
 
-    new aws.ecs.Service(`${name}-worker-service`, {
+    const temporalWorkerService = new aws.ecs.Service(`${name}-worker-service`, {
       cluster: cluster.arn,
       desiredCount: 1,
       launchType: "EC2",
