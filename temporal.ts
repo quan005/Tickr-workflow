@@ -337,7 +337,7 @@ export class Temporal extends pulumi.ComponentResource {
 
     const workerImg = new docker.Image(customImage, {
       imageName: repo.repositoryUrl,
-      build: { context: "args.app.folder" },
+      build: { context: args.app.folder },
       registry: {
         server: registry.server,
         username: registry.username,
