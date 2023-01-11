@@ -111,6 +111,7 @@ export class Temporal extends pulumi.ComponentResource {
     }, { parent: this });
 
     const temporalServertg = new aws.lb.TargetGroup(`${name}-server-tg`, {
+      name: `${name}-server-tg`,
       port: 7233,
       protocol: "TCP",
       targetType: "ip",
@@ -130,6 +131,7 @@ export class Temporal extends pulumi.ComponentResource {
     }, { parent: this });
 
     const temporalUitg = new aws.lb.TargetGroup(`${name}-ui-tg`, {
+      name: `${name}-ui-tg`,
       port: 8088,
       protocol: "TCP",
       targetType: "ip",
@@ -149,6 +151,7 @@ export class Temporal extends pulumi.ComponentResource {
     }, { parent: this });
 
     const temporalWorkertg = new aws.lb.TargetGroup(`${name}-worker-tg`, {
+      name: `${name}-worker-tg`,
       port: args.app.port,
       protocol: "TCP",
       targetType: "ip",
