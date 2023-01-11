@@ -140,8 +140,6 @@ export const createSignedCertificate = (caCertificate: caCert) => {
 
   certificate.sign(caPrivateKey, md.sha256.create());
 
-  console.log('certificate', certificate)
-
   const pem = pki.certificateToPem(certificate);
   const privateKey = pki.privateKeyToPem(keys.privateKey);
 

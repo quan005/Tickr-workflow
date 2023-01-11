@@ -1,5 +1,4 @@
 import * as aws from "@pulumi/aws";
-import * as docker from "@pulumi/docker";
 import * as pulumi from "@pulumi/pulumi";
 
 import { caCert, cert, createCaCertificate, createSignedCertificate } from "./cert";
@@ -33,7 +32,78 @@ export class Temporal extends pulumi.ComponentResource {
   constructor(name: string, args: TemporalArgs, opts?: pulumi.ComponentResourceOptions) {
     super("tickr:Temporal", name, args, opts);
 
-    const cluster = new aws.ecs.Cluster(`${name}-ecs`, {}, { parent: this });
+    const ecsInstanceRole = new aws.iam.Role(`${name}-ecs-instance-role`, {
+      assumeRolePolicy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "",
+            Effect: "Allow",
+            Principal: {
+              Service: "ec2.amazonaws.com",
+            },
+            Action: "sts:AssumeRole",
+          },
+        ],
+      }),
+    });
+
+    const ecsInstanceRolePolicyAttachment = new aws.iam.RolePolicyAttachment(`${name}-ecs-instance-policy`, {
+      role: ecsInstanceRole.name,
+      policyArn: "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+    });
+
+    const ecsInstanceProfile = new aws.iam.InstanceProfile(`${name}-ecs-instance-profile`, {
+      role: ecsInstanceRole.name
+    })
+
+    const temporalServerEc2Ami = aws.ec2.getAmiOutput({
+      mostRecent: true,
+      owners: ["amazon"],
+      filters: [
+        {
+          name: "name",
+          values: ["amzn2-ami-hvm-*-arm64-*"]
+        }
+      ]
+    });
+
+    const ec2Ami = aws.ec2.getAmiOutput({
+      mostRecent: true,
+      owners: ["amazon"],
+      filters: [
+        {
+          name: "name",
+          values: ["amzn2-ami-ecs-hvm-*-x86_64-*"]
+        }
+      ]
+    });
+
+    const clusterName = `${name}-ecs`
+    const userData = JSON.stringify(`#!/bin/bash echo ECS_CLUSTER=${clusterName} >> /etc/ecs/ecs.config`);
+
+    const temporalServerEc2 = new aws.ec2.LaunchConfiguration(`${name}-server-ec2`, {
+      imageId: temporalServerEc2Ami.id,
+      instanceType: "t4g.small",
+      iamInstanceProfile: ecsInstanceProfile.name,
+      userData: userData
+    });
+    const temporalUiEc2 = new aws.ec2.LaunchConfiguration(`${name}-ui-ec2`, {
+      imageId: ec2Ami.id,
+      instanceType: "t3.micro",
+      iamInstanceProfile: ecsInstanceProfile.name,
+      userData: userData
+    });
+    const temporalWorkerEc2 = new aws.ec2.LaunchConfiguration(`${name}-worker-ec2`, {
+      imageId: ec2Ami.id,
+      instanceType: "t3.micro",
+      iamInstanceProfile: ecsInstanceProfile.name,
+      userData: userData
+    });
+
+    const cluster = new aws.ecs.Cluster(`${name}-ecs`, {
+      name: clusterName
+    }, { parent: this });
 
     const alb = new aws.lb.LoadBalancer(`${name}-alb`, {
       loadBalancerType: "network",
@@ -56,6 +126,7 @@ export class Temporal extends pulumi.ComponentResource {
       ],
       loadBalancerArn: alb.arn,
       port: 7233,
+      protocol: "TCP",
     }, { parent: this });
 
     const temporalUitg = new aws.lb.TargetGroup(`${name}-ui-tg`, {
@@ -74,6 +145,7 @@ export class Temporal extends pulumi.ComponentResource {
       ],
       loadBalancerArn: alb.arn,
       port: 8088,
+      protocol: "TCP",
     }, { parent: this });
 
     const temporalWorkertg = new aws.lb.TargetGroup(`${name}-worker-tg`, {
@@ -92,6 +164,7 @@ export class Temporal extends pulumi.ComponentResource {
       ],
       loadBalancerArn: alb.arn,
       port: args.app.port,
+      protocol: "TCP",
     }, { parent: this });
 
     const execRole = new aws.iam.Role(`${name}-task-exec-role`, {
@@ -196,7 +269,6 @@ export class Temporal extends pulumi.ComponentResource {
       launchType: "EC2",
       taskDefinition: temporalServerTaskDefinition.arn,
       networkConfiguration: {
-        assignPublicIp: true,
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },
@@ -207,7 +279,7 @@ export class Temporal extends pulumi.ComponentResource {
       }],
     }, { dependsOn: [temporalServerListener], parent: this });
 
-    this.serverEndpoint = pulumi.interpolate`${alb.dnsName}`;
+    this.serverEndpoint = pulumi.interpolate`http://${alb.dnsName}:7233`;
 
     const ca: caCert = createCaCertificate();
     const cert: cert = createSignedCertificate(ca);
@@ -234,7 +306,7 @@ export class Temporal extends pulumi.ComponentResource {
           "environment": [
             {
               "name": "TEMPORAL_ADDRESS",
-              "value": `${this.serverEndpoint}`,
+              "value": pulumi.interpolate`${this.serverEndpoint}`.apply(v => JSON.stringify(v)),
             },
             {
               "name": "TEMPORAL_UI_PORT",
@@ -271,7 +343,6 @@ export class Temporal extends pulumi.ComponentResource {
       launchType: "EC2",
       taskDefinition: temporalUiTaskDefinition.arn,
       networkConfiguration: {
-        assignPublicIp: true,
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },
@@ -282,7 +353,7 @@ export class Temporal extends pulumi.ComponentResource {
       }],
     }, { dependsOn: [temporalUiListener], parent: this });
 
-    this.uiEndpoint = pulumi.interpolate`${alb.dnsName}`;
+    this.uiEndpoint = pulumi.interpolate`http://${alb.dnsName}:8088`;
 
     const repo = new aws.ecr.Repository(`${name}-repository`);
 
@@ -303,49 +374,6 @@ export class Temporal extends pulumi.ComponentResource {
       }
     };
 
-    const registry = repo.registryId.apply(getRegistryInfo);
-
-    new aws.ecr.RepositoryPolicy(`${name}-repository-policy`, {
-      repository: repo.id,
-      policy: JSON.stringify({
-        Version: "2012-10-17",
-        Statement: [{
-          Sid: "new policy",
-          Effect: "Allow",
-          Principal: "*",
-          Action: [
-            "ecr:GetDownloadUrlForLayer",
-            "ecr:BatchGetImage",
-            "ecr:BatchCheckLayerAvailability",
-            "ecr:PutImage",
-            "ecr:InitiateLayerUpload",
-            "ecr:UploadLayerPart",
-            "ecr:CompleteLayerUpload",
-            "ecr:DescribeRepositories",
-            "ecr:GetRepositoryPolicy",
-            "ecr:ListImages",
-            "ecr:DeleteRepository",
-            "ecr:BatchDeleteImage",
-            "ecr:SetRepositoryPolicy",
-            "ecr:DeleteRepositoryPolicy"
-          ]
-        }]
-      }),
-    });
-
-    const customImage = "temporal-tickr-worker-image";
-
-    const workerImg = new docker.Image(customImage, {
-      imageName: repo.repositoryUrl,
-      build: { context: args.app.folder },
-      registry: {
-        server: registry.server,
-        username: registry.username,
-        password: registry.password
-      },
-      skipPush: false,
-    }, { parent: this });
-
     const temporalWorkerTaskName = `${name}-worker-task`;
     const temporalWorkerContainerName = `${name}-worker-container`;
     const temporalWorkerTaskDefinition = new aws.ecs.TaskDefinition(temporalWorkerTaskName, {
@@ -358,7 +386,7 @@ export class Temporal extends pulumi.ComponentResource {
       taskRoleArn: taskRole.arn,
       containerDefinitions: JSON.stringify([{
         "name": temporalWorkerContainerName,
-        "image": `${workerImg.registryServer}/${workerImg.imageName}`,
+        "image": "daquan05/tickr:latest",
         "portMappings": [{
           "containerPort": args.app.port,
           "hostPort": args.app.port,
@@ -367,7 +395,7 @@ export class Temporal extends pulumi.ComponentResource {
         "environment": [
           {
             "name": "TEMPORAL_GRPC_ENDPOINT",
-            "value": `${this.serverEndpoint}`,
+            "value": pulumi.interpolate`${this.serverEndpoint}`.apply(v => JSON.stringify(v)),
           },
           {
             "name": "API_HOSTNAME",
@@ -395,27 +423,27 @@ export class Temporal extends pulumi.ComponentResource {
           },
           {
             "name": "TD_USERNAME",
-            "value": config.requireSecret("TD_USERNAME"),
+            "value": config.requireSecret("TD_USERNAME").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TD_PASSWORD",
-            "value": config.requireSecret("TD_PASSWORD"),
+            "value": config.requireSecret("TD_PASSWORD").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TD_ANSWER_1",
-            "value": config.requireSecret("TD_ANSWER_1"),
+            "value": config.requireSecret("TD_ANSWER_1").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TD_ANSWER_2",
-            "value": config.requireSecret("TD_ANSWER_2"),
+            "value": config.requireSecret("TD_ANSWER_2").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TD_ANSWER_3",
-            "value": config.requireSecret("TD_ANSWER_3"),
+            "value": config.requireSecret("TD_ANSWER_3").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TD_ANSWER_4",
-            "value": config.requireSecret("TD_ANSWER_4"),
+            "value": config.requireSecret("TD_ANSWER_4").apply(v => JSON.stringify(v)),
           },
           {
             "name": "TLS_CERT",
@@ -435,7 +463,6 @@ export class Temporal extends pulumi.ComponentResource {
       launchType: "EC2",
       taskDefinition: temporalWorkerTaskDefinition.arn,
       networkConfiguration: {
-        assignPublicIp: true,
         subnets: args.subnetIds,
         securityGroups: args.securityGroupIds,
       },

@@ -6,6 +6,7 @@ export interface VpcArgs {
   instanceTenancy?: pulumi.Input<string>;
   enableDnsHostnames?: pulumi.Input<boolean>;
   enableDnsSupport?: pulumi.Input<boolean>;
+  workerPort: number;
 };
 
 export class Vpc extends pulumi.ComponentResource {
@@ -18,7 +19,7 @@ export class Vpc extends pulumi.ComponentResource {
     super("tickr:VPC", name, args, opts);
 
     const vpcName = `${name}-vpc`;
-    const cidrBlock = args.cidrBlock || "10.100.0.0/16";
+    const cidrBlock = args.cidrBlock || "172.31.0.0/16";
     const instanceTenancy = args.instanceTenancy || "default";
     const enableDnsHostnames = args.enableDnsHostnames || true;
     const enableDnsSupport = args.enableDnsSupport || true;
@@ -30,6 +31,18 @@ export class Vpc extends pulumi.ComponentResource {
       enableDnsSupport: enableDnsSupport,
       tags: { "Name": vpcName },
     }, { parent: this });
+
+    const vpcSubnet1 = new aws.ec2.Subnet(`${vpcName}-subnet-1`, {
+      cidrBlock: "172.31.32.0/20",
+      vpcId: vpc.id,
+      availabilityZoneId: "use1-az6"
+    });
+
+    const vpcSubnet2 = new aws.ec2.Subnet(`${vpcName}-subnet-2`, {
+      cidrBlock: "172.31.64.0/20",
+      vpcId: vpc.id,
+      availabilityZoneId: "use1-az5"
+    });
 
     const igwName = `${name}-igw`;
     const igw = new aws.ec2.InternetGateway(igwName, {
@@ -44,28 +57,10 @@ export class Vpc extends pulumi.ComponentResource {
       tags: { "Name": rtName },
     }, { parent: this });
 
-    const allZones = aws.getAvailabilityZones({ state: "available" });
-    const subnets: pulumi.Output<string>[] = [];
-    const subnetNameBase = `${name}-subnet`;
-    for (let i = 0; i < 2; i++) {
-      const az = allZones.then(it => it.zoneIds[i]);
-      const subnetName = `${subnetNameBase}-${i}`;
-      const vpcSubnet = new aws.ec2.Subnet(subnetName, {
-        assignIpv6AddressOnCreation: false,
-        vpcId: vpc.id,
-        mapPublicIpOnLaunch: true,
-        cidrBlock: `10.100.${subnets.length}.0/24`,
-        availabilityZoneId: az,
-        tags: { "Name": subnetName },
-      }, { parent: this });
-
-      const _ = new aws.ec2.RouteTableAssociation(`vpc-route-table-assoc-${i}`, {
-        routeTableId: routeTable.id,
-        subnetId: vpcSubnet.id,
-      }, { parent: this });
-
-      subnets.push(vpcSubnet.id);
-    };
+    const _ = new aws.ec2.RouteTableAssociation(`vpc-route-table-association`, {
+      routeTableId: routeTable.id,
+      subnetId: vpcSubnet1.id,
+    }, { parent: this });
 
     const rdsSgName = `${name}-rds-sg`;
     const rdsSecurityGroup = new aws.ec2.SecurityGroup(rdsSgName, {
@@ -79,6 +74,20 @@ export class Vpc extends pulumi.ComponentResource {
           toPort: 3306,
           protocol: "tcp",
           description: "Allow RDS access",
+        },
+        {
+          cidrBlocks: ["0.0.0.0/0"],
+          fromPort: 5432,
+          toPort: 5432,
+          protocol: "tcp",
+          description: "Allow RDS access",
+        },
+        {
+          cidrBlocks: ["0.0.0.0/0"],
+          fromPort: args.workerPort,
+          toPort: args.workerPort,
+          protocol: "tcp",
+          description: "Allow Worker access",
         },
       ],
       egress: [
@@ -111,6 +120,20 @@ export class Vpc extends pulumi.ComponentResource {
           protocol: "tcp",
           description: "Allow http",
         },
+        {
+          cidrBlocks: ["0.0.0.0/0"],
+          fromPort: 7233,
+          toPort: 7233,
+          protocol: "tcp",
+          description: "Allow Server access",
+        },
+        {
+          cidrBlocks: ["0.0.0.0/0"],
+          fromPort: 8088,
+          toPort: 8088,
+          protocol: "tcp",
+          description: "Allow Ui access",
+        },
       ],
       egress: [
         {
@@ -123,7 +146,7 @@ export class Vpc extends pulumi.ComponentResource {
     }, { parent: this });
 
     this.vpcId = vpc.id;
-    this.subnetIds = subnets;
+    this.subnetIds = [vpcSubnet1.id, vpcSubnet2.id];
     this.rdsSecurityGroupIds = [rdsSecurityGroup.id];
     this.feSecurityGroupIds = [feSecurityGroup.id];
     this.registerOutputs({});

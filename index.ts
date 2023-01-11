@@ -7,11 +7,13 @@ import { Temporal } from "./temporal";
 
 const appName = "tickr-temporal";
 
-const vpc = new Vpc(`${appName}-net`, {});
+const vpc = new Vpc(`${appName}-net`, {
+  workerPort: 9090
+});
 
 const postgres = new Postgresql(`${appName}-db`, {
   dbName: "tickrtemporaldb",
-  dbUsername: "daquan@tickr",
+  dbUsername: "daquan_tickr",
   dbPassword: postgresqlPassword,
   subnetIds: vpc.subnetIds,
   securityGroupIds: vpc.rdsSecurityGroupIds,
@@ -41,5 +43,5 @@ const temporal = new Temporal(`${appName}`, {
   },
 });
 
-export const serverEndpoint = pulumi.interpolate`http://${temporal.serverEndpoint}`;
-export const uiEndpoint = pulumi.interpolate`http://${temporal.uiEndpoint}`;
+export const serverEndpoint = pulumi.interpolate`${temporal.serverEndpoint}`;
+export const uiEndpoint = pulumi.interpolate`${temporal.uiEndpoint}`;

@@ -32,16 +32,16 @@ export class Postgresql extends pulumi.ComponentResource {
 
     const rdsName = `${name}-rds`;
     const db = new aws.rds.Instance(rdsName, {
-      dbName: args.dbName,
-      username: args.dbUsername,
-      password: args.dbPassword,
+      dbName: pulumi.interpolate`${args.dbName}`,
+      username: pulumi.interpolate`${args.dbUsername}`,
+      password: pulumi.interpolate`${args.dbPassword}`,
       vpcSecurityGroupIds: args.securityGroupIds,
       dbSubnetGroupName: rdsSubnetGroup.name,
       allocatedStorage: args.allocatedStorage,
-      engine: args.engine,
-      engineVersion: args.engineVersion,
-      instanceClass: args.instanceClass,
-      storageType: args.storageType,
+      engine: pulumi.interpolate`${args.engine}`,
+      engineVersion: pulumi.interpolate`${args.engineVersion}`,
+      instanceClass: pulumi.interpolate`${args.instanceClass}`,
+      storageType: pulumi.interpolate`${args.storageType}`,
       skipFinalSnapshot: true,
       publiclyAccessible: false,
     }, { parent: this });
