@@ -11,8 +11,8 @@ async function run() {
     address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
     tls: {
       clientCertPair: {
-        crt: fs.readFileSync(path.resolve(__dirname, './certs/fullchain.pem')),
-        key: fs.readFileSync(path.resolve(__dirname, './certs/privkey.pem')),
+        crt: fs.readFileSync(process.env.TLS_CERT),
+        key: fs.readFileSync(process.env.TLS_KEY),
       }
     }
   });
