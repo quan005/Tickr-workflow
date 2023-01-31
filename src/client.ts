@@ -4,11 +4,10 @@ import { Connection, WorkflowClient } from '@temporalio/client';
 import { priceAction } from './workflows';
 import { PremarketMessage, PremarketData } from './interfaces/premarketData';
 import * as dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "node:path";
 
 dotenv.config();
-
-const cert = Buffer.from(process.env.TLS_CERT, "utf-8");
-const key = Buffer.from(process.env.TLS_KEY, "utf-8");
 
 // need to connect to kafka topic and consume the message
 const broker: string = process.env.KAFKA_BROKER;
@@ -46,8 +45,8 @@ const run = async () => {
           address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
           tls: {
             clientCertPair: {
-              crt: cert,
-              key: key,
+              crt: fs.readFileSync(path.resolve(__dirname, './certs/fullchain.pem')),
+              key: fs.readFileSync(path.resolve(__dirname, './certs/privkey.pem')),
             }
           }
         });

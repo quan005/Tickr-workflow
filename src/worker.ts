@@ -1,19 +1,18 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
 import * as activities from "./activities/priceActionPosition";
 import * as dotenv from "dotenv";
+import * as fs from "fs";
+import * as path from "node:path";
 
 dotenv.config();
-
-const cert = Buffer.from(process.env.TLS_CERT, "utf-8");
-const key = Buffer.from(process.env.TLS_KEY, "utf-8");
 
 async function run() {
   const connection = await NativeConnection.connect({
     address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
     tls: {
       clientCertPair: {
-        crt: cert,
-        key: key,
+        crt: fs.readFileSync(path.resolve(__dirname, './certs/fullchain.pem')),
+        key: fs.readFileSync(path.resolve(__dirname, './certs/privkey.pem')),
       }
     }
   });
