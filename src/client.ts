@@ -3,6 +3,7 @@ import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import { Connection, WorkflowClient } from '@temporalio/client';
 import { priceAction } from './workflows';
 import { PremarketMessage, PremarketData } from './interfaces/premarketData';
+import { CreateCaCertificate, CreateSignedCertificate } from './cert';
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "node:path";
@@ -36,19 +37,21 @@ const run = async () => {
     eachMessage: async ({ topic, partition, message }) => {
       new Promise(async (resolve) => {
         // decode the kafka message using schema registry
-        const decodedMessage: PremarketMessage = await schemaRegistry.decode(<Buffer>message.value);
+        const premarketMessage: PremarketData = await schemaRegistry.decode(<Buffer>message.value);
 
-        const premarketMessage: PremarketData = decodedMessage.Premarket
+        // const ca = CreateCaCertificate();
+
+        // CreateSignedCertificate(ca);
 
         // connect to the Temporal Server and start workflow
         const connection = await Connection.connect({
           address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
-          tls: {
-            clientCertPair: {
-              crt: fs.readFileSync(process.env.TLS_CERT),
-              key: fs.readFileSync(process.env.TLS_KEY),
-            }
-          }
+          // tls: {
+          //   clientCertPair: {
+          //     crt: fs.readFileSync(path.resolve(__dirname, './certs/cert.pem')),
+          //     key: fs.readFileSync(path.resolve(__dirname, './certs/privkey.pem')),
+          //   }
+          // }
         });
 
         const temporalClient = new WorkflowClient({
@@ -61,6 +64,8 @@ const run = async () => {
           workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
           taskQueue: 'price-action-positions',
         });
+
+        console.log('priceAction result', priceActionResult.result());
 
         return resolve(priceActionResult);
       });

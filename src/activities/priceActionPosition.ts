@@ -7,14 +7,15 @@ import * as url from "url";
 import * as dotenv from "dotenv";
 import { tdLogin } from "../tda/middleware/tdLogin";
 import { tdAuthUrl } from "../tda/middleware/tdAuthUrl";
+import { tdCredentialsToString } from "../tda/middleware/tdCredentialToString";
 import { CurrentPriceData } from "../interfaces/currentPriceData";
 import { SurroundingKeyLevels } from "../interfaces/surroundingKeyLevels";
 import { SupplyZones, DemandZones } from "../interfaces/supplyDemandZones";
 import { PositionSetup } from "../interfaces/positionSetup";
 import { OptionsSelection } from "../interfaces/optionsSelection";
 import { OpenPositionSignal } from "../interfaces/openPositionSignal";
-import { UserPrinciples } from "../interfaces/UserPrinciples";
-import { Token } from "../interfaces/token";
+import { UserPrinciples, PrinciplesAndParams } from "../interfaces/UserPrinciples";
+import { Token, TokenJSON } from "../interfaces/token";
 import {
   GetOrderResponse,
   OrdersConfig,
@@ -43,10 +44,18 @@ export async function is_market_open(): Promise<boolean> {
   // waits for time to reach 9:50am newyork time then
   // returns true
 
-  let marketOpen = moment().tz('America/New_York').format('H:mm')
+  const day = moment().tz('America/New_York').format('dddd');
 
-  while (marketOpen !== '9:07') {
-    marketOpen = moment().tz('America/New_York').format('H:mm')
+  if (day === "Saturday" || day === "Sunday") {
+    return false;
+  }
+
+  let marketOpen = moment().tz('America/New_York').format('Hmm');
+  let marketInt = parseInt(marketOpen);
+
+  while (marketInt < 907 || marketInt > 1600) {
+    marketOpen = moment().tz('America/New_York').format('H:mm');
+    marketInt = parseInt(marketOpen);
     Context.current().heartbeat();
   }
 
@@ -152,6 +161,7 @@ export async function get_surrounding_key_levels(current_price: number, key_leve
 
 export async function is_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
   // finds the demand zone that the price currently resides in else return null
+  Context.current().heartbeat();
   for (let i = 0; i < 7; i++) {
     if (current_price > demand_zones[i].bottom && current_price < demand_zones[i].top) {
       const zone = [[demand_zones[i].bottom, demand_zones[i].top]];
@@ -165,6 +175,7 @@ export async function is_demand_zone(current_price: number, demand_zones: Demand
 }
 
 export async function find_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
+  Context.current().heartbeat();
   const demandZone = await is_demand_zone(current_price, demand_zones);
   const surroundingZones: number[][] = [];
 
@@ -186,6 +197,7 @@ export async function find_demand_zone(current_price: number, demand_zones: Dema
 }
 
 export async function is_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
+  Context.current().heartbeat();
   // finds the supply zone that the price currently resides in or is closest too
   for (let i = 0; i < supply_zones.length; i++) {
     if (current_price < supply_zones[i].top && current_price > supply_zones[i].bottom) {
@@ -199,6 +211,7 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
 }
 
 export async function find_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
+  Context.current().heartbeat();
   const supplyZone = await is_supply_zone(current_price, supply_zones);
   const surroundingZones: number[][] = [];
 
@@ -235,7 +248,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
     let messageCount = 0;
     const messages: SocketResponse[] | null = [];
 
-    const client = await websocketClient(wsUri);
+    const client = websocketClient(wsUri);
 
     await waitForClientConnection(client);
 
@@ -243,7 +256,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
 
     await waitForClientLoginMessage(client);
 
-    await client.send(JSON.stringify(market_request));
+    client.send(JSON.stringify(market_request));
 
     client.onmessage = event => {
       Context.current().heartbeat();
@@ -255,8 +268,10 @@ export async function get_current_price(wsUri: string, login_request: object, ma
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
+      console.log('data', data);
+      console.log('data.data', data.data);
 
-      if (data.data) {
+      if (data.data !== undefined) {
         messages.push(data.data[0].content[0]);
         messageCount += 1;
         client.close();
@@ -302,6 +317,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
 }
 
 export async function get_position_setup(surrounding_key_levels: SurroundingKeyLevels, demand_zone: number[][], supply_zone: number[][]): Promise<PositionSetup> {
+  Context.current().heartbeat();
   if (demand_zone[0] && supply_zone[0]) {
     if (surrounding_key_levels.above_resistance !== null && surrounding_key_levels.resistance !== null && surrounding_key_levels.support !== null && surrounding_key_levels.below_support !== null) {
       return {
@@ -315,7 +331,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
           entry: surrounding_key_levels.support,
           stopLoss: surrounding_key_levels.support + (Math.round(((surrounding_key_levels.support - surrounding_key_levels.below_support) / 4) * 10) / 10),
           takeProfit: surrounding_key_levels.below_support,
-          cutPosition: (((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2) - surrounding_key_levels.below_support),
+          cutPosition: (surrounding_key_levels.below_support - ((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2)),
         },
       };
     } else if (surrounding_key_levels.resistance === null || surrounding_key_levels.above_resistance === null) {
@@ -326,7 +342,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
             entry: surrounding_key_levels.support,
             stopLoss: surrounding_key_levels.support + (Math.round(((surrounding_key_levels.support - surrounding_key_levels.below_support) / 4) * 10) / 10),
             takeProfit: surrounding_key_levels.below_support,
-            cutPosition: (((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2) - surrounding_key_levels.below_support)
+            cutPosition: (surrounding_key_levels.below_support - ((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2)),
           },
         };
       }
@@ -379,7 +395,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
             entry: surrounding_key_levels.support,
             stopLoss: surrounding_key_levels.support + (Math.round(((surrounding_key_levels.support - surrounding_key_levels.below_support) / 4) * 10) / 10),
             takeProfit: surrounding_key_levels.below_support,
-            cutPosition: (((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2) - surrounding_key_levels.below_support),
+            cutPosition: (surrounding_key_levels.below_support - ((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2)),
           },
         };
       }
@@ -397,7 +413,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
           entry: surrounding_key_levels.support,
           stopLoss: surrounding_key_levels.support + (Math.round(((surrounding_key_levels.support - surrounding_key_levels.below_support) / 4) * 10) / 10),
           takeProfit: surrounding_key_levels.below_support,
-          cutPosition: (((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2) - surrounding_key_levels.below_support),
+          cutPosition: (surrounding_key_levels.below_support - ((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2)),
         },
       }
     } else if (surrounding_key_levels.support === null || surrounding_key_levels.below_support === null) {
@@ -420,7 +436,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
             entry: surrounding_key_levels.support,
             stopLoss: surrounding_key_levels.support + (Math.round(((surrounding_key_levels.support - surrounding_key_levels.below_support) / 4) * 10) / 10),
             takeProfit: surrounding_key_levels.below_support,
-            cutPosition: (((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2) - surrounding_key_levels.below_support)
+            cutPosition: (surrounding_key_levels.below_support - ((surrounding_key_levels.support - surrounding_key_levels.below_support) / 2)),
           },
         };
       }
@@ -438,6 +454,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
 }
 
 export async function getOptionsSelection(position_setup: PositionSetup, symbol: string, access_token: string): Promise<OptionsSelection | null> {
+  Context.current().heartbeat();
 
   let callOptionResponse: OptionChainResponse | null = null;
   let putOptionResponse: OptionChainResponse | null = null;
@@ -591,6 +608,7 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
 }
 
 export async function checkAccountAvailableBalance(access_token: string, account_id: string): Promise<number> {
+  Context.current().heartbeat();
   const getAccountResponse = await getAccount(access_token, account_id);
   const availableBalance = getAccountResponse.securitiesAccount.projectBalances.cashAvailableForTrading;
 
@@ -598,6 +616,7 @@ export async function checkAccountAvailableBalance(access_token: string, account
 }
 
 export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse | null> {
+  Context.current().heartbeat();
   let price = 0;
   let quantity = 0;
   let symbol = '';
@@ -655,6 +674,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
 }
 
 export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, account_id: string, access_token: string): Promise<number> {
+  Context.current().heartbeat();
   const position = await getOrder(access_token, account_id, order_id.orderId);
 
   if (position.status === 'FILLED' && position.filledQuantity) {
@@ -683,7 +703,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     let marketClose = moment().tz('America/New_York').format('Hmm');
 
     // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = await websocketClient(wsUri);
+    const timeSalesClient = websocketClient(wsUri);
 
     // await waitForClientConnection(bookClient);
     await waitForClientConnection(timeSalesClient);
@@ -695,7 +715,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     await waitForClientLoginMessage(timeSalesClient);
 
     // await bookClient.send(JSON.stringify(book_request));
-    await timeSalesClient.send(JSON.stringify(time_sales_request));
+    timeSalesClient.send(JSON.stringify(time_sales_request));
 
     timeSalesClient.onmessage = async function (event) {
       Context.current().heartbeat();
@@ -808,6 +828,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
 }
 
 export async function getOptionSymbol(order_id: PlaceOrdersResponse, account_id: string, access_token: string): Promise<string> {
+  Context.current().heartbeat();
   const option = await getOrder(access_token, account_id, order_id.orderId);
 
   if (option.orderLegCollection?.instrument.symbol) {
@@ -819,6 +840,7 @@ export async function getOptionSymbol(order_id: PlaceOrdersResponse, account_id:
 }
 
 export async function cutPosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+  Context.current().heartbeat();
   const newQuantity = Math.floor(quantity / 2);
 
   const cutPositionResponse = await placeOrder(access_token, account_id, {
@@ -846,6 +868,7 @@ export async function cutPosition(symbol: string, quantity: number, account_id: 
 }
 
 export async function closePosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+  Context.current().heartbeat();
   const closePositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
     order: {
@@ -891,7 +914,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     let cutFilled = 0;
 
     // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = await websocketClient(wsUri);
+    const timeSalesClient = websocketClient(wsUri);
 
     // await waitForClientConnection(bookClient);
     await waitForClientConnection(timeSalesClient);
@@ -903,7 +926,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     await waitForClientLoginMessage(timeSalesClient);
 
     // await bookClient.send(JSON.stringify(book_request));
-    await timeSalesClient.send(JSON.stringify(time_sales_request));
+    timeSalesClient.send(JSON.stringify(time_sales_request));
 
     timeSalesClient.onmessage = async function (event) {
       Context.current().heartbeat();
@@ -1012,7 +1035,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     let waited = 0;
 
     // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = await websocketClient(wsUri);
+    const timeSalesClient = websocketClient(wsUri);
 
     // await waitForClientConnection(bookClient);
     await waitForClientConnection(timeSalesClient);
@@ -1024,7 +1047,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     await waitForClientLoginMessage(timeSalesClient);
 
     // await bookClient.send(JSON.stringify(book_request));
-    await timeSalesClient.send(JSON.stringify(time_sales_request));
+    timeSalesClient.send(JSON.stringify(time_sales_request));
 
     timeSalesClient.onmessage = async function (event) {
       Context.current().heartbeat();
@@ -1108,7 +1131,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
   });
 }
 
-export async function getLoginCredentials(client_id: string): Promise<string> {
+export async function getLoginCredentials(client_id: string): Promise<TokenJSON> {
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
   const parseUrl = url.parse(urlCode, true).query;
@@ -1117,6 +1140,8 @@ export async function getLoginCredentials(client_id: string): Promise<string> {
   const encodedPassword = encodeURIComponent(postData);
   let token: Token;
   let data = '';
+
+  Context.current().heartbeat();
 
   return new Promise((resolve, reject) => {
     const authOptions = {
@@ -1155,7 +1180,7 @@ export async function getLoginCredentials(client_id: string): Promise<string> {
           if (err) console.log(err);
         });
 
-        return resolve(tokenJSON.access_token);
+        return resolve(tokenJSON);
       })
     }).on('error', (e) => {
       console.error('error', e);
@@ -1167,9 +1192,11 @@ export async function getLoginCredentials(client_id: string): Promise<string> {
   });
 }
 
-export function getUserPrinciples(access_token: string): Promise<UserPrinciples> {
+export function getUserPrinciples(access_token: string): Promise<PrinciplesAndParams> {
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
+
+  Context.current().heartbeat();
 
   return new Promise((resolve, reject) => {
     const authOptions = {
@@ -1190,9 +1217,41 @@ export function getUserPrinciples(access_token: string): Promise<UserPrinciples>
         data += chunk;
       });
 
-      resp.on('close', () => {
+      resp.on('close', async () => {
         const parseJson = JSON.parse(data);
-        const dataObject = JSON.parse(parseJson)
+        const userPrinciples: UserPrinciples = JSON.parse(parseJson);
+        let dataObject: PrinciplesAndParams = {
+          userPrinciples: null,
+          params: null
+        }
+        if (!userPrinciples.error) {
+          const tokenTimeStampAsDateObj = new Date(userPrinciples.streamerInfo.tokenTimestamp);
+          const tokenTimeStampAsMs = tokenTimeStampAsDateObj.getTime();
+          const credentials = {
+            "userid": userPrinciples.accounts[0].accountId,
+            "token": userPrinciples.streamerInfo.token,
+            "company": userPrinciples.accounts[0].company,
+            "segment": userPrinciples.accounts[0].segment,
+            "cddomain": userPrinciples.accounts[0].accountCdDomainId,
+            "usergroup": userPrinciples.streamerInfo.userGroup,
+            "accesslevel": userPrinciples.streamerInfo.accessLevel,
+            "authorized": "Y",
+            "timestamp": tokenTimeStampAsMs,
+            "appid": userPrinciples.streamerInfo.appId,
+            "acl": userPrinciples.streamerInfo.acl,
+          }
+          const param = await tdCredentialsToString(credentials);
+          dataObject = {
+            userPrinciples: userPrinciples,
+            params: param
+          }
+        } else {
+          dataObject = {
+            userPrinciples: userPrinciples,
+            params: null
+          }
+        }
+
         return resolve(dataObject)
       });
     }).on('error', (e) => {
@@ -1212,6 +1271,8 @@ export function getUserPrinciples(access_token: string): Promise<UserPrinciples>
 export function getAccount(access_token: string, account_id: string): Promise<Account> {
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
+
+  Context.current().heartbeat();
 
   return new Promise((resolve, reject) => {
     const postData = {
@@ -1262,6 +1323,8 @@ export function placeOrder(access_token: string, account_id: string, order_data:
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
+  Context.current().heartbeat();
+
   return new Promise((resolve, reject) => {
     const postData = {
       token: encodedtoken,
@@ -1310,6 +1373,8 @@ export function placeOrder(access_token: string, account_id: string, order_data:
 export function getOrder(access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
+
+  Context.current().heartbeat();
 
   return new Promise((resolve, reject) => {
     const postData = {
@@ -1360,6 +1425,8 @@ export function getOptionChain(access_token: string, option_chain_config: Option
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
+  Context.current().heartbeat();
+
   return new Promise((resolve, reject) => {
     const postData = {
       token: encodedtoken,
@@ -1405,6 +1472,8 @@ export function getOptionChain(access_token: string, option_chain_config: Option
 }
 
 export function filterOptionResponse(optionMap: OptionMap, optionType: string): OptionDetails | null {
+  Context.current().heartbeat();
+
   const optionsArray: OptionDetails[] = [];
 
   for (const option in optionMap) {

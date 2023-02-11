@@ -9,5 +9,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
   },
-  "include": ["./src/**/*", "proxy", "../src/interfaces/account.ts", "../src/scripts/build-workflow-bundle.ts"]
+  "include": ["./src/**/*", "proxy", "./src/certs/*", "../src/interfaces/account.ts", "../src/scripts/build-workflow-bundle.ts"]
 }

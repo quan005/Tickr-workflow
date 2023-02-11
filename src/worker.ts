@@ -9,12 +9,12 @@ dotenv.config();
 async function run() {
   const connection = await NativeConnection.connect({
     address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
-    tls: {
-      clientCertPair: {
-        crt: fs.readFileSync(process.env.TLS_CERT),
-        key: fs.readFileSync(process.env.TLS_KEY),
-      }
-    }
+    // tls: {
+    //   clientCertPair: {
+    //     crt: fs.readFileSync(path.resolve(__dirname, './certs/cert.pem')),
+    //     key: fs.readFileSync(path.resolve(__dirname, './certs/privkey.pem')),
+    //   }
+    // }
   });
 
   const worker = await Worker.create({

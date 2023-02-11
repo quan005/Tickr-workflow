@@ -1,3 +1,7 @@
+export interface PrinciplesAndParams {
+  userPrinciples: UserPrinciples | null,
+  params: string | null
+}
 export interface UserPrinciples {
   error?: string,
   userId?: string,
