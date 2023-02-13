@@ -63,6 +63,7 @@ const run = async () => {
           args: [premarketMessage],
           workflowId: 'priceAction-' + Math.floor(Math.random() * 1000),
           taskQueue: 'price-action-positions',
+          workflowTaskTimeout: 480000
         });
 
         console.log('priceAction result', priceActionResult.result());
