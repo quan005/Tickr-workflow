@@ -6,6 +6,15 @@ import * as path from "node:path";
 
 dotenv.config();
 
+const workflowOption = () =>
+  process.env.NODE_ENV === 'production' ? {
+    workflowBundle: {
+      codePath: require.resolve('../workflow-bundle.js'),
+    },
+  } : {
+    workflowsPath: require.resolve('./workflows')
+  };
+
 async function run() {
   const connection = await NativeConnection.connect({
     address: `${process.env.TEMPORAL_GRPC_ENDPOINT}`,
@@ -19,7 +28,7 @@ async function run() {
 
   const worker = await Worker.create({
     connection,
-    workflowsPath: require.resolve('./workflows'),
+    ...workflowOption(),
     activities,
     taskQueue: 'price-action-positions',
   });
