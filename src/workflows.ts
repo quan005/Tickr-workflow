@@ -11,7 +11,7 @@ import * as activities from "./activities/priceActionPosition";
 import { PremarketData } from "./interfaces/premarketData";
 import { TokenJSON } from './interfaces/token';
 
-type PositionState = 'Authenticating' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Authenticating To Open A Position' | 'Opened Position' | 'Authenticating To Confirm Position' | 'Authenticating To Cut A Position' | 'Cut Position' | 'No position Available' | 'Authenticating To Close A Position' | 'Closed Position'
+type PositionState = 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Closed Position'
 
 export interface PositionStatus {
   state: PositionState
@@ -23,13 +23,25 @@ export interface PositionStatus {
   closedAt?: Date
 }
 
+export const authToken1 = defineSignal('gettingAuthToken1');
+export const authUserPrinciples1 = defineSignal('gettingUserPrinciples1');
 export const currentPriceSignal = defineSignal('gettingCurrentPrice');
 export const surroundingKeyLevelsSignal = defineSignal('gettingSurroundingKeyLevels');
 export const findingSetup = defineSignal('findingSetup');
 export const optionSignal = defineSignal('selectingOption');
+export const authToken2 = defineSignal('gettingAuthToken2');
+export const authUserPrinciples2 = defineSignal('gettingUserPrinciples2');
 export const openedSignal = defineSignal('openedPosition');
+export const authToken3 = defineSignal('gettingAuthToken3');
+export const authUserPrinciples3 = defineSignal('gettingUserPrinciples3');
+export const checkingIfOptionFilled = defineSignal('checkingIfOptionFilled');
+export const gettingOptionSymbol = defineSignal('gettingOptionSymbol');
 export const cutSignal = defineSignal('cutPosition');
+export const authToken4 = defineSignal('gettingAuthToken4');
+export const authUserPrinciples4 = defineSignal('gettingUserPrinciples4');
 export const closedSignal = defineSignal('closedPosition');
+export const authToken5 = defineSignal('gettingAuthToken5');
+export const authUserPrinciples5 = defineSignal('gettingUserPrinciples5');
 export const getStatusQuery = defineQuery<PositionStatus>('getStatus');
 
 const {
@@ -47,7 +59,7 @@ const {
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 300000,
     retry: {
-      maximumAttempts: 4,
+      maximumAttempts: 6,
       maximumInterval: 5000,
     }
   });
@@ -66,8 +78,20 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   let closed = false;
   let closedAt: Date = new Date();
 
+  setHandler(authToken1, () => {
+    if (state === 'Getting Time Remaining') {
+      state = 'Getting Auth Token 1';
+    }
+  });
+
+  setHandler(authUserPrinciples1, () => {
+    if (state === 'Getting Auth Token 1') {
+      state = 'Getting User Principles 1';
+    }
+  });
+
   setHandler(currentPriceSignal, () => {
-    if (state === 'Authenticating') {
+    if (state === 'Getting User Principles 1') {
       state = 'Getting Current Price';
     }
   });
@@ -90,20 +114,80 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     }
   });
 
+  setHandler(authToken2, () => {
+    if (state === 'Selecting Option') {
+      state = 'Getting Auth Token 2';
+    }
+  });
+
+  setHandler(authUserPrinciples2, () => {
+    if (state === 'Getting Auth Token 2') {
+      state = 'Getting User Principles 2';
+    }
+  });
+
   setHandler(openedSignal, () => {
-    if (state === 'Authenticating To Open A Position') {
+    if (state === 'Getting User Principles 2') {
       state = 'Opened Position';
     }
   });
 
+  setHandler(authToken3, () => {
+    if (state === 'Opened Position') {
+      state = 'Getting Auth Token 3';
+    }
+  });
+
+  setHandler(authUserPrinciples3, () => {
+    if (state === 'Getting Auth Token 3') {
+      state = 'Getting User Principles 3';
+    }
+  });
+
+  setHandler(checkingIfOptionFilled, () => {
+    if (state === 'Getting User Principles 3') {
+      state = 'Checking If Position Filled';
+    }
+  });
+
+  setHandler(gettingOptionSymbol, () => {
+    if (state === 'Checking If Position Filled') {
+      state = 'Getting Option Symbol';
+    }
+  });
+
+  setHandler(authToken4, () => {
+    if (state === 'Getting Option Symbol') {
+      state = 'Getting Auth Token 4';
+    }
+  });
+
+  setHandler(authUserPrinciples4, () => {
+    if (state === 'Getting Auth Token 4') {
+      state = 'Getting User Principles 4';
+    }
+  });
+
   setHandler(cutSignal, () => {
-    if (state === 'Authenticating To Cut A Position') {
+    if (state === 'Getting User Principles 4') {
       state = 'Cut Position';
     }
   });
 
+  setHandler(authToken5, () => {
+    if (state === 'Cut Position') {
+      state = 'Getting Auth Token 5';
+    }
+  });
+
+  setHandler(authUserPrinciples5, () => {
+    if (state === 'Getting Auth Token 5') {
+      state = 'Getting User Principles 5';
+    }
+  });
+
   setHandler(closedSignal, () => {
-    if (state === 'Authenticating To Close A Position') {
+    if (state === 'Getting User Principles 5') {
       state = 'Closed Position';
       closed = true;
     }
@@ -148,6 +232,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     timeSalesRequest: null
   };
 
+  state = 'Getting Time Remaining';
+
   const timeRemaining = await time_until_market_open();
 
   await sleep(timeRemaining);
@@ -156,8 +242,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
 
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-
-  state = 'Authenticating';
 
   const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones);
   const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice.closePrice, keyLevels);
@@ -168,7 +252,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
   wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-  state = 'Authenticating To Open A Position';
   const signalOpenPosition = await waitToSignalOpenPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token.access_token);
   openedAt = new Date();
 
@@ -183,7 +266,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     token = await getLoginCredentials(clientId);
     gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
 
-    state = 'Authenticating To Confirm Position';
     const quantity = await checkIfPositionFilled(signalOpenPosition.position.orderResponse, accountId, token.access_token);
     const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token.access_token);
 
@@ -191,7 +273,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-    state = 'Authenticating To Cut A Position';
     const cutFilled = await waitToSignalCutPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token);
     cutAt = new Date();
     const remainingQuantity = quantity - cutFilled
@@ -200,13 +281,13 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-    state = 'Authenticating To Close A Position';
     const signalClosePosition = await waitToSignalClosePosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token);
     await condition(() => closed === true);
     closedAt = new Date();
 
     return signalClosePosition.orderResponse.orderId;
   } else {
+    state = 'No position Available'
     throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good positions!' });
   }
 }
