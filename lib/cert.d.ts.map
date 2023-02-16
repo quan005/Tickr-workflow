@@ -1,1 +1,0 @@
-{"version":3,"file":"cert.d.ts","sourceRoot":"","sources":["../src/cert.ts"],"names":[],"mappings":"AAKA,MAAM,WAAW,MAAM;IACrB,aAAa,EAAE,MAAM,CAAC;IACtB,YAAY,EAAE,MAAM,CAAC;CACtB;AAED,MAAM,WAAW,IAAI;IACnB,WAAW,EAAE,MAAM,CAAC;IACpB,UAAU,EAAE,MAAM,CAAC;CACpB;AAKD,eAAO,MAAM,mBAAmB;;;CAwD/B,CAAC;AAEF,eAAO,MAAM,uBAAuB;;;CA8FnC,CAAC"}

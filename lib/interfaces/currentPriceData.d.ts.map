@@ -1,1 +1,0 @@
-{"version":3,"file":"currentPriceData.d.ts","sourceRoot":"","sources":["../../src/interfaces/currentPriceData.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,gBAAgB;IAC/B,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,UAAU,CAAC,EAAE,MAAM,CAAC;IACpB,UAAU,CAAC,EAAE,MAAM,EAAE,EAAE,CAAC;IACxB,UAAU,CAAC,EAAE,MAAM,EAAE,EAAE,CAAC;CACzB"}
