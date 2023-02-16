@@ -13,7 +13,7 @@
     "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",
     "lint": "eslint . --fix",
     "start": "node ./lib/worker.js && node ./lib/client.js",
-    "start:worker": "NODE_ENV=production node ./lib/worker.js",
+    "start:worker": "node ./lib/worker.js",
     "start:client": "node ./lib/client.js",
     "start:cert": "ts-node src/cert.ts",
     "dev:activities": "ts-node ./src/activities/priceActionPosition.ts",

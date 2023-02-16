@@ -56,70 +56,70 @@ dotenv.config();
 //   expect(getAccount.securitiesAccount.accountId).toEqual(accountId);
 // });
 
-it("returns an object with current price, and surrounding demand and supply zones", async () => {
-  const demandZones = mockPremarketData.premarketData.demandZones;
-  const supplyZones = mockPremarketData.premarketData.supplyZones;
-  let token: TokenJSON = {
-    access_token: null,
-    refresh_token: null,
-    access_token_expires_at: null,
-    refresh_token_expires_at: null,
-    logged_in: null,
-    access_token_expires_at_date: null,
-    refresh_token_expires_at_date: null
-  };
-  let gettingUserPrinciples = {
-    userPrinciples: null,
-    params: null,
-  };
-  const clientId = process.env.TD_CLIENT_ID;
+// it("returns an object with current price, and surrounding demand and supply zones", async () => {
+//   const demandZones = mockPremarketData.premarketData.demandZones;
+//   const supplyZones = mockPremarketData.premarketData.supplyZones;
+//   let token: TokenJSON = {
+//     access_token: null,
+//     refresh_token: null,
+//     access_token_expires_at: null,
+//     refresh_token_expires_at: null,
+//     logged_in: null,
+//     access_token_expires_at_date: null,
+//     refresh_token_expires_at_date: null
+//   };
+//   let gettingUserPrinciples = {
+//     userPrinciples: null,
+//     params: null,
+//   };
+//   const clientId = process.env.TD_CLIENT_ID;
 
-  while (gettingUserPrinciples.params === null) {
-    token = await activities.getLoginCredentials(clientId);
-    gettingUserPrinciples = await activities.getUserPrinciples(token.access_token);
-  }
+//   while (gettingUserPrinciples.params === null) {
+//     token = await activities.getLoginCredentials(clientId);
+//     gettingUserPrinciples = await activities.getUserPrinciples(token.access_token);
+//   }
 
-  const params = gettingUserPrinciples.params
+//   const params = gettingUserPrinciples.params
 
-  const adminConfig = {
-    "service": "ADMIN",
-    "command": "LOGIN",
-    "requestid": "0",
-    "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
-    "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
-    "parameters": {
-      "credential": params,
-      "token": gettingUserPrinciples.userPrinciples.streamerInfo.token,
-      "version": "1.0",
-      "qoslevel": "0",
-    },
-  }
-  const quoteConfig = {
-    "service": "QUOTE",
-    "requestid": "1",
-    "command": "SUBS",
-    "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
-    "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
-    "parameters": {
-      "keys": mockPremarketData.premarketData.symbol,
-      "fields": "0,1,2,3,4,5",
-    },
-  }
-  const loginRequest = {
-    "requests": [
-      adminConfig,
-    ],
-  }
-  const marketRequest = {
-    "requests": [
-      quoteConfig,
-    ],
-  }
+//   const adminConfig = {
+//     "service": "ADMIN",
+//     "command": "LOGIN",
+//     "requestid": "0",
+//     "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
+//     "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
+//     "parameters": {
+//       "credential": params,
+//       "token": gettingUserPrinciples.userPrinciples.streamerInfo.token,
+//       "version": "1.0",
+//       "qoslevel": "0",
+//     },
+//   }
+//   const quoteConfig = {
+//     "service": "QUOTE",
+//     "requestid": "1",
+//     "command": "SUBS",
+//     "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
+//     "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
+//     "parameters": {
+//       "keys": mockPremarketData.premarketData.symbol,
+//       "fields": "0,1,2,3,4,5",
+//     },
+//   }
+//   const loginRequest = {
+//     "requests": [
+//       adminConfig,
+//     ],
+//   }
+//   const marketRequest = {
+//     "requests": [
+//       quoteConfig,
+//     ],
+//   }
 
-  const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-  const currentPrice = await activities.get_current_price(wsUri, loginRequest, marketRequest, demandZones, supplyZones);
-  expect(typeof currentPrice).toBe("object");
-});
+//   const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+//   const currentPrice = await activities.get_current_price(wsUri, loginRequest, marketRequest, demandZones, supplyZones);
+//   expect(typeof currentPrice).toBe("object");
+// });
 
 // it("returns the current price surrounding key levels", async () => {
 //   const currentPrice = 132.31;

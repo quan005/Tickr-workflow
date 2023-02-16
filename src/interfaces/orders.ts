@@ -1,3 +1,10 @@
+export interface OrderDetails {
+  orderResponse: PlaceOrdersResponse;
+  price?: number;
+  quantity?: number;
+  optionSymbol?: string;
+}
+
 export interface PlaceOrdersResponse {
   error?: string;
   orderId: string;

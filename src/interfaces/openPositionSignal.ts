@@ -1,7 +1,6 @@
-import { PlaceOrdersResponse } from "../interfaces/orders";
+import { OrderDetails } from "../interfaces/orders";
 
 export interface OpenPositionSignal {
-  position: PlaceOrdersResponse | null,
-  noGoodBuys: boolean,
+  position: OrderDetails | null,
   demandOrSupply: string,
 }

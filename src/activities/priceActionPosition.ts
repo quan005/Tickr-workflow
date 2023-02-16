@@ -1,5 +1,5 @@
 import { WebSocket } from "ws";
-import { Context } from "@temporalio/activity";
+import { ApplicationFailure, Context } from "@temporalio/activity";
 import * as path from "path";
 import * as fs from "fs";
 import * as https from "https";
@@ -19,7 +19,7 @@ import { Token, TokenJSON } from "../interfaces/token";
 import {
   GetOrderResponse,
   OrdersConfig,
-  PlaceOrdersResponse,
+  OrderDetails,
   AssetType,
   ComplexOrderStrategyType,
   DurationType,
@@ -27,6 +27,7 @@ import {
   OrderLegType,
   OrderStrategyType,
   OrderType,
+  PlaceOrdersResponse,
   PositionEffect,
   PutCall,
   SessionType,
@@ -40,26 +41,21 @@ dotenv.config()
 
 
 
-export async function is_market_open(): Promise<boolean> {
-  // waits for time to reach 9:50am newyork time then
-  // returns true
+export async function time_until_market_open(): Promise<number> {
 
-  const day = moment().tz('America/New_York').format('dddd');
+  const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 15);
+  const now = moment().tz('America/New_York');
+  const diff = moment.duration(marketOpen.diff(now));
 
-  if (day === "Saturday" || day === "Sunday") {
-    return false;
-  }
+  const hoursRemaining = diff.hours();
+  const hoursToMilliSeconds = ((hoursRemaining * 60) * 60) * 1000;
 
-  let marketOpen = moment().tz('America/New_York').format('Hmm');
-  let marketInt = parseInt(marketOpen);
+  const minutesRemaining = diff.minutes();
+  const minutesToMilliSeconds = (minutesRemaining * 60) * 1000;
 
-  while (marketInt < 907 || marketInt > 1600) {
-    marketOpen = moment().tz('America/New_York').format('H:mm');
-    marketInt = parseInt(marketOpen);
-    Context.current().heartbeat();
-  }
+  const total = hoursToMilliSeconds + minutesToMilliSeconds;
 
-  return true;
+  return total
 }
 
 export async function get_surrounding_key_levels(current_price: number, key_levels: number[]): Promise<SurroundingKeyLevels> {
@@ -151,12 +147,7 @@ export async function get_surrounding_key_levels(current_price: number, key_leve
     }
   }
 
-  return {
-    above_resistance: null,
-    resistance: null,
-    support: null,
-    below_support: null,
-  };
+  throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no surrounding key levels!' });
 }
 
 export async function is_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
@@ -280,7 +271,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
 
     client.onclose = async function () {
       if (isMarketClosed) {
-        resolve(currentPriceData);
+        throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
       }
 
       closePrice = messages[0]["3"];
@@ -310,7 +301,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
         };
         resolve(currentPriceData);
       } else {
-        resolve(currentPriceData);
+        throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no demand or supply zones!' });
       }
     }
   });
@@ -359,10 +350,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
         };
       }
     } else {
-      return {
-        demand: null,
-        supply: null,
-      };
+      throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good position setups!' });
     }
   } else if (demand_zone[0]) {
     if (surrounding_key_levels.above_resistance !== null && surrounding_key_levels.resistance !== null && surrounding_key_levels.support !== null && surrounding_key_levels.below_support !== null) {
@@ -400,10 +388,7 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
         };
       }
     } else {
-      return {
-        demand: null,
-        supply: null,
-      };
+      throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good position setups!' });
     }
   } else if (supply_zone[0]) {
     if (surrounding_key_levels.above_resistance !== null && surrounding_key_levels.resistance !== null && surrounding_key_levels.support !== null && surrounding_key_levels.below_support !== null) {
@@ -441,16 +426,10 @@ export async function get_position_setup(surrounding_key_levels: SurroundingKeyL
         };
       }
     } else {
-      return {
-        demand: null,
-        supply: null,
-      };
+      throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good position setups!' });
     }
   }
-  return {
-    demand: null,
-    supply: null,
-  };
+  throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good position setups!' });
 }
 
 export async function getOptionsSelection(position_setup: PositionSetup, symbol: string, access_token: string): Promise<OptionsSelection | null> {
@@ -600,10 +579,7 @@ export async function getOptionsSelection(position_setup: PositionSetup, symbol:
       },
     };
   } else {
-    return {
-      CALL: null,
-      PUT: null,
-    };
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no call or put options that meets the requirements!' });
   }
 }
 
@@ -615,14 +591,14 @@ export async function checkAccountAvailableBalance(access_token: string, account
   return availableBalance;
 }
 
-export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse | null> {
+export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string): Promise<OrderDetails | null> {
   Context.current().heartbeat();
   let price = 0;
   let quantity = 0;
   let symbol = '';
 
   if (options.CALL === null && options.PUT === null) {
-    return null;
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no call or put options selected for purchase!' });
   } else if (options.CALL !== null && options.PUT !== null) {
     const quantityCall = Math.floor(budget / options.CALL.ask);
     const quantityPut = Math.floor(budget / options.PUT.ask);
@@ -644,7 +620,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
   const accountBalance = await checkAccountAvailableBalance(access_token, account_id);
 
   if (accountBalance < price) {
-    return null;
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'Account balance is too low!' });
   }
 
   const openPositionResponse = await placeOrder(access_token, account_id, {
@@ -670,7 +646,12 @@ export async function openPosition(options: OptionsSelection, optionType: string
     },
   });
 
-  return openPositionResponse;
+  return {
+    orderResponse: openPositionResponse,
+    price,
+    quantity,
+    optionSymbol: symbol
+  };
 }
 
 export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, account_id: string, access_token: string): Promise<number> {
@@ -696,7 +677,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     let supplyForming = 0;
     let supplySize = 0;
     let supplyConfirmation = false;
-    let position: PlaceOrdersResponse | null = null;
+    let position: OrderDetails | null = null;
     let noGoodBuys = false;
     let demandOrSupply = '';
     let callOrPut = '';
@@ -815,12 +796,14 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     }
 
     timeSalesClient.onclose = async function () {
-      console.log('waitToSignalOpenPosition socket closed');
+      if (noGoodBuys) {
+        throw Error('Could not find any good buying opportunities!')
+      }
+
       position = await openPosition(options, callOrPut, budget, account_id, access_token);
 
       resolve({
         position,
-        noGoodBuys,
         demandOrSupply,
       });
     }
@@ -834,12 +817,12 @@ export async function getOptionSymbol(order_id: PlaceOrdersResponse, account_id:
   if (option.orderLegCollection?.instrument.symbol) {
     return option.orderLegCollection?.instrument.symbol;
   } else {
-    return '';
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'There is not an order to get!' })
   }
 
 }
 
-export async function cutPosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+export async function cutPosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<OrderDetails> {
   Context.current().heartbeat();
   const newQuantity = Math.floor(quantity / 2);
 
@@ -864,10 +847,12 @@ export async function cutPosition(symbol: string, quantity: number, account_id: 
     },
   });
 
-  return cutPositionResponse;
+  return {
+    orderResponse: cutPositionResponse
+  };
 }
 
-export async function closePosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+export async function closePosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<OrderDetails> {
   Context.current().heartbeat();
   const closePositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
@@ -890,7 +875,9 @@ export async function closePosition(symbol: string, quantity: number, account_id
     },
   });
 
-  return closePositionResponse;
+  return {
+    orderResponse: closePositionResponse
+  }
 }
 
 export async function waitToSignalCutPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<number> {
@@ -907,7 +894,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     let metSupplyCutPrice = 0;
     let metSupplyStopLossPrice = 0;
     let metSupplyTakeProfitPrice = 0;
-    let position: PlaceOrdersResponse | null = null;
+    let position: OrderDetails | null = null;
     let skipCut = false;
     let stoppedOut = false;
     let marketClose = moment().tz('America/New_York').format('Hmm');
@@ -1003,18 +990,18 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
         resolve(cutFilled);
       } else if (stoppedOut) {
         position = await closePosition(symbol, quantity * 2, account_id, access_token);
-        cutFilled = await checkIfPositionFilled(position, account_id, access_token);
+        cutFilled = await checkIfPositionFilled(position.orderResponse, account_id, access_token);
         resolve(cutFilled);
       } else {
         position = await cutPosition(symbol, quantity, account_id, access_token);
-        cutFilled = await checkIfPositionFilled(position, account_id, access_token);
+        cutFilled = await checkIfPositionFilled(position.orderResponse, account_id, access_token);
         resolve(cutFilled);
       }
     }
   })
 }
 
-export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<PlaceOrdersResponse> {
+export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<OrderDetails> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1028,7 +1015,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     let metSupplyCutPrice = 0;
     let metSupplyStopLossPrice = 0;
     let metSupplyTakeProfitPrice = 0;
-    let position: PlaceOrdersResponse;
+    let position: OrderDetails;
     let marketClose = moment().tz('America/New_York').format('Hmm');
     let closeFilled = 0;
     let remainingQuantity = quantity;
@@ -1122,7 +1109,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 
       while (remainingQuantity > 0) {
         position = await closePosition(symbol, quantity, account_id, access_token);
-        closeFilled = await checkIfPositionFilled(position, account_id, access_token);
+        closeFilled = await checkIfPositionFilled(position.orderResponse, account_id, access_token);
         remainingQuantity = quantity - closeFilled;
       }
 
@@ -1176,6 +1163,10 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
           refresh_token_expires_at_date: moment(refresh_token_expire).toISOString(),
         };
 
+        if (!tokenJSON.access_token) {
+          throw new Error('Access token not available!')
+        }
+
         fs.writeFile(path.resolve(__dirname, "../tda/token.json"), JSON.stringify(tokenJSON, null, 1), function (err) {
           if (err) console.log(err);
         });
@@ -1183,8 +1174,7 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
         return resolve(tokenJSON);
       })
     }).on('error', (e) => {
-      console.error('error', e);
-      return reject(e);
+      throw new Error(e.message);
     });
 
     response.write(encodedPassword);
@@ -1192,7 +1182,7 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
   });
 }
 
-export function getUserPrinciples(access_token: string): Promise<PrinciplesAndParams> {
+export function getUserPrinciples(access_token: string, symbol: string): Promise<PrinciplesAndParams> {
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
@@ -1222,7 +1212,11 @@ export function getUserPrinciples(access_token: string): Promise<PrinciplesAndPa
         const userPrinciples: UserPrinciples = JSON.parse(parseJson);
         let dataObject: PrinciplesAndParams = {
           userPrinciples: null,
-          params: null
+          params: null,
+          loginRequest: null,
+          marketRequest: null,
+          bookRequest: null,
+          timeSalesRequest: null,
         }
         if (!userPrinciples.error) {
           const tokenTimeStampAsDateObj = new Date(userPrinciples.streamerInfo.tokenTimestamp);
@@ -1241,26 +1235,92 @@ export function getUserPrinciples(access_token: string): Promise<PrinciplesAndPa
             "acl": userPrinciples.streamerInfo.acl,
           }
           const param = await tdCredentialsToString(credentials);
+          const adminConfig = {
+            "service": "ADMIN",
+            "command": "LOGIN",
+            "requestid": "0",
+            "account": userPrinciples.accounts[0].accountId,
+            "source": userPrinciples.streamerInfo.appId,
+            "parameters": {
+              "credential": param,
+              "token": userPrinciples.streamerInfo.token,
+              "version": "1.0",
+              "qoslevel": "0",
+            },
+          }
+          const quoteConfig = {
+            "service": "QUOTE",
+            "requestid": "1",
+            "command": "SUBS",
+            "account": userPrinciples.accounts[0].accountId,
+            "source": userPrinciples.streamerInfo.appId,
+            "parameters": {
+              "keys": symbol,
+              "fields": "0,1,2,3,4,5",
+            },
+          };
+          const bookConfig = {
+            "service": "NASDAQ_BOOK",
+            "requestid": "3",
+            "command": "SUBS",
+            "account": userPrinciples.accounts[0].accountId,
+            "source": userPrinciples.streamerInfo.appId,
+            "parameters": {
+              "keys": symbol,
+              "fields": "0,1,2,3",
+            },
+          };
+          const timeSaleConfig = {
+            "service": "TIMESALE_EQUITY",
+            "requestid": "4",
+            "command": "SUBS",
+            "account": userPrinciples.accounts[0].accountId,
+            "source": userPrinciples.streamerInfo.appId,
+            "parameters": {
+              "keys": symbol,
+              "fields": "0,1,2,3",
+            },
+          };
+          const loginRequest = {
+            "requests": [
+              adminConfig,
+            ],
+          };
+          const marketRequest = {
+            "requests": [
+              quoteConfig,
+            ],
+          };
+          const bookRequest = {
+            "requests": [
+              bookConfig,
+            ],
+          };
+          const timeSalesRequest = {
+            "requests": [
+              timeSaleConfig,
+            ],
+          };
           dataObject = {
             userPrinciples: userPrinciples,
-            params: param
+            params: param,
+            loginRequest,
+            marketRequest,
+            bookRequest,
+            timeSalesRequest
           }
         } else {
-          dataObject = {
-            userPrinciples: userPrinciples,
-            params: null
-          }
+          throw new Error(userPrinciples.error)
         }
 
         return resolve(dataObject)
       });
     }).on('error', (e) => {
-      console.error('error', e);
-      return reject(e);
+      throw new Error(e.message);
     });
 
     response.on('timeout', () => {
-      console.log('connection timedout');
+      throw new Error('Connection timed out');
     });
 
     response.write(encodedtoken);
@@ -1306,12 +1366,11 @@ export function getAccount(access_token: string, account_id: string): Promise<Ac
         return resolve(dataObject);
       });
     }).on('error', (e) => {
-      console.error('error', e);
-      return reject(e);
+      throw new Error(e.message);
     });
 
     response.on('timeout', () => {
-      console.log('connection timedout');
+      throw new Error('Connection timed out');
     });
 
     response.write(postDataAsString);
@@ -1357,12 +1416,11 @@ export function placeOrder(access_token: string, account_id: string, order_data:
         resolve(dataObject);
       });
     }).on('error', (e) => {
-      console.error('error', e);
-      reject(e);
+      throw new Error(e.message);
     });
 
     response.on('timeout', () => {
-      console.log('connection timedout');
+      throw new Error('Connection timed out');
     });
 
     response.write(postDataAsString);
@@ -1408,12 +1466,11 @@ export function getOrder(access_token: string, account_id: string, order_id: str
         resolve(dataObject);
       });
     }).on('error', (e) => {
-      console.error('error', e);
-      reject(e);
+      throw new Error(e.message);
     });
 
     response.on('timeout', () => {
-      console.log('connection timedout');
+      throw new Error('Connection timed out');
     });
 
     response.write(postDataAsString);
@@ -1458,12 +1515,11 @@ export function getOptionChain(access_token: string, option_chain_config: Option
         resolve(dataObject);
       });
     }).on('error', (e) => {
-      console.error('error', e);
-      reject(e);
+      throw new Error(e.message);
     });
 
     response.on('timeout', () => {
-      console.log('connection timedout');
+      throw new Error('Connection timed out');
     });
 
     response.write(postDataAsString);
@@ -1504,7 +1560,7 @@ export function websocketClient(url: string): WebSocket {
   };
 
   client.onerror = (err) => {
-    console.error(err);
+    throw new Error(err.message);
   }
 
   return (client);
@@ -1514,7 +1570,7 @@ export async function sendClientRequest(client: WebSocket, request: object): Pro
   try {
     client.send(JSON.stringify(request));
   } catch (err) {
-    console.log(err)
+    throw new Error(err.message);
   }
 }
 

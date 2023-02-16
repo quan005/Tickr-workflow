@@ -1,7 +1,32 @@
 export interface PrinciplesAndParams {
   userPrinciples: UserPrinciples | null,
-  params: string | null
+  params: string | null,
+  loginRequest: WSRequestConfig | null,
+  marketRequest: WSRequestConfig | null,
+  bookRequest: WSRequestConfig | null,
+  timeSalesRequest: WSRequestConfig | null,
 }
+
+export interface WSRequestConfig {
+  requests: WSConfig[]
+}
+
+export interface WSConfig {
+  service?: string,
+  command?: string,
+  requestid?: string,
+  account?: string,
+  source?: string,
+  parameters?: {
+    credential?: string,
+    token?: string,
+    version?: string,
+    qoslevel?: string,
+    keys?: string,
+    fields?: string,
+  },
+}
+
 export interface UserPrinciples {
   error?: string,
   userId?: string,
