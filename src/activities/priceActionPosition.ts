@@ -63,8 +63,9 @@ export async function time_until_market_open(): Promise<number> {
 }
 
 export async function is_holiday(): Promise<boolean> {
-  const hd = new Holidays('US', { types: ['bank'] });
-  const holiday = hd.isHoliday(new Date()) === false ? false : true;
+  const hd = new (holidays as any)('US', { types: ['bank', 'public'] }) as Holidays;
+  const date = new Date();
+  const holiday = hd.isHoliday(date) === false ? false : true;
   return holiday;
 }
 
