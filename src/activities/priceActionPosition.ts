@@ -36,13 +36,13 @@ import { Account } from "../interfaces/account";
 import { ContractType, OptionChainConfig, OptionChainResponse, OptionDetails, OptionMap, RangeType } from "../interfaces/optionChain";
 import { SocketResponse } from "../interfaces/websocketEvent";
 import * as moment from "moment-timezone";
+import Holidays, * as holidays from "date-holidays";
 
 dotenv.config()
 
 
 
 export async function time_until_market_open(): Promise<number> {
-
   const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 15);
   const now = moment().tz('America/New_York');
   const diff = moment.duration(marketOpen.diff(now));
@@ -53,9 +53,19 @@ export async function time_until_market_open(): Promise<number> {
   const minutesRemaining = diff.minutes();
   const minutesToMilliSeconds = (minutesRemaining * 60) * 1000;
 
-  const total = hoursToMilliSeconds + minutesToMilliSeconds;
+  let total = hoursToMilliSeconds + minutesToMilliSeconds;
+
+  if (total < 0) {
+    total = 0
+  }
 
   return total
+}
+
+export async function is_holiday(): Promise<boolean> {
+  const hd = new Holidays('US', { types: ['bank'] });
+  const holiday = hd.isHoliday(new Date()) === false ? false : true;
+  return holiday;
 }
 
 export async function get_surrounding_key_levels(current_price: number, key_levels: number[]): Promise<SurroundingKeyLevels> {
@@ -223,7 +233,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-export async function get_current_price(wsUri: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[]): Promise<CurrentPriceData> {
+export async function get_current_price(wsUri: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
   // makes a request to td ameritrade User Principals endpoint using the token
   // to get the info needed to make a ameritrade streaming request
 
@@ -234,7 +244,9 @@ export async function get_current_price(wsUri: string, login_request: object, ma
       demandZone: [],
       supplyZone: [],
     };
-    let marketClose = moment().tz('America/New_York').format('Hmm');
+    const dateTime = moment().tz('America/New_York');
+    let marketClose = dateTime.format('Hmm');
+    const day = dateTime.format('dddd');
     let isMarketClosed = false;
     let messageCount = 0;
     const messages: SocketResponse[] | null = [];
@@ -253,7 +265,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
       Context.current().heartbeat();
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
+      if (parseInt(marketClose) >= 1600 || messageCount >= 1 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         isMarketClosed = true;
         client.close();
       }
@@ -665,7 +677,7 @@ export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, accou
   }
 }
 
-export async function waitToSignalOpenPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string): Promise<OpenPositionSignal> {
+export async function waitToSignalOpenPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
   return new Promise(async (resolve) => {
     let demandTimeSalesEntryPercentage = 0;
     let metDemandEntryPrice = 0;
@@ -681,7 +693,9 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     let noGoodBuys = false;
     let demandOrSupply = '';
     let callOrPut = '';
-    let marketClose = moment().tz('America/New_York').format('Hmm');
+    const dateTime = moment().tz('America/New_York');
+    let marketClose = dateTime.format('Hmm');
+    const day = dateTime.format('dddd');
 
     // const bookClient = await websocketClient(wsUri);
     const timeSalesClient = websocketClient(wsUri);
@@ -702,7 +716,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
       Context.current().heartbeat();
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600) {
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         noGoodBuys = true;
         timeSalesClient.close();
       }
@@ -880,7 +894,7 @@ export async function closePosition(symbol: string, quantity: number, account_id
   }
 }
 
-export async function waitToSignalCutPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<number> {
+export async function waitToSignalCutPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -897,7 +911,9 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     let position: OrderDetails | null = null;
     let skipCut = false;
     let stoppedOut = false;
-    let marketClose = moment().tz('America/New_York').format('Hmm');
+    const dateTime = moment().tz('America/New_York');
+    let marketClose = dateTime.format('Hmm');
+    const day = dateTime.format('dddd');
     let cutFilled = 0;
 
     // const bookClient = await websocketClient(wsUri);
@@ -919,7 +935,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
       Context.current().heartbeat();
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || quantity < 2) {
+      if (parseInt(marketClose) >= 1600 || quantity < 2 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         skipCut = true;
         timeSalesClient.close();
       }
@@ -1001,7 +1017,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
   })
 }
 
-export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string): Promise<OrderDetails> {
+export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1016,7 +1032,9 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     let metSupplyStopLossPrice = 0;
     let metSupplyTakeProfitPrice = 0;
     let position: OrderDetails;
-    let marketClose = moment().tz('America/New_York').format('Hmm');
+    const dateTime = moment().tz('America/New_York');
+    let marketClose = dateTime.format('Hmm');
+    const day = dateTime.format('dddd');
     let closeFilled = 0;
     let remainingQuantity = quantity;
     let waited = 0;
@@ -1040,7 +1058,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
       Context.current().heartbeat();
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600) {
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         timeSalesClient.close();
       }
 
@@ -1105,8 +1123,6 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     }
 
     timeSalesClient.onclose = async function () {
-      console.log('waitToSignalClosePosition socket closed');
-
       while (remainingQuantity > 0) {
         position = await closePosition(symbol, quantity, account_id, access_token);
         closeFilled = await checkIfPositionFilled(position.orderResponse, account_id, access_token);
@@ -1119,6 +1135,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 }
 
 export async function getLoginCredentials(client_id: string): Promise<TokenJSON> {
+  Context.current().heartbeat();
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
   const parseUrl = url.parse(urlCode, true).query;
@@ -1127,8 +1144,6 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
   const encodedPassword = encodeURIComponent(postData);
   let token: Token;
   let data = '';
-
-  Context.current().heartbeat();
 
   return new Promise((resolve, reject) => {
     const authOptions = {
@@ -1166,10 +1181,6 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
         if (!tokenJSON.access_token) {
           throw new Error('Access token not available!')
         }
-
-        fs.writeFile(path.resolve(__dirname, "../tda/token.json"), JSON.stringify(tokenJSON, null, 1), function (err) {
-          if (err) console.log(err);
-        });
 
         return resolve(tokenJSON);
       })
