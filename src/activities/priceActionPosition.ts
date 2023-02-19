@@ -1180,7 +1180,6 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
       });
 
       resp.on('close', () => {
-        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         token = JSON.parse(parseJson);
         const access_token_expire = Date.now() + token.expires_in;
@@ -1206,6 +1205,8 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
     });
 
     response.write(encodedPassword);
+    Context.current().sleep(10000);
+    Context.current().heartbeat();
     response.end();
   });
 }
