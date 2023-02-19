@@ -165,6 +165,7 @@ export async function is_demand_zone(current_price: number, demand_zones: Demand
   // finds the demand zone that the price currently resides in else return null
   Context.current().heartbeat();
   for (let i = 0; i < 7; i++) {
+    Context.current().heartbeat();
     if (current_price > demand_zones[i].bottom && current_price < demand_zones[i].top) {
       const zone = [[demand_zones[i].bottom, demand_zones[i].top]];
       return zone;
@@ -185,6 +186,7 @@ export async function find_demand_zone(current_price: number, demand_zones: Dema
     return demandZone;
   } else {
     for (let i = 0; i < demand_zones.length; i++) {
+      Context.current().heartbeat();
       if (i < demand_zones.length - 1 && (current_price < demand_zones[i].top && current_price > demand_zones[i + 1].bottom)) {
         const zone1: number[] = [demand_zones[i].bottom, demand_zones[i].top];
         const zone2: number[] = [demand_zones[i + 1].bottom, demand_zones[i + 1].top];
@@ -202,6 +204,7 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
   Context.current().heartbeat();
   // finds the supply zone that the price currently resides in or is closest too
   for (let i = 0; i < supply_zones.length; i++) {
+    Context.current().heartbeat();
     if (current_price < supply_zones[i].top && current_price > supply_zones[i].bottom) {
       const zone = [[supply_zones[i].top, supply_zones[i].bottom]];
       return zone;
@@ -221,6 +224,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
     return supplyZone;
   } else {
     for (let i = 0; i < supply_zones.length; i++) {
+      Context.current().heartbeat();
       if (i < supply_zones.length - 1 && (current_price < supply_zones[i].top && current_price > supply_zones[i + 1].bottom)) {
         const zone1: number[] = [supply_zones[i].top, supply_zones[i].bottom];
         const zone2: number[] = [supply_zones[i + 1].top, supply_zones[i + 1].bottom];
@@ -727,6 +731,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
       if (data.data) {
         if (position_setup.demand && position_setup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] >= position_setup.demand.entry && data.data[0].content[i]["2"] < position_setup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -762,6 +767,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
           }
         } else if (position_setup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] >= position_setup.demand.entry && data.data[0].content[i]["2"] < position_setup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -785,6 +791,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
           }
         } else if (position_setup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] <= position_setup.supply.entry && data.data[0].content[i]["2"] > position_setup.supply.cutPosition) {
               metSupplyEntryPrice += 1;
               supplySize += data.data[0].content[i]["3"];
@@ -946,6 +953,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && position_setup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] >= position_setup.demand.cutPosition && data.data[0].content[i]["2"] < position_setup.demand.takeProfit) {
               metDemandCutPrice += 1;
             } else if (data.data[0].content[i]["2"] <= position_setup.demand.stopLoss) {
@@ -973,6 +981,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
 
         } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] <= position_setup.supply.cutPosition && data.data[0].content[i]["2"] > position_setup.supply.takeProfit) {
               metSupplyCutPrice += 1;
             } else if (data.data[0].content[i]["2"] >= position_setup.supply.stopLoss) {
@@ -1068,6 +1077,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && position_setup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] >= position_setup.demand.cutPosition && data.data[0].content[i]["2"] < position_setup.demand.takeProfit || data.data[0].content[i]["2"] < position_setup.demand.cutPosition && data.data[0].content[i]["2"] >= position_setup.demand.entry) {
               metDemandCutPrice += 1;
             } else if (data.data[0].content[i]["2"] >= position_setup.demand.takeProfit) {
@@ -1095,6 +1105,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 
         } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            Context.current().heartbeat();
             if (data.data[0].content[i]["2"] <= position_setup.supply.cutPosition && data.data[0].content[i]["2"] > position_setup.supply.takeProfit || data.data[0].content[i]["2"] > position_setup.supply.cutPosition && data.data[0].content[i]["2"] <= position_setup.supply.entry) {
               metSupplyCutPrice += 1;
             } else if (data.data[0].content[i]["2"] <= position_setup.supply.takeProfit) {
@@ -1125,6 +1136,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 
     timeSalesClient.onclose = async function () {
       while (remainingQuantity > 0) {
+        Context.current().heartbeat();
         position = await closePosition(symbol, quantity, account_id, access_token);
         closeFilled = await checkIfPositionFilled(position.orderResponse, account_id, access_token);
         remainingQuantity = quantity - closeFilled;
@@ -1136,7 +1148,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 }
 
 export async function getLoginCredentials(client_id: string): Promise<TokenJSON> {
-  // Context.current().heartbeat();
+  Context.current().heartbeat();
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
   const parseUrl = url.parse(urlCode, true).query;
@@ -1147,6 +1159,7 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
   let data = '';
 
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',
@@ -1159,12 +1172,13 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
     };
 
     const response = https.request(authOptions, (resp) => {
-
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         token = JSON.parse(parseJson);
         const access_token_expire = Date.now() + token.expires_in;
@@ -1195,12 +1209,13 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
 }
 
 export async function getRefreshToken(refresh_token: string): Promise<TokenJSON> {
-  // Context.current().heartbeat();
+  Context.current().heartbeat();
   const encodedRefreshToken = encodeURIComponent(refresh_token);
   let token: Token;
   let data = '';
 
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/refresh',
@@ -1215,10 +1230,12 @@ export async function getRefreshToken(refresh_token: string): Promise<TokenJSON>
     const response = https.request(authOptions, (resp) => {
 
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         token = JSON.parse(parseJson);
         const access_token_expire = Date.now() + token.expires_in;
@@ -1248,12 +1265,12 @@ export async function getRefreshToken(refresh_token: string): Promise<TokenJSON>
 }
 
 export function getUserPrinciples(access_token: string, symbol: string): Promise<PrinciplesAndParams> {
+  Context.current().heartbeat();
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
-  Context.current().heartbeat();
-
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/streamer-auth',
@@ -1269,10 +1286,12 @@ export function getUserPrinciples(access_token: string, symbol: string): Promise
     const response = https.request(authOptions, (resp) => {
 
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', async () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         const userPrinciples: UserPrinciples = JSON.parse(parseJson);
         let dataObject: PrinciplesAndParams = {
@@ -1394,12 +1413,12 @@ export function getUserPrinciples(access_token: string, symbol: string): Promise
 }
 
 export function getAccount(access_token: string, account_id: string): Promise<Account> {
+  Context.current().heartbeat();
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
-  Context.current().heartbeat();
-
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1420,12 +1439,13 @@ export function getAccount(access_token: string, account_id: string): Promise<Ac
     };
 
     const response = https.request(authOptions, (resp) => {
-
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson)
         return resolve(dataObject);
@@ -1444,12 +1464,12 @@ export function getAccount(access_token: string, account_id: string): Promise<Ac
 }
 
 export function placeOrder(access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
+  Context.current().heartbeat();
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
-  Context.current().heartbeat();
-
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1472,10 +1492,12 @@ export function placeOrder(access_token: string, account_id: string, order_data:
 
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson)
         resolve(dataObject);
@@ -1494,12 +1516,12 @@ export function placeOrder(access_token: string, account_id: string, order_data:
 }
 
 export function getOrder(access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
+  Context.current().heartbeat();
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
-  Context.current().heartbeat();
-
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1522,10 +1544,12 @@ export function getOrder(access_token: string, account_id: string, order_id: str
 
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
         resolve(dataObject);
@@ -1544,12 +1568,12 @@ export function getOrder(access_token: string, account_id: string, order_id: str
 }
 
 export function getOptionChain(access_token: string, option_chain_config: OptionChainConfig): Promise<OptionChainResponse> {
+  Context.current().heartbeat();
   const encodedtoken = encodeURIComponent(access_token);
   let data = '';
 
-  Context.current().heartbeat();
-
   return new Promise((resolve, reject) => {
+    Context.current().heartbeat();
     const postData = {
       token: encodedtoken,
       optionChainConfig: option_chain_config,
@@ -1571,10 +1595,12 @@ export function getOptionChain(access_token: string, option_chain_config: Option
 
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
+        Context.current().heartbeat();
         data += chunk;
       });
 
       resp.on('close', () => {
+        Context.current().heartbeat();
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
         resolve(dataObject);
@@ -1598,6 +1624,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   const optionsArray: OptionDetails[] = [];
 
   for (const option in optionMap) {
+    Context.current().heartbeat();
     if (optionType === "CALL" && optionMap[option][0].delta > .500 && optionMap[option][0].delta < .700) {
       optionsArray.push(optionMap[option][0]);
     }
@@ -1618,6 +1645,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
 }
 
 export function websocketClient(url: string): WebSocket {
+  Context.current().heartbeat();
   const client = new WebSocket(url);
 
   client.onopen = () => {
@@ -1632,6 +1660,7 @@ export function websocketClient(url: string): WebSocket {
 }
 
 export async function sendClientRequest(client: WebSocket, request: object): Promise<void> {
+  Context.current().heartbeat();
   try {
     client.send(JSON.stringify(request));
   } catch (err) {
@@ -1640,6 +1669,7 @@ export async function sendClientRequest(client: WebSocket, request: object): Pro
 }
 
 export async function waitForClientConnection(client): Promise<void> {
+  Context.current().heartbeat();
   return new Promise((resolve) => {
     if (client.readyState !== client.OPEN) {
       client.addEventListener("open", () => {
@@ -1652,6 +1682,7 @@ export async function waitForClientConnection(client): Promise<void> {
 }
 
 export async function waitForClientLoginMessage(client): Promise<void> {
+  Context.current().heartbeat();
   return new Promise((resolve) => {
     let message = {
       response: [
