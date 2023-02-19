@@ -6,30 +6,24 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 
-// it("returns an object with userid equal to TD_USERNAME env variable", async () => {
-//   const userId = process.env.TD_USERNAME;
-//   let token: TokenJSON = {
-//     access_token: null,
-//     refresh_token: null,
-//     access_token_expires_at: null,
-//     refresh_token_expires_at: null,
-//     logged_in: null,
-//     access_token_expires_at_date: null,
-//     refresh_token_expires_at_date: null
-//   };
-//   let gettingUserPrinciples = {
-//     userPrinciples: null,
-//     params: null,
-//   };
-//   const clientId = process.env.TD_CLIENT_ID;
+it("returns an object with userid equal to TD_USERNAME env variable", async () => {
+  let token: TokenJSON = {
+    access_token: null,
+    refresh_token: null,
+    access_token_expires_at: null,
+    refresh_token_expires_at: null,
+    logged_in: null,
+    access_token_expires_at_date: null,
+    refresh_token_expires_at_date: null
+  };
+  const clientId = process.env.TD_CLIENT_ID;
 
-//   while (gettingUserPrinciples.params === null) {
-//     token = await activities.getLoginCredentials(clientId);
-//     gettingUserPrinciples = await activities.getUserPrinciples(token.access_token);
-//   }
+  token = await activities.getLoginCredentials(clientId);
+  const refresh = await activities.getRefreshToken(token.refresh_token);
+  console.log('refresh test:', refresh);
 
-//   expect(gettingUserPrinciples.userPrinciples.streamerInfo.appId).toEqual(userId);
-// });
+  expect(typeof token).toBe({});
+});
 
 // it("returns an object with the account info", async () => {
 //   let token: TokenJSON = {

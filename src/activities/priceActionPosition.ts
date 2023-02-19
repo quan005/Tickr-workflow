@@ -1136,7 +1136,7 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 }
 
 export async function getLoginCredentials(client_id: string): Promise<TokenJSON> {
-  Context.current().heartbeat();
+  // Context.current().heartbeat();
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
   const parseUrl = url.parse(urlCode, true).query;
@@ -1190,6 +1190,59 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
     });
 
     response.write(encodedPassword);
+    response.end();
+  });
+}
+
+export async function getRefreshToken(refresh_token: string): Promise<TokenJSON> {
+  // Context.current().heartbeat();
+  const encodedRefreshToken = encodeURIComponent(refresh_token);
+  let token: Token;
+  let data = '';
+
+  return new Promise((resolve, reject) => {
+    const authOptions = {
+      host: `${process.env.API_HOSTNAME}`,
+      path: '/api/refresh',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(encodedRefreshToken),
+      },
+      rejectUnauthorized: false,
+    };
+
+    const response = https.request(authOptions, (resp) => {
+
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      resp.on('close', () => {
+        const parseJson = JSON.parse(data);
+        token = JSON.parse(parseJson);
+        const access_token_expire = Date.now() + token.expires_in;
+        const tokenJSON = {
+          access_token: token.access_token,
+          refresh_token: null,
+          access_token_expires_at: access_token_expire,
+          refresh_token_expires_at: null,
+          logged_in: true,
+          access_token_expires_at_date: moment(access_token_expire).toISOString(),
+          refresh_token_expires_at_date: null,
+        };
+
+        if (!tokenJSON.access_token) {
+          throw new Error('Access token not available!')
+        }
+
+        return resolve(tokenJSON);
+      })
+    }).on('error', (e) => {
+      throw new Error(e.message);
+    });
+
+    response.write(encodedRefreshToken);
     response.end();
   });
 }

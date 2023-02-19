@@ -37,8 +37,9 @@ const {
   waitToSignalCutPosition,
   waitToSignalClosePosition,
   getLoginCredentials,
+  getRefreshToken,
   getUserPrinciples } = proxyActivities<typeof activities>({
-    startToCloseTimeout: 300000,
+    startToCloseTimeout: 120000,
     retry: {
       maximumAttempts: 6,
       maximumInterval: 5000,
@@ -117,7 +118,13 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Selecting Option';
   const optionSelection = await getOptionsSelection(positionSetup, symbol, token.access_token);
 
-  if (new Date().valueOf() >= token.access_token_expires_at) {
+  if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
+    state = 'Getting Auth Token 2';
+    token = await getRefreshToken(token.refresh_token);
+    state = 'Getting User Principles 2';
+    gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
+    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+  } else {
     state = 'Getting Auth Token 2';
     token = await getLoginCredentials(clientId);
     state = 'Getting User Principles 2';
@@ -137,7 +144,12 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       optionQuantity = signalOpenPosition.position.quantity;
     }
 
-    if (new Date().valueOf() >= token.access_token_expires_at) {
+    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
+      state = 'Getting Auth Token 3';
+      token = await getRefreshToken(token.refresh_token);
+      state = 'Getting User Principles 3';
+      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
+    } else {
       state = 'Getting Auth Token 3';
       token = await getLoginCredentials(clientId);
       state = 'Getting User Principles 3';
@@ -149,12 +161,18 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     state = 'Getting Option Symbol'
     const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token.access_token);
 
-    if (new Date().valueOf() >= token.access_token_expires_at) {
+    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
+      state = 'Getting Auth Token 4';
+      token = await getRefreshToken(token.refresh_token);
+      state = 'Getting User Principles 4';
+      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
+      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+    } else {
       state = 'Getting Auth Token 4';
       token = await getLoginCredentials(clientId);
       state = 'Getting User Principles 4';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
     }
 
     state = 'Cut Position';
@@ -162,7 +180,13 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     cutAt = new Date();
     const remainingQuantity = quantity - cutFilled
 
-    if (new Date().valueOf() >= token.access_token_expires_at) {
+    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
+      state = 'Getting Auth Token 5';
+      token = await getRefreshToken(token.refresh_token);
+      state = 'Getting User Principles 5';
+      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
+      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+    } else {
       state = 'Getting Auth Token 5';
       token = await getLoginCredentials(clientId);
       state = 'Getting User Principles 5';
@@ -178,6 +202,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     return signalClosePosition.orderResponse.orderId;
   } else {
     state = 'No position Available'
-    throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no good positions!' });
+    return state
   }
 }

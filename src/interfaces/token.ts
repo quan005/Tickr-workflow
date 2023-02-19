@@ -9,7 +9,7 @@ export interface Token {
 
 export interface TokenJSON {
   access_token?: string,
-  refresh_token?: string,
+  refresh_token?: string | null,
   scope?: string,
   expires_in?: number,
   refresh_token_expires_in?: number,
