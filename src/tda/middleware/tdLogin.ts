@@ -1,6 +1,9 @@
 import * as puppeteer from "puppeteer";
+import { Context } from "@temporalio/activity";
+
 
 const tdLogin = (address: string) => {
+  Context.current().heartbeat();
   return new Promise<string>(async (resolve, reject) => {
     const browser = await puppeteer.launch({
       args: [
@@ -13,6 +16,7 @@ const tdLogin = (address: string) => {
     let targetUrl = '';
 
     try {
+      Context.current().heartbeat();
 
       await page.goto(address);
 
@@ -29,9 +33,13 @@ const tdLogin = (address: string) => {
       await page.click('summary');
       await page.waitForSelector("input[name='init_secretquestion']");
 
+      Context.current().heartbeat();
+
       const secretQuestion = await page.$("input[name='init_secretquestion']");
       await secretQuestion?.click();
       await page.waitForSelector('#secretquestion0');
+
+      Context.current().heartbeat();
 
       const securityQuestionText = await page.evaluate(() => Array.from(document.querySelectorAll("p"), element => element.textContent));
       const secretQuestionTextSelection = securityQuestionText[2];
@@ -51,6 +59,8 @@ const tdLogin = (address: string) => {
       await page.keyboard.type(selectedAnswer);
       await page.waitForSelector('#accept');
 
+      Context.current().heartbeat();
+
       await page.click('#accept');
       await page.waitForSelector('#trustthisdevice0_0');
 
@@ -63,12 +73,12 @@ const tdLogin = (address: string) => {
       await page.click('#accept');
 
     } catch (err) {
-      return reject(err);
-
+      throw Error(err);
     } finally {
       const target = page.target();
       targetUrl += target.url();
       await browser.close();
+      Context.current().heartbeat();
       return resolve(targetUrl);
     }
   })

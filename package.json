@@ -7,7 +7,7 @@
     "node": "17.x"
   },
   "scripts": {
-    "build": "tsc -p . && npm run cp",
+    "build": "tsc --build ./tsconfig.json && npm run cp",
     "cp": "cpx \"./src/certs/*.*\" \"lib/certs\"",
     "build:tickr": "tsc --build ./tsconfig.json",
     "build:workflow": "ts-node ./src/scripts/build-workflow-bundle.ts",

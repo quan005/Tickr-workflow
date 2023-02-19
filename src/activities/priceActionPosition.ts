@@ -43,6 +43,7 @@ dotenv.config()
 
 
 export async function time_until_market_open(): Promise<number> {
+  Context.current().heartbeat();
   const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 15);
   const now = moment().tz('America/New_York');
   const diff = moment.duration(marketOpen.diff(now));
@@ -63,6 +64,7 @@ export async function time_until_market_open(): Promise<number> {
 }
 
 export async function is_holiday(): Promise<boolean> {
+  Context.current().heartbeat();
   const hd = new (holidays as any)('US', { types: ['bank', 'public'] }) as Holidays;
   const date = new Date();
   const holiday = hd.isHoliday(date) === false ? false : true;
@@ -239,9 +241,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
 }
 
 export async function get_current_price(wsUri: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
-  // makes a request to td ameritrade User Principals endpoint using the token
-  // to get the info needed to make a ameritrade streaming request
-
+  Context.current().heartbeat();
   return new Promise(async (resolve) => {
     let closePrice = 0;
     let currentPriceData: CurrentPriceData = {
@@ -276,8 +276,6 @@ export async function get_current_price(wsUri: string, login_request: object, ma
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-      console.log('data', data);
-      console.log('data.data', data.data);
 
       if (data.data !== undefined) {
         messages.push(data.data[0].content[0]);
@@ -287,6 +285,7 @@ export async function get_current_price(wsUri: string, login_request: object, ma
     };
 
     client.onclose = async function () {
+      Context.current().heartbeat();
       if (isMarketClosed) {
         throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
       }
@@ -683,6 +682,7 @@ export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, accou
 }
 
 export async function waitToSignalOpenPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
+  Context.current().heartbeat();
   return new Promise(async (resolve) => {
     let demandTimeSalesEntryPercentage = 0;
     let metDemandEntryPrice = 0;
@@ -818,6 +818,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     }
 
     timeSalesClient.onclose = async function () {
+      Context.current().heartbeat();
       if (noGoodBuys) {
         throw Error('Could not find any good buying opportunities!')
       }
@@ -903,6 +904,7 @@ export async function closePosition(symbol: string, quantity: number, account_id
 }
 
 export async function waitToSignalCutPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
+  Context.current().heartbeat();
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1011,7 +1013,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     };
 
     timeSalesClient.onclose = async function () {
-      console.log('waitToSignalClosePosition socket closed');
+      Context.current().heartbeat();
       if (skipCut) {
         resolve(cutFilled);
       } else if (stoppedOut) {
@@ -1028,6 +1030,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
 }
 
 export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
+  Context.current().heartbeat();
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1173,7 +1176,6 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
 
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
-        Context.current().heartbeat();
         data += chunk;
       });
 
