@@ -10,7 +10,7 @@ import * as activities from "./activities/priceActionPosition";
 import { PremarketData } from "./interfaces/premarketData";
 import { TokenJSON } from './interfaces/token';
 
-type PositionState = 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Closed Position'
+type PositionState = 'Checking If It Is A Holiday' | 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Closed Position'
 
 export interface PositionStatus {
   state: PositionState
@@ -36,10 +36,11 @@ const {
   getOptionSymbol,
   waitToSignalCutPosition,
   waitToSignalClosePosition,
+  getUrlCode,
   getLoginCredentials,
   getRefreshToken,
   getUserPrinciples } = proxyActivities<typeof activities>({
-    startToCloseTimeout: 120000,
+    startToCloseTimeout: 1000000,
     retry: {
       maximumAttempts: 6,
       maximumInterval: 5000,
@@ -51,8 +52,9 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no opportunities' });
   }
 
+  let state: PositionState = 'Checking If It Is A Holiday';
   const isHoliday = await is_holiday();
-  let state: PositionState = 'Getting Time Remaining';
+  state = 'Getting Time Remaining';
   let option: string;
   let openedAt: Date = new Date();
   let openedPrice: number | string;
@@ -90,6 +92,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     refresh_token_expires_at_date: null
   };
 
+  let urlCode = '';
+
   let gettingUserPrinciples = {
     userPrinciples: null,
     params: null,
@@ -99,12 +103,13 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     timeSalesRequest: null
   };
 
-  const timeRemaining = await time_until_market_open();
+  const timeRemaining = await time_until_market_open(isHoliday);
 
   await sleep(timeRemaining);
 
   state = 'Getting Auth Token 1';
-  token = await getLoginCredentials(clientId);
+  urlCode = await getUrlCode(clientId);
+  token = await getLoginCredentials(urlCode);
   state = 'Getting User Principles 1';
   gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
@@ -126,7 +131,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   } else {
     state = 'Getting Auth Token 2';
-    token = await getLoginCredentials(clientId);
+    urlCode = await getUrlCode(clientId);
+    token = await getLoginCredentials(urlCode);
     state = 'Getting User Principles 2';
     gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
@@ -151,7 +157,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     } else {
       state = 'Getting Auth Token 3';
-      token = await getLoginCredentials(clientId);
+      urlCode = await getUrlCode(clientId);
+      token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 3';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     }
@@ -169,7 +176,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
     } else {
       state = 'Getting Auth Token 4';
-      token = await getLoginCredentials(clientId);
+      urlCode = await getUrlCode(clientId);
+      token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 4';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
@@ -188,7 +196,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
     } else {
       state = 'Getting Auth Token 5';
-      token = await getLoginCredentials(clientId);
+      urlCode = await getUrlCode(clientId);
+      token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 5';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;

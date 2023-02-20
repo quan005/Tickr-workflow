@@ -42,8 +42,13 @@ dotenv.config()
 
 
 
-export async function time_until_market_open(): Promise<number> {
+export async function time_until_market_open(is_holiday: boolean): Promise<number> {
   Context.current().heartbeat();
+
+  if (is_holiday) {
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is Currently closed!' });
+  }
+
   const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 15);
   const now = moment().tz('America/New_York');
   const diff = moment.duration(marketOpen.diff(now));
@@ -1150,10 +1155,15 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
   });
 }
 
-export async function getLoginCredentials(client_id: string): Promise<TokenJSON> {
+export async function getUrlCode(client_id: string): Promise<string> {
   Context.current().heartbeat();
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
+  return urlCode
+}
+
+export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
+  Context.current().heartbeat();
   const parseUrl = url.parse(urlCode, true).query;
   const code = parseUrl.code;
   const postData = JSON.stringify(code);
@@ -1205,8 +1215,6 @@ export async function getLoginCredentials(client_id: string): Promise<TokenJSON>
     });
 
     response.write(encodedPassword);
-    Context.current().sleep(10000);
-    Context.current().heartbeat();
     response.end();
   });
 }
