@@ -1156,14 +1156,14 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
 }
 
 export async function getUrlCode(client_id: string): Promise<string> {
-  Context.current().heartbeat();
+  // Context.current().heartbeat();
   const address = await tdAuthUrl(client_id);
   const urlCode = await tdLogin(address);
   return urlCode
 }
 
 export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
-  Context.current().heartbeat();
+  // Context.current().heartbeat();
   const parseUrl = url.parse(urlCode, true).query;
   const code = parseUrl.code;
   const postData = JSON.stringify(code);
@@ -1172,7 +1172,7 @@ export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
   let data = '';
 
   return new Promise((resolve, reject) => {
-    Context.current().heartbeat();
+    // Context.current().heartbeat();
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',

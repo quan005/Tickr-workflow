@@ -8,23 +8,25 @@ dotenv.config();
 
 it("returns an object with userid equal to TD_USERNAME env variable", async () => {
   const startTime = new Date().getTime();
-  let token: TokenJSON = {
-    access_token: null,
-    refresh_token: null,
-    access_token_expires_at: null,
-    refresh_token_expires_at: null,
-    logged_in: null,
-    access_token_expires_at_date: null,
-    refresh_token_expires_at_date: null
-  };
+  // let token: TokenJSON = {
+  //   access_token: null,
+  //   refresh_token: null,
+  //   access_token_expires_at: null,
+  //   refresh_token_expires_at: null,
+  //   logged_in: null,
+  //   access_token_expires_at_date: null,
+  //   refresh_token_expires_at_date: null
+  // };
   const clientId = process.env.TD_CLIENT_ID;
 
-  token = await activities.getLoginCredentials(clientId);
+  const code = await activities.getUrlCode(clientId);
+  console.log('code', code);
+  // token = await activities.getLoginCredentials(code);
   const endTime = new Date().getTime();
   // const refresh = await activities.getRefreshToken(token.refresh_token);
   console.log('it took', `${endTime - startTime} ms`);
 
-  expect(typeof token).toBe({});
+  expect(typeof code).toEqual('');
 });
 
 // it("returns an object with the account info", async () => {
