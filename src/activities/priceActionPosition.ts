@@ -1155,24 +1155,46 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
   });
 }
 
-export async function getUrlCode(client_id: string): Promise<string> {
-  // Context.current().heartbeat();
-  const address = await tdAuthUrl(client_id);
-  const urlCode = await tdLogin(address);
-  return urlCode
+export async function getUrlCode(): Promise<string> {
+  Context.current().heartbeat();
+  let data = '';
+  return new Promise((resolve, reject) => {
+    const urlOptions = {
+      host: `${process.env.API_HOSTNAME}`,
+      path: '/api/url-code',
+      method: 'GET',
+      rejectUnauthorized: false,
+    }
+
+    const response = https.request(urlOptions, (resp) => {
+      resp.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      resp.on('close', () => {
+        const parseUrl = url.parse(data, true).query;
+        const code = parseUrl.code;
+        const postData = JSON.stringify(code);
+
+        return resolve(postData);
+      })
+    }).on('error', (e) => {
+      throw new Error(e.message);
+    });
+
+    response.end();
+  });
 }
 
 export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
-  // Context.current().heartbeat();
-  const parseUrl = url.parse(urlCode, true).query;
-  const code = parseUrl.code;
-  const postData = JSON.stringify(code);
-  const encodedPassword = encodeURIComponent(postData);
+  Context.current().heartbeat();
+
+  const encodedPassword = encodeURIComponent(urlCode);
   let token: Token;
   let data = '';
 
   return new Promise((resolve, reject) => {
-    // Context.current().heartbeat();
+    Context.current().heartbeat();
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',
