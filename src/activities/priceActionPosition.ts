@@ -240,7 +240,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-export async function get_current_price(wsUri: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
+export async function get_current_price(wsClient: WebSocket, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
   return new Promise(async (resolve) => {
     let closePrice = 0;
     let currentPriceData: CurrentPriceData = {
@@ -256,24 +256,14 @@ export async function get_current_price(wsUri: string, login_request: object, ma
     let messageCount = 0;
     const messages: SocketResponse[] | null = [];
 
-    const client = websocketClient(wsUri);
+    wsClient.send(JSON.stringify(market_request));
 
-    Context.current().heartbeat(client);
-
-    await waitForClientConnection(client);
-
-    await sendClientRequest(client, login_request)
-
-    await waitForClientLoginMessage(client);
-
-    client.send(JSON.stringify(market_request));
-
-    client.onmessage = event => {
+    wsClient.onmessage = event => {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
       if (parseInt(marketClose) >= 1600 || messageCount >= 1 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         isMarketClosed = true;
-        client.close();
+        wsClient.close();
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
@@ -282,11 +272,11 @@ export async function get_current_price(wsUri: string, login_request: object, ma
       if (data.data !== undefined) {
         messages.push(data.data[0].content[0]);
         messageCount += 1;
-        client.close();
+        wsClient.close();
       }
     };
 
-    client.onclose = async function () {
+    wsClient.onclose = async function () {
       if (isMarketClosed) {
         throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
       }
@@ -705,7 +695,7 @@ export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, accou
   }
 }
 
-export async function waitToSignalOpenPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
+export async function waitToSignalOpenPosition(wsClient: WebSocket, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
   return new Promise(async (resolve) => {
     let demandTimeSalesEntryPercentage = 0;
     let metDemandEntryPrice = 0;
@@ -725,28 +715,14 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
     let marketClose = dateTime.format('Hmm');
     const day = dateTime.format('dddd');
 
-    // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = websocketClient(wsUri);
-    Context.current().heartbeat(timeSalesClient);
+    wsClient.send(JSON.stringify(time_sales_request));
 
-    // await waitForClientConnection(bookClient);
-    await waitForClientConnection(timeSalesClient);
-
-    // await sendClientRequest(bookClient, login_request);
-    await sendClientRequest(timeSalesClient, login_request);
-
-    // await waitForClientLoginMessage(bookClient);
-    await waitForClientLoginMessage(timeSalesClient);
-
-    // await bookClient.send(JSON.stringify(book_request));
-    timeSalesClient.send(JSON.stringify(time_sales_request));
-
-    timeSalesClient.onmessage = async function (event) {
+    wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
       if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         noGoodBuys = true;
-        timeSalesClient.close();
+        wsClient.close();
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
@@ -792,11 +768,11 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
             callOrPut = 'CALL';
             demandOrSupply = 'DEMAND';
-            timeSalesClient.close();
+            wsClient.close();
           } else if (supplyForming >= 3 && supplySize > demandSize || supplyForming > 1 && supplyConfirmation) {
             callOrPut = 'PUT';
             demandOrSupply = 'SUPPLY';
-            timeSalesClient.close();
+            wsClient.close();
           }
         } else if (position_setup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
@@ -823,7 +799,7 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
             callOrPut = 'CALL';
             demandOrSupply = 'DEMAND';
-            timeSalesClient.close();
+            wsClient.close();
           }
         } else if (position_setup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
@@ -849,13 +825,13 @@ export async function waitToSignalOpenPosition(wsUri: string, login_request: obj
           if (supplyForming >= 3 && supplySize > demandSize || supplyForming > 1 && supplyConfirmation) {
             callOrPut = 'PUT';
             demandOrSupply = 'SUPPLY';
-            timeSalesClient.close();
+            wsClient.close();
           }
         }
       }
     }
 
-    timeSalesClient.onclose = async function () {
+    wsClient.onclose = async function () {
       Context.current().heartbeat(noGoodBuys);
       if (noGoodBuys) {
         throw Error('Could not find any good buying opportunities!')
@@ -948,7 +924,7 @@ export async function closePosition(symbol: string, quantity: number, account_id
   }
 }
 
-export async function waitToSignalCutPosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
+export async function waitToSignalCutPosition(wsClient: WebSocket, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -970,28 +946,14 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
     const day = dateTime.format('dddd');
     let cutFilled = 0;
 
-    // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = websocketClient(wsUri);
-    Context.current().heartbeat(timeSalesClient);
+    wsClient.send(JSON.stringify(time_sales_request));
 
-    // await waitForClientConnection(bookClient);
-    await waitForClientConnection(timeSalesClient);
-
-    // await sendClientRequest(bookClient, login_request);
-    await sendClientRequest(timeSalesClient, login_request);
-
-    // await waitForClientLoginMessage(bookClient);
-    await waitForClientLoginMessage(timeSalesClient);
-
-    // await bookClient.send(JSON.stringify(book_request));
-    timeSalesClient.send(JSON.stringify(time_sales_request));
-
-    timeSalesClient.onmessage = async function (event) {
+    wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
       if (parseInt(marketClose) >= 1600 || quantity < 2 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
         skipCut = true;
-        timeSalesClient.close();
+        wsClient.close();
       }
 
       const data = JSON.parse(JSON.stringify(event.data));
@@ -1022,13 +984,13 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
           });
 
           if (demandTimeSalesCutPercentage >= .6) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (demandTimeSalesStopLossPercentage >= .4) {
             stoppedOut = true;
-            timeSalesClient.close();
+            wsClient.close();
           } else if (demandTimeSalesTakeProfitPercentage >= .6) {
             skipCut = true;
-            timeSalesClient.close();
+            wsClient.close();
           }
 
         } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
@@ -1055,19 +1017,19 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
           });
 
           if (supplyTimeSalesCutPercentage >= .6) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (supplyTimeSalesStopLossPercentage >= .4) {
             stoppedOut = true;
-            timeSalesClient.close();
+            wsClient.close();
           } else if (supplyTimeSalesTakeProfitPercentage >= .6) {
             skipCut = true;
-            timeSalesClient.close();
+            wsClient.close();
           }
         }
       }
     };
 
-    timeSalesClient.onclose = async function () {
+    wsClient.onclose = async function () {
       if (skipCut) {
         Context.current().heartbeat(cutFilled);
         resolve(cutFilled);
@@ -1088,7 +1050,7 @@ export async function waitToSignalCutPosition(wsUri: string, login_request: obje
   })
 }
 
-export async function waitToSignalClosePosition(wsUri: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
+export async function waitToSignalClosePosition(wsClient: WebSocket, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1110,27 +1072,13 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
     let remainingQuantity = quantity;
     let waited = 0;
 
-    // const bookClient = await websocketClient(wsUri);
-    const timeSalesClient = websocketClient(wsUri);
-    Context.current().heartbeat(timeSalesClient);
+    wsClient.send(JSON.stringify(time_sales_request));
 
-    // await waitForClientConnection(bookClient);
-    await waitForClientConnection(timeSalesClient);
-
-    // await sendClientRequest(bookClient, login_request);
-    await sendClientRequest(timeSalesClient, login_request);
-
-    // await waitForClientLoginMessage(bookClient);
-    await waitForClientLoginMessage(timeSalesClient);
-
-    // await bookClient.send(JSON.stringify(book_request));
-    timeSalesClient.send(JSON.stringify(time_sales_request));
-
-    timeSalesClient.onmessage = async function (event) {
+    wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
       if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
-        timeSalesClient.close();
+        wsClient.close();
       }
 
       const data = JSON.parse(JSON.stringify(event.data));
@@ -1163,11 +1111,11 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
           if (demandTimeSalesCutPercentage >= .6) {
             waited += 1;
           } else if (demandTimeSalesCutPercentage >= .6 && waited >= 2) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (demandTimeSalesTakeProfitPercentage >= .6) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (demandTimeSalesStopLossPercentage >= .4) {
-            timeSalesClient.close();
+            wsClient.close();
           }
 
         } else if (demandOrSupply === 'SUPPLY' && position_setup.supply) {
@@ -1196,17 +1144,17 @@ export async function waitToSignalClosePosition(wsUri: string, login_request: ob
           if (supplyTimeSalesCutPercentage >= .6) {
             waited += 1;
           } else if (supplyTimeSalesCutPercentage >= .6 && waited >= 2) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (supplyTimeSalesTakeProfitPercentage >= .6) {
-            timeSalesClient.close();
+            wsClient.close();
           } else if (supplyTimeSalesStopLossPercentage >= .4) {
-            timeSalesClient.close();
+            wsClient.close();
           }
         }
       }
     }
 
-    timeSalesClient.onclose = async function () {
+    wsClient.onclose = async function () {
       while (remainingQuantity > 0) {
         Context.current().heartbeat(remainingQuantity);
         position = await closePosition(symbol, quantity, account_id, access_token);
@@ -1754,7 +1702,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   return null;
 }
 
-export function websocketClient(url: string): WebSocket {
+export async function websocketClient(url: string): Promise<WebSocket> {
   const client = new WebSocket(url);
   Context.current().heartbeat(client);
 

@@ -10,7 +10,7 @@ import * as activities from "./activities/priceActionPosition";
 import { PremarketData } from "./interfaces/premarketData";
 import { TokenJSON } from './interfaces/token';
 
-type PositionState = 'Checking If It Is A Holiday' | 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Closed Position'
+type PositionState = 'Checking If It Is A Holiday' | 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Opening The Current Price WebSocket Client' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opening The Open Position WebSocket Client' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Opening The Cut Position WebSocket Client' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Opening The Close Position WebSocket Client' | 'Closed Position'
 
 export interface PositionStatus {
   state: PositionState
@@ -28,6 +28,10 @@ const {
   time_until_market_open,
   is_holiday,
   get_current_price,
+  websocketClient,
+  waitForClientConnection,
+  sendClientRequest,
+  waitForClientLoginMessage,
   get_surrounding_key_levels,
   get_position_setup,
   getOptionsSelection,
@@ -41,7 +45,7 @@ const {
   getRefreshToken,
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 1000000,
-    heartbeatTimeout: 20000,
+    heartbeatTimeout: 120000,
     retry: {
       maximumAttempts: 6,
       maximumInterval: 3000,
@@ -114,8 +118,16 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
+  state = 'Opening The Current Price WebSocket Client';
+  let wsClient = await websocketClient(wsUri);
+  await sleep(200);
+  await waitForClientConnection(wsClient);
+  await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
+  await sleep(200);
+  await waitForClientLoginMessage(wsClient);
+
   state = 'Getting Current Price';
-  const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
+  const currentPrice = await get_current_price(wsClient, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
   state = 'Getting Surrounding Key Levels';
   const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice.closePrice, keyLevels);
   state = 'Finding Setup';
@@ -138,8 +150,16 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   }
 
+  state = 'Opening The Open Position WebSocket Client';
+  wsClient = await websocketClient(wsUri);
+  await sleep(200);
+  await waitForClientConnection(wsClient);
+  await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
+  await sleep(200);
+  await waitForClientLoginMessage(wsClient);
+
   state = 'Opened Position';
-  const signalOpenPosition = await waitToSignalOpenPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token.access_token, isHoliday);
+  const signalOpenPosition = await waitToSignalOpenPosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token.access_token, isHoliday);
   openedAt = new Date();
 
 
@@ -183,8 +203,16 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
     }
 
+    state = 'Opening The Cut Position WebSocket Client';
+    wsClient = await websocketClient(wsUri);
+    await sleep(200);
+    await waitForClientConnection(wsClient);
+    await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
+    await sleep(200);
+    await waitForClientLoginMessage(wsClient);
+
     state = 'Cut Position';
-    const cutFilled = await waitToSignalCutPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
+    const cutFilled = await waitToSignalCutPosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
     cutAt = new Date();
     const remainingQuantity = quantity - cutFilled
 
@@ -203,8 +231,16 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
     }
 
+    state = 'Opening The Close Position WebSocket Client';
+    wsClient = await websocketClient(wsUri);
+    await sleep(200);
+    await waitForClientConnection(wsClient);
+    await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
+    await sleep(200);
+    await waitForClientLoginMessage(wsClient);
+
     state = 'Closed Position';
-    const signalClosePosition = await waitToSignalClosePosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
+    const signalClosePosition = await waitToSignalClosePosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
     await condition(() => !!signalClosePosition.orderResponse.orderId);
     closedAt = new Date();
 
