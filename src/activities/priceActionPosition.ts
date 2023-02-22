@@ -1188,6 +1188,9 @@ export async function getUrlCode(): Promise<string> {
       });
 
       resp.on('close', () => {
+        if (data === null || data === undefined) {
+          throw new Error('Url code is not available.');
+        }
         const parseUrl = url.parse(data, true).query;
         const code = parseUrl.code;
         const postData = JSON.stringify(code);
