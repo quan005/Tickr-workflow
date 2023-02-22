@@ -1,12 +1,8 @@
 import { WebSocket } from "ws";
 import { ApplicationFailure, Context } from "@temporalio/activity";
-import * as path from "path";
-import * as fs from "fs";
 import * as https from "https";
 import * as url from "url";
 import * as dotenv from "dotenv";
-import { tdLogin } from "../tda/middleware/tdLogin";
-import { tdAuthUrl } from "../tda/middleware/tdAuthUrl";
 import { tdCredentialsToString } from "../tda/middleware/tdCredentialToString";
 import { CurrentPriceData } from "../interfaces/currentPriceData";
 import { SurroundingKeyLevels } from "../interfaces/surroundingKeyLevels";

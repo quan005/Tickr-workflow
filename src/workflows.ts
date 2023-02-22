@@ -75,7 +75,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   });
 
   const budget = premarketData.budget;
-  const clientId = premarketData.client_id;
   const accountId = premarketData.account_id;
   const keyLevels = premarketData.keyLevels;
   const demandZones = premarketData.demandZones;
@@ -108,7 +107,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   await sleep(timeRemaining);
 
   state = 'Getting Auth Token 1';
-  urlCode = await getUrlCode(clientId);
+  urlCode = await getUrlCode();
   token = await getLoginCredentials(urlCode);
   state = 'Getting User Principles 1';
   gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
@@ -131,7 +130,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   } else {
     state = 'Getting Auth Token 2';
-    urlCode = await getUrlCode(clientId);
+    urlCode = await getUrlCode();
     token = await getLoginCredentials(urlCode);
     state = 'Getting User Principles 2';
     gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
@@ -157,7 +156,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
     } else {
       state = 'Getting Auth Token 3';
-      urlCode = await getUrlCode(clientId);
+      urlCode = await getUrlCode();
       token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 3';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
@@ -176,7 +175,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
     } else {
       state = 'Getting Auth Token 4';
-      urlCode = await getUrlCode(clientId);
+      urlCode = await getUrlCode();
       token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 4';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
@@ -196,7 +195,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
     } else {
       state = 'Getting Auth Token 5';
-      urlCode = await getUrlCode(clientId);
+      urlCode = await getUrlCode();
       token = await getLoginCredentials(urlCode);
       state = 'Getting User Principles 5';
       gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
