@@ -41,9 +41,10 @@ const {
   getRefreshToken,
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 1000000,
+    heartbeatTimeout: 20000,
     retry: {
       maximumAttempts: 6,
-      maximumInterval: 5000,
+      maximumInterval: 3000,
     }
   });
 
