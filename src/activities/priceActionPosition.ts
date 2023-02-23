@@ -1184,7 +1184,7 @@ export async function getUrlCode(): Promise<string> {
     const response = https.request(urlOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        Context.current().heartbeat(data);
+        Context.current().heartbeat({ data });
       });
 
       resp.on('close', () => {
@@ -1195,7 +1195,7 @@ export async function getUrlCode(): Promise<string> {
         const code = parseUrl.code;
         const postData = JSON.stringify(code);
 
-        Context.current().heartbeat(postData);
+        Context.current().heartbeat({ postData });
 
         return resolve(postData);
       })
@@ -1710,6 +1710,7 @@ export async function websocketClient(url: string): Promise<WebSocket> {
   Context.current().heartbeat(client);
 
   client.onopen = () => {
+    Context.current().heartbeat('client connection created');
     console.log('client connection created');
   };
 
@@ -1723,13 +1724,15 @@ export async function websocketClient(url: string): Promise<WebSocket> {
 export async function sendClientRequest(client: WebSocket, request: object): Promise<void> {
   Context.current().heartbeat(client);
   try {
-    client.send(JSON.stringify(request));
+    client.on('connection', (ws) => {
+      ws.send(JSON.stringify(request));
+    });
   } catch (err) {
     throw new Error(err.message);
   }
 }
 
-export async function waitForClientConnection(client): Promise<void> {
+export async function waitForClientConnection(client: WebSocket): Promise<void> {
   Context.current().heartbeat(client);
   return new Promise((resolve) => {
     if (client.readyState !== client.OPEN) {
@@ -1742,7 +1745,7 @@ export async function waitForClientConnection(client): Promise<void> {
   });
 }
 
-export async function waitForClientLoginMessage(client): Promise<void> {
+export async function waitForClientLoginMessage(client: WebSocket): Promise<void> {
   Context.current().heartbeat(client);
   return new Promise((resolve) => {
     let message = {
