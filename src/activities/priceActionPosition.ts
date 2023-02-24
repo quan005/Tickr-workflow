@@ -34,7 +34,19 @@ import { SocketResponse } from "../interfaces/websocketEvent";
 import * as moment from "moment-timezone";
 import Holidays, * as holidays from "date-holidays";
 
-dotenv.config()
+dotenv.config();
+
+export interface MessageResponse {
+  service: string
+  requestid: string
+  command: string
+  timestamp: number | string
+  content: object
+}
+
+export interface Message {
+  response: MessageResponse[] | null
+}
 
 
 
@@ -1705,68 +1717,37 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   return null;
 }
 
-export async function websocketClient(url: string): Promise<WebSocket> {
-  const client = new WebSocket(url);
-  Context.current().heartbeat(client);
-
-  client.onopen = () => {
-    Context.current().heartbeat('client connection created');
-    console.log('client connection created');
-  };
-
-  client.onerror = (err) => {
-    throw new Error(err.message);
-  }
-
-  return (client);
-}
-
-export async function sendClientRequest(client: WebSocket, request: object): Promise<void> {
-  Context.current().heartbeat(client);
-  try {
-    client.on('connection', (ws) => {
-      ws.send(JSON.stringify(request));
-    });
-  } catch (err) {
-    throw new Error(err.message);
-  }
-}
-
-export async function waitForClientConnection(client: WebSocket): Promise<void> {
-  Context.current().heartbeat(client);
+export async function websocketClient(url: string, request: object): Promise<WebSocket> {
   return new Promise((resolve) => {
-    if (client.readyState !== client.OPEN) {
-      client.addEventListener("open", () => {
-        resolve();
-      });
-    } else {
-      resolve();
-    }
-  });
-}
+    const client = new WebSocket(url);
+    Context.current().heartbeat(client);
 
-export async function waitForClientLoginMessage(client: WebSocket): Promise<void> {
-  Context.current().heartbeat(client);
-  return new Promise((resolve) => {
-    let message = {
-      response: [
-        {
-          service: '',
-          requestid: '',
-          command: '',
-          timestamp: 0,
-          content: {}
-        }
-      ]
+    client.onopen = () => {
+
+      let message: Message = null
+
+      if (client.readyState !== client.OPEN) {
+        client.addEventListener("open", () => {
+          Context.current().heartbeat('Client is open!');
+        });
+      }
+
+      client.send(JSON.stringify(request));
+
+      if (message.response && message.response[0].command !== "LOGIN") {
+        client.addEventListener("message", (event) => {
+          message = JSON.parse(JSON.parse(JSON.stringify(event.data)));
+          Context.current().heartbeat(message);
+        });
+      }
+
+      Context.current().heartbeat('client connection created');
+    };
+
+    client.onerror = (err) => {
+      throw new Error(err.message);
     }
 
-    if (!message.response || message.response[0].command !== "LOGIN") {
-      client.addEventListener("message", (event) => {
-        message = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-        resolve();
-      });
-    } else {
-      resolve();
-    }
+    resolve(client);
   });
 }

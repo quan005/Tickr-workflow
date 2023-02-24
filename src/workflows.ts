@@ -29,9 +29,6 @@ const {
   is_holiday,
   get_current_price,
   websocketClient,
-  waitForClientConnection,
-  sendClientRequest,
-  waitForClientLoginMessage,
   get_surrounding_key_levels,
   get_position_setup,
   getOptionsSelection,
@@ -119,12 +116,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
   state = 'Opening The Current Price WebSocket Client';
-  let wsClient = await websocketClient(wsUri);
+  let wsClient = await websocketClient(wsUri, gettingUserPrinciples.loginRequest);
   await sleep(200);
-  await waitForClientConnection(wsClient);
-  await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
-  await sleep(200);
-  await waitForClientLoginMessage(wsClient);
 
   state = 'Getting Current Price';
   const currentPrice = await get_current_price(wsClient, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
@@ -151,12 +144,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   }
 
   state = 'Opening The Open Position WebSocket Client';
-  wsClient = await websocketClient(wsUri);
+  wsClient = await websocketClient(wsUri, gettingUserPrinciples.loginRequest);
   await sleep(200);
-  await waitForClientConnection(wsClient);
-  await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
-  await sleep(200);
-  await waitForClientLoginMessage(wsClient);
 
   state = 'Opened Position';
   const signalOpenPosition = await waitToSignalOpenPosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token.access_token, isHoliday);
@@ -204,12 +193,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     }
 
     state = 'Opening The Cut Position WebSocket Client';
-    wsClient = await websocketClient(wsUri);
+    wsClient = await websocketClient(wsUri, gettingUserPrinciples.loginRequest);
     await sleep(200);
-    await waitForClientConnection(wsClient);
-    await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
-    await sleep(200);
-    await waitForClientLoginMessage(wsClient);
 
     state = 'Cut Position';
     const cutFilled = await waitToSignalCutPosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
@@ -232,12 +217,8 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     }
 
     state = 'Opening The Close Position WebSocket Client';
-    wsClient = await websocketClient(wsUri);
+    wsClient = await websocketClient(wsUri, gettingUserPrinciples.loginRequest);
     await sleep(200);
-    await waitForClientConnection(wsClient);
-    await sendClientRequest(wsClient, gettingUserPrinciples.loginRequest);
-    await sleep(200);
-    await waitForClientLoginMessage(wsClient);
 
     state = 'Closed Position';
     const signalClosePosition = await waitToSignalClosePosition(wsClient, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
