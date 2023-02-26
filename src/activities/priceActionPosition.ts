@@ -252,7 +252,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-export async function get_current_price(wsClient: WebSocket, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
+export async function get_current_price(wsClient: WebSocket, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
   return new Promise(async (resolve) => {
     let closePrice = 0;
     let currentPriceData: CurrentPriceData = {
@@ -266,9 +266,17 @@ export async function get_current_price(wsClient: WebSocket, market_request: obj
     const day = dateTime.format('dddd');
     let isMarketClosed = false;
     let messageCount = 0;
+    let loggedIn = false;
     const messages: SocketResponse[] | null = [];
 
-    wsClient.send(JSON.stringify(market_request));
+    wsClient.onopen = () => {
+
+      wsClient.send(JSON.stringify(login_request));
+
+      Context.current().heartbeat(wsClient);
+      console.log('client connection created');
+
+    };
 
     wsClient.onmessage = event => {
       marketClose = moment().tz('America/New_York').format('Hmm');
@@ -278,10 +286,21 @@ export async function get_current_price(wsClient: WebSocket, market_request: obj
         wsClient.close();
       }
 
+      if (loggedIn) {
+        wsClient.send(JSON.stringify(market_request));
+        loggedIn = false;
+      }
+
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
       Context.current().heartbeat(data);
 
+      if (data.response && data.response[0].command === "LOGIN") {
+        loggedIn = true;
+      }
+
       if (data.data !== undefined) {
+        Context.current().heartbeat(data.data);
+
         messages.push(data.data[0].content[0]);
         messageCount += 1;
         wsClient.close();
@@ -707,7 +726,7 @@ export async function checkIfPositionFilled(order_id: PlaceOrdersResponse, accou
   }
 }
 
-export async function waitToSignalOpenPosition(wsClient: WebSocket, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
+export async function waitToSignalOpenPosition(wsClient: WebSocket, login_request: object, book_request: object, time_sales_request: object, position_setup: PositionSetup, options: OptionsSelection, budget: number, account_id: string, access_token: string, is_holiday: boolean): Promise<OpenPositionSignal> {
   return new Promise(async (resolve) => {
     let demandTimeSalesEntryPercentage = 0;
     let metDemandEntryPrice = 0;
@@ -721,13 +740,20 @@ export async function waitToSignalOpenPosition(wsClient: WebSocket, book_request
     let supplyConfirmation = false;
     let position: OrderDetails | null = null;
     let noGoodBuys = false;
+    let loggedIn = false;
     let demandOrSupply = '';
     let callOrPut = '';
     const dateTime = moment().tz('America/New_York');
     let marketClose = dateTime.format('Hmm');
     const day = dateTime.format('dddd');
 
-    wsClient.send(JSON.stringify(time_sales_request));
+    wsClient.onopen = () => {
+
+      wsClient.send(JSON.stringify(login_request));
+
+      Context.current().heartbeat('login sent');
+
+    };
 
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
@@ -737,8 +763,17 @@ export async function waitToSignalOpenPosition(wsClient: WebSocket, book_request
         wsClient.close();
       }
 
+      if (loggedIn) {
+        wsClient.send(JSON.stringify(time_sales_request));
+        loggedIn = false;
+      }
+
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
       Context.current().heartbeat(data);
+
+      if (data.response && data.response[0].command === "LOGIN") {
+        loggedIn = true;
+      }
 
       if (data.data) {
         if (position_setup.demand && position_setup.supply) {
@@ -936,7 +971,7 @@ export async function closePosition(symbol: string, quantity: number, account_id
   }
 }
 
-export async function waitToSignalCutPosition(wsClient: WebSocket, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
+export async function waitToSignalCutPosition(wsClient: WebSocket, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -953,12 +988,19 @@ export async function waitToSignalCutPosition(wsClient: WebSocket, book_request:
     let position: OrderDetails | null = null;
     let skipCut = false;
     let stoppedOut = false;
+    let loggedIn = false;
     const dateTime = moment().tz('America/New_York');
     let marketClose = dateTime.format('Hmm');
     const day = dateTime.format('dddd');
     let cutFilled = 0;
 
-    wsClient.send(JSON.stringify(time_sales_request));
+    wsClient.onopen = () => {
+
+      wsClient.send(JSON.stringify(login_request));
+
+      Context.current().heartbeat('login sent');
+
+    };
 
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
@@ -968,8 +1010,17 @@ export async function waitToSignalCutPosition(wsClient: WebSocket, book_request:
         wsClient.close();
       }
 
+      if (loggedIn) {
+        wsClient.send(JSON.stringify(time_sales_request));
+        loggedIn = false;
+      }
+
       const data = JSON.parse(JSON.stringify(event.data));
       Context.current().heartbeat(data);
+
+      if (data.response && data.response[0].command === "LOGIN") {
+        loggedIn = true;
+      }
 
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && position_setup.demand) {
@@ -1062,7 +1113,7 @@ export async function waitToSignalCutPosition(wsClient: WebSocket, book_request:
   })
 }
 
-export async function waitToSignalClosePosition(wsClient: WebSocket, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
+export async function waitToSignalClosePosition(wsClient: WebSocket, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, demandOrSupply: string, position_setup: PositionSetup, account_id: string, access_token: string, is_holiday: boolean): Promise<OrderDetails> {
   return new Promise(async (resolve) => {
     let demandTimeSalesCutPercentage = 0;
     let demandTimeSalesStopLossPercentage = 0;
@@ -1083,8 +1134,17 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, book_reques
     let closeFilled = 0;
     let remainingQuantity = quantity;
     let waited = 0;
+    let loggedIn = false;
 
     wsClient.send(JSON.stringify(time_sales_request));
+
+    wsClient.onopen = () => {
+
+      wsClient.send(JSON.stringify(login_request));
+
+      Context.current().heartbeat('login sent');
+
+    };
 
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
@@ -1093,8 +1153,17 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, book_reques
         wsClient.close();
       }
 
+      if (loggedIn) {
+        wsClient.send(JSON.stringify(time_sales_request));
+        loggedIn = false;
+      }
+
       const data = JSON.parse(JSON.stringify(event.data));
       Context.current().heartbeat(data);
+
+      if (data.response && data.response[0].command === "LOGIN") {
+        loggedIn = true;
+      }
 
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && position_setup.demand) {
@@ -1185,7 +1254,7 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, book_reques
 export async function getUrlCode(): Promise<string> {
   let data = '';
   Context.current().heartbeat(data);
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const urlOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/url-code',
@@ -1228,7 +1297,7 @@ export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
   let token: Token;
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',
@@ -1285,7 +1354,7 @@ export async function getRefreshToken(refresh_token: string): Promise<TokenJSON>
   let token: Token;
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/refresh',
@@ -1340,7 +1409,7 @@ export function getUserPrinciples(access_token: string, symbol: string): Promise
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/streamer-auth',
@@ -1490,7 +1559,7 @@ export function getAccount(access_token: string, account_id: string): Promise<Ac
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1542,7 +1611,7 @@ export function placeOrder(access_token: string, account_id: string, order_data:
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1594,7 +1663,7 @@ export function getOrder(access_token: string, account_id: string, order_id: str
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1646,7 +1715,7 @@ export function getOptionChain(access_token: string, option_chain_config: Option
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       optionChainConfig: option_chain_config,
@@ -1717,32 +1786,10 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   return null;
 }
 
-export async function websocketClient(url: string, request: object): Promise<WebSocket> {
+export async function websocketClient(url: string): Promise<WebSocket> {
   return new Promise((resolve) => {
     const client = new WebSocket(url);
     Context.current().heartbeat(client);
-
-    client.onopen = () => {
-
-      let message: Message = null
-
-      if (client.readyState !== client.OPEN) {
-        client.addEventListener("open", () => {
-          Context.current().heartbeat('Client is open!');
-        });
-      }
-
-      client.send(JSON.stringify(request));
-
-      if (message.response && message.response[0].command !== "LOGIN") {
-        client.addEventListener("message", (event) => {
-          message = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-          Context.current().heartbeat(message);
-        });
-      }
-
-      Context.current().heartbeat('client connection created');
-    };
 
     client.onerror = (err) => {
       throw new Error(err.message);

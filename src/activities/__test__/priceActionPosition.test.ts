@@ -6,28 +6,28 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 
-it("returns an object with userid equal to TD_USERNAME env variable", async () => {
-  const startTime = new Date().getTime();
-  let token: TokenJSON = {
-    access_token: null,
-    refresh_token: null,
-    access_token_expires_at: null,
-    refresh_token_expires_at: null,
-    logged_in: null,
-    access_token_expires_at_date: null,
-    refresh_token_expires_at_date: null
-  };
+// it("returns an object with userid equal to TD_USERNAME env variable", async () => {
+//   const startTime = new Date().getTime();
+//   let token: TokenJSON = {
+//     access_token: null,
+//     refresh_token: null,
+//     access_token_expires_at: null,
+//     refresh_token_expires_at: null,
+//     logged_in: null,
+//     access_token_expires_at_date: null,
+//     refresh_token_expires_at_date: null
+//   };
 
-  const code = await activities.getUrlCode();
-  console.log('code', code);
-  token = await activities.getLoginCredentials(code);
-  console.log('token', token);
-  const endTime = new Date().getTime();
-  // const refresh = await activities.getRefreshToken(token.refresh_token);
-  console.log('it took', `${endTime - startTime} ms`);
+//   const code = await activities.getUrlCode();
+//   console.log('code', code);
+//   token = await activities.getLoginCredentials(code);
+//   console.log('token', token);
+//   const endTime = new Date().getTime();
+//   // const refresh = await activities.getRefreshToken(token.refresh_token);
+//   console.log('it took', `${endTime - startTime} ms`);
 
-  expect(typeof code).toEqual('');
-});
+//   expect(typeof code).toEqual('');
+// });
 
 // it("returns an object with the account info", async () => {
 //   let token: TokenJSON = {
@@ -54,70 +54,39 @@ it("returns an object with userid equal to TD_USERNAME env variable", async () =
 //   expect(getAccount.securitiesAccount.accountId).toEqual(accountId);
 // });
 
-// it("returns an object with current price, and surrounding demand and supply zones", async () => {
-//   const demandZones = mockPremarketData.premarketData.demandZones;
-//   const supplyZones = mockPremarketData.premarketData.supplyZones;
-//   let token: TokenJSON = {
-//     access_token: null,
-//     refresh_token: null,
-//     access_token_expires_at: null,
-//     refresh_token_expires_at: null,
-//     logged_in: null,
-//     access_token_expires_at_date: null,
-//     refresh_token_expires_at_date: null
-//   };
-//   let gettingUserPrinciples = {
-//     userPrinciples: null,
-//     params: null,
-//   };
-//   const clientId = process.env.TD_CLIENT_ID;
+it("returns an object with current price, and surrounding demand and supply zones", async () => {
+  let token: TokenJSON = {
+    access_token: null,
+    refresh_token: null,
+    access_token_expires_at: null,
+    refresh_token_expires_at: null,
+    logged_in: null,
+    access_token_expires_at_date: null,
+    refresh_token_expires_at_date: null
+  };
+  let gettingUserPrinciples = {
+    userPrinciples: null,
+    params: null,
+    loginRequest: null,
+    marketRequest: null,
+    bookRequest: null,
+    timeSalesRequest: null
+  };
+  const demandZones = mockPremarketData.premarketData.demandZones;
+  const supplyZones = mockPremarketData.premarketData.supplyZones;
+  const urlCode = await activities.getUrlCode();
+  token = await activities.getLoginCredentials(urlCode);
 
-//   while (gettingUserPrinciples.params === null) {
-//     token = await activities.getLoginCredentials(clientId);
-//     gettingUserPrinciples = await activities.getUserPrinciples(token.access_token);
-//   }
+  gettingUserPrinciples = await activities.getUserPrinciples(token.access_token, mockPremarketData.premarketData.symbol);
+  const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-//   const params = gettingUserPrinciples.params
 
-//   const adminConfig = {
-//     "service": "ADMIN",
-//     "command": "LOGIN",
-//     "requestid": "0",
-//     "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
-//     "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
-//     "parameters": {
-//       "credential": params,
-//       "token": gettingUserPrinciples.userPrinciples.streamerInfo.token,
-//       "version": "1.0",
-//       "qoslevel": "0",
-//     },
-//   }
-//   const quoteConfig = {
-//     "service": "QUOTE",
-//     "requestid": "1",
-//     "command": "SUBS",
-//     "account": gettingUserPrinciples.userPrinciples.accounts[0].accountId,
-//     "source": gettingUserPrinciples.userPrinciples.streamerInfo.appId,
-//     "parameters": {
-//       "keys": mockPremarketData.premarketData.symbol,
-//       "fields": "0,1,2,3,4,5",
-//     },
-//   }
-//   const loginRequest = {
-//     "requests": [
-//       adminConfig,
-//     ],
-//   }
-//   const marketRequest = {
-//     "requests": [
-//       quoteConfig,
-//     ],
-//   }
+  const wsClient = await activities.websocketClient(wsUri);
 
-//   const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-//   const currentPrice = await activities.get_current_price(wsUri, loginRequest, marketRequest, demandZones, supplyZones);
-//   expect(typeof currentPrice).toBe("object");
-// });
+  const currentPrice = await activities.get_current_price(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
+  console.log(currentPrice);
+  expect(typeof currentPrice).toBe("object");
+});
 
 // it("returns the current price surrounding key levels", async () => {
 //   const currentPrice = 132.31;

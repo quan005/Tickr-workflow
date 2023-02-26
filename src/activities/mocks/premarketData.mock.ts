@@ -1,456 +1,269 @@
 import { PremarketData } from "../../interfaces/premarketData"
 export const premarketData: PremarketData = {
-  symbol: 'AAPL',
-  score: 5,
-  limit: 1,
-  budget: 818.0,
-  client_id: 'GYNQGLGLPINXJNWLKFZM48NQ1C86KS8D',
-  account_id: '277420951',
-  sentiment: 'Positive',
-  keyLevels: [
-    179.32,
-    177.58,
-    176.25,
-    174.7,
-    172.72,
-    170.85,
-    168.96,
-    167.12,
-    165.28,
-    163.89,
-    162.53,
-    161.24,
-    159.84,
-    158.59,
-    157.22,
-    155.96,
-    155.09,
-    153.81,
-    152.54,
-    151.25,
-    149.59,
-    147.97,
-    146.32,
-    145.18,
-    143.93,
-    142.34,
-    141.17,
-    140.0,
-    138.86,
-    137.7,
-    136.22,
-    135.07,
-    133.94,
-    132.46,
-    131.0,
-    129.66
+  "limit": 2,
+  "budget": 506,
+  "client_id": "GYNQGLGLPINXJNWLKFZM48NQ1C86KS8D",
+  "account_id": "277420951",
+  "symbol": "MSFT",
+  "score": 5,
+  "sentiment": "Negative",
+  "keyLevels": [
+    293.66,
+    290.97,
+    288.58,
+    286.24,
+    282.86,
+    280.61,
+    279.05,
+    276.79,
+    274.6,
+    272.14,
+    270.02,
+    267.64,
+    264.79,
+    261.89,
+    258.98,
+    256.17,
+    253.31,
+    251.22,
+    249.83,
+    247.79,
+    245.05,
+    242.36,
+    239.7,
+    237.74,
+    235.78,
+    233.21,
+    230.55,
+    228.06,
+    225.62,
+    223.06,
+    221.28,
+    219.95,
+    218.06,
+    215.83
   ],
-  supportResistance: {
-    'resistance': 143.93,
-    'support': 142.34
+  "supportResistance": {
+    "resistance": 256.17,
+    "support": 253.31
   },
-  demandZones: [
+  "demandZones": [
     {
-      bottom: 174.06,
-      top: 174.27,
-      dateTime: '2022-04-01 19:55:00'
+      "bottom": 247.31,
+      "top": 248.95,
+      "dateTime": ""
     },
     {
-      bottom: 171.92,
-      top: 172.265,
-      dateTime: '2022-04-06 17:55:00'
+      "bottom": 243.81,
+      "top": 245.11,
+      "dateTime": ""
     },
     {
-      bottom: 171.11,
-      top: 171.38,
-      dateTime: '2022-04-06 18:25:00'
+      "bottom": 249.02,
+      "top": 250,
+      "dateTime": ""
     },
     {
-      bottom: 156.795,
-      top: 157.28,
-      dateTime: '2022-04-26 19:55:00'
+      "bottom": 253.66,
+      "top": 254.08,
+      "dateTime": ""
     },
     {
-      bottom: 159.4397,
-      top: 159.76,
-      dateTime: '2022-04-28 14:10:00'
+      "bottom": 264.6285,
+      "top": 266.47,
+      "dateTime": ""
     },
     {
-      bottom: 162.55,
-      top: 164.01,
-      dateTime: '2022-04-28 19:55:00'
+      "bottom": 241.66,
+      "top": 241.9,
+      "dateTime": ""
     },
     {
-      bottom: 163.16,
-      top: 164.244,
-      dateTime: '2022-04-29 13:50:00'
+      "bottom": 243,
+      "top": 244.05,
+      "dateTime": ""
     },
     {
-      bottom: 155.66,
-      top: 156.76,
-      dateTime: '2022-05-02 13:35:00'
+      "bottom": 237.03,
+      "top": 237.96,
+      "dateTime": ""
     },
     {
-      bottom: 154.59,
-      top: 155.0482,
-      dateTime: '2022-05-02 14:20:00'
+      "bottom": 229.5945,
+      "top": 230.58,
+      "dateTime": ""
     },
     {
-      bottom: 155.63,
-      top: 156.93,
-      dateTime: '2022-05-06 14:10:00'
+      "bottom": 241.5,
+      "top": 243.63,
+      "dateTime": ""
     },
     {
-      bottom: 156.431,
-      top: 156.9,
-      dateTime: '2022-05-06 19:30:00'
+      "bottom": 230.81,
+      "top": 231.68,
+      "dateTime": ""
     },
     {
-      bottom: 152.78,
-      top: 153.2636,
-      dateTime: '2022-05-09 14:35:00'
+      "bottom": 226.49,
+      "top": 226.81,
+      "dateTime": ""
     },
     {
-      bottom: 154.14,
-      top: 154.6699,
-      dateTime: '2022-05-10 13:50:00'
+      "bottom": 226.38,
+      "top": 226.77,
+      "dateTime": ""
     },
     {
-      bottom: 151.37,
-      top: 153.39,
-      dateTime: '2022-05-11 13:40:00'
+      "bottom": 240.36,
+      "top": 241.22,
+      "dateTime": ""
     },
     {
-      bottom: 143.14,
-      top: 144.1763,
-      dateTime: '2022-05-12 14:15:00'
+      "bottom": 240.08,
+      "top": 240.29,
+      "dateTime": ""
     },
     {
-      bottom: 140.3,
-      top: 140.82,
-      dateTime: '2022-05-18 19:55:00'
+      "bottom": 252.08,
+      "top": 252.42,
+      "dateTime": ""
     },
     {
-      bottom: 139.26,
-      top: 139.49,
-      dateTime: '2022-05-19 13:55:00'
+      "bottom": 248.56,
+      "top": 249.31,
+      "dateTime": ""
     },
     {
-      bottom: 132.81,
-      top: 133.245,
-      dateTime: '2022-05-20 17:25:00'
+      "bottom": 256.685,
+      "top": 257.76,
+      "dateTime": ""
     },
     {
-      bottom: 138.1,
-      top: 138.8491,
-      dateTime: '2022-05-23 13:35:00'
+      "bottom": 234.94,
+      "top": 235.21,
+      "dateTime": ""
     },
     {
-      bottom: 139.95,
-      top: 140.42,
-      dateTime: '2022-05-24 19:55:00'
+      "bottom": 226.77,
+      "top": 227.15,
+      "dateTime": ""
     },
     {
-      bottom: 146.14,
-      top: 146.47,
-      dateTime: '2022-06-06 19:55:00'
+      "bottom": 235.47,
+      "top": 236.23,
+      "dateTime": ""
     },
     {
-      bottom: 132.8,
-      top: 133.39,
-      dateTime: '2022-06-15 18:30:00'
+      "bottom": 246.4798,
+      "top": 247.82,
+      "dateTime": ""
     },
     {
-      bottom: 129.31,
-      top: 130.1,
-      dateTime: '2022-06-16 19:55:00'
-    },
-    {
-      bottom: 131.4,
-      top: 131.69,
-      dateTime: '2022-06-17 19:55:00'
-    },
-    {
-      bottom: 141.16,
-      top: 141.71,
-      dateTime: '2022-06-27 19:55:00'
-    },
-    {
-      bottom: 142.015,
-      top: 142.82,
-      dateTime: '2022-07-06 14:00:00'
-    },
-    {
-      bottom: 143.95,
-      top: 144.99,
-      dateTime: '2022-07-13 13:40:00'
-    },
-    {
-      bottom: 144.96,
-      top: 145.2779,
-      dateTime: '2022-07-13 14:35:00'
-    },
-    {
-      bottom: 152.31,
-      top: 152.85,
-      dateTime: '2022-07-27 13:30:00'
-    },
-    {
-      bottom: 154.1,
-      top: 154.54,
-      dateTime: '2022-07-27 18:30:00'
-    },
-    {
-      bottom: 169.0377,
-      top: 170.34,
-      dateTime: '2022-08-26 14:00:00'
-    },
-    {
-      bottom: 155.1,
-      top: 155.37,
-      dateTime: '2022-09-21 18:25:00'
-    },
-    {
-      bottom: 155.931,
-      top: 156.47,
-      dateTime: '2022-09-21 18:35:00'
-    },
-    {
-      bottom: 149.94,
-      top: 150.53,
-      dateTime: '2022-09-23 19:55:00'
-    },
-    {
-      bottom: 142.02,
-      top: 142.59,
-      dateTime: '2022-09-29 19:55:00'
-    },
-    {
-      bottom: 140.385,
-      top: 140.67,
-      dateTime: '2022-10-10 17:40:00'
-    },
-    {
-      bottom: 135.98,
-      top: 136.41,
-      dateTime: '2022-10-13 15:00:00'
-    },
-    {
-      bottom: 139.56,
-      top: 139.8,
-      dateTime: '2022-10-13 15:30:00'
-    },
-    {
-      bottom: 143.13,
-      top: 143.79,
-      dateTime: '2022-10-18 19:55:00'
-    },
-    {
-      bottom: 147.82,
-      top: 150.055,
-      dateTime: '2022-10-28 13:30:00'
-    },
-    {
-      bottom: 149.03,
-      top: 149.3293,
-      dateTime: '2022-11-02 17:55:00'
-    },
-    {
-      bottom: 139.88,
-      top: 140.02,
-      dateTime: '2022-11-03 14:40:00'
-    },
-    {
-      bottom: 136.56,
-      top: 137.2833,
-      dateTime: '2022-11-04 13:50:00'
-    },
-    {
-      bottom: 134.985,
-      top: 135.34,
-      dateTime: '2022-11-04 16:10:00'
-    },
-    {
-      bottom: 134.54,
-      top: 134.825,
-      dateTime: '2022-11-04 17:05:00'
-    },
-    {
-      bottom: 140.4,
-      top: 141.29,
-      dateTime: '2022-11-10 14:40:00'
-    },
-    {
-      bottom: 141.68,
-      top: 142.01,
-      dateTime: '2022-11-10 14:50:00'
-    },
-    {
-      bottom: 141.13,
-      top: 142.125,
-      dateTime: '2022-11-30 18:30:00'
-    },
-    {
-      bottom: 147.32,
-      top: 147.8,
-      dateTime: '2022-12-02 20:55:00'
+      "bottom": 260.41,
+      "top": 261.125,
+      "dateTime": ""
     }
   ],
-  supplyZones: [
+  "supplyZones": [
     {
-      top: 178.13,
-      bottom: 177.63,
-      dateTime: '2022-04-05 14:00:00'
+      "top": 264.835,
+      "bottom": 264.75,
+      "dateTime": ""
     },
     {
-      top: 162.58,
-      bottom: 161.83,
-      dateTime: '2022-05-04 18:25:00'
+      "top": 263.13,
+      "bottom": 263.05,
+      "dateTime": ""
     },
     {
-      top: 159.395,
-      bottom: 158.87,
-      dateTime: '2022-05-05 15:45:00'
+      "top": 264.89,
+      "bottom": 264.4,
+      "dateTime": ""
     },
     {
-      top: 140.48,
-      bottom: 140.22,
-      dateTime: '2022-05-12 18:00:00'
+      "top": 259.12,
+      "bottom": 258.73,
+      "dateTime": ""
     },
     {
-      top: 141.36,
-      bottom: 140.67,
-      dateTime: '2022-05-19 13:40:00'
+      "top": 275.86,
+      "bottom": 275.51,
+      "dateTime": ""
     },
     {
-      top: 140.95,
-      bottom: 140.02,
-      dateTime: '2022-05-19 14:20:00'
+      "top": 279.66,
+      "bottom": 279.16,
+      "dateTime": ""
     },
     {
-      top: 140.7,
-      bottom: 139.87,
-      dateTime: '2022-05-20 14:00:00'
+      "top": 246.37,
+      "bottom": 245.63,
+      "dateTime": ""
     },
     {
-      top: 147.97,
-      bottom: 146.9,
-      dateTime: '2022-06-03 13:30:00'
+      "top": 239.1,
+      "bottom": 239.02,
+      "dateTime": ""
     },
     {
-      top: 150.54,
-      bottom: 150.3599,
-      dateTime: '2022-07-18 17:25:00'
+      "top": 234.559,
+      "bottom": 233.05,
+      "dateTime": ""
     },
     {
-      top: 158.865,
-      bottom: 158.74,
-      dateTime: '2022-08-31 19:45:00'
+      "top": 233.69,
+      "bottom": 231.04,
+      "dateTime": ""
     },
     {
-      top: 158.05,
-      bottom: 157.655,
-      dateTime: '2022-09-21 17:55:00'
+      "top": 260.46,
+      "bottom": 259.61,
+      "dateTime": ""
     },
     {
-      top: 145.49,
-      bottom: 145.39,
-      dateTime: '2022-09-29 13:35:00'
+      "top": 260.55,
+      "bottom": 259.88,
+      "dateTime": ""
     },
     {
-      top: 139.78,
-      bottom: 139.62,
-      dateTime: '2022-09-30 19:45:00'
+      "top": 261.9,
+      "bottom": 261.23,
+      "dateTime": ""
     },
     {
-      top: 143.23,
-      bottom: 142.86,
-      dateTime: '2022-10-13 19:55:00'
+      "top": 258.32,
+      "bottom": 257.67,
+      "dateTime": ""
     },
     {
-      top: 143.49,
-      bottom: 142.855,
-      dateTime: '2022-10-14 13:35:00'
+      "top": 259.15,
+      "bottom": 258.35,
+      "dateTime": ""
     },
     {
-      top: 145.34,
-      bottom: 145.03,
-      dateTime: '2022-10-18 18:30:00'
+      "top": 246.31,
+      "bottom": 246.18,
+      "dateTime": ""
     },
     {
-      top: 148.2811,
-      bottom: 147.8877,
-      dateTime: '2022-10-24 13:55:00'
+      "top": 244.215,
+      "bottom": 243.85,
+      "dateTime": ""
     },
     {
-      top: 153.9,
-      bottom: 153.42,
-      dateTime: '2022-10-31 13:45:00'
+      "top": 229.35,
+      "bottom": 228.24,
+      "dateTime": ""
     },
     {
-      top: 152.863,
-      bottom: 152.68,
-      dateTime: '2022-11-01 13:55:00'
+      "top": 236.7,
+      "bottom": 235.865,
+      "dateTime": ""
     },
     {
-      top: 150.42,
-      bottom: 149.6,
-      dateTime: '2022-11-02 18:45:00'
-    },
-    {
-      top: 139.24,
-      bottom: 138.75,
-      dateTime: '2022-11-03 19:55:00'
-    },
-    {
-      top: 140.26,
-      bottom: 139.2001,
-      dateTime: '2022-11-04 13:35:00'
-    },
-    {
-      top: 137.11,
-      bottom: 136.29,
-      dateTime: '2022-11-07 14:30:00'
-    },
-    {
-      top: 139.05,
-      bottom: 138.9,
-      dateTime: '2022-11-07 20:55:00'
-    },
-    {
-      top: 151.59,
-      bottom: 151.2,
-      dateTime: '2022-11-18 14:55:00'
-    },
-    {
-      top: 144.81,
-      bottom: 143.85,
-      dateTime: '2022-11-29 15:55:00'
-    },
-    {
-      top: 142.9,
-      bottom: 142.63,
-      dateTime: '2022-11-29 16:10:00'
-    },
-    {
-      top: 148.23,
-      bottom: 148.0801,
-      dateTime: '2022-12-13 15:30:00'
-    },
-    {
-      top: 146.3162,
-      bottom: 146.27,
-      dateTime: '2022-12-14 18:55:00'
-    },
-    {
-      top: 143.3499,
-      bottom: 143.01,
-      dateTime: '2022-12-14 19:25:00'
-    },
-    {
-      top: 144.04,
-      bottom: 143.6792,
-      dateTime: '2022-12-14 20:20:00'
+      "top": 239.1386,
+      "bottom": 238.25,
+      "dateTime": ""
     }
   ]
 }
