@@ -13,6 +13,12 @@ dotenv.config();
 // need to connect to kafka topic and consume the message
 const broker: string = process.env.KAFKA_BROKER;
 const schemaRegistryUrl: string = process.env.SCHEMA_REGISTRY_URL;
+let messageNumber = 0;
+let waitTime = 0;
+
+const delay = (time) => {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
 
 const kafka = new Kafka({
   clientId: 'find-position-client',
@@ -39,6 +45,12 @@ const run = async () => {
         // decode the kafka message using schema registry
         const premarketMessage: PremarketData = await schemaRegistry.decode(<Buffer>message.value);
 
+        if (messageNumber > 0) {
+          waitTime = 420000;
+        }
+
+        await delay(waitTime);
+
         // const ca = CreateCaCertificate();
 
         // CreateSignedCertificate(ca);
@@ -58,6 +70,8 @@ const run = async () => {
           connection,
           namespace: 'default',
         });
+
+        messageNumber += 1;
 
         const priceActionResult = await temporalClient.start(priceAction, {
           args: [premarketMessage],
