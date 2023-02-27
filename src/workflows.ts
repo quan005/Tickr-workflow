@@ -54,6 +54,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no opportunities' });
   }
 
+  const additionalSleepTime = premarketData.messageNumber ? premarketData.messageNumber * 240000 : 0;
   let state: PositionState = 'Checking If It Is A Holiday';
   const isHoliday = await is_holiday();
   state = 'Getting Time Remaining';
@@ -104,7 +105,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     timeSalesRequest: null
   };
 
-  const timeRemaining = await time_until_market_open(isHoliday);
+  const timeRemaining = await time_until_market_open(isHoliday) + additionalSleepTime;
 
   await sleep(timeRemaining);
 

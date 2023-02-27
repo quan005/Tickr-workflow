@@ -14,11 +14,6 @@ dotenv.config();
 const broker: string = process.env.KAFKA_BROKER;
 const schemaRegistryUrl: string = process.env.SCHEMA_REGISTRY_URL;
 let messageNumber = 0;
-let waitTime = 0;
-
-const delay = (time) => {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
 
 const kafka = new Kafka({
   clientId: 'find-position-client',
@@ -43,13 +38,11 @@ const run = async () => {
     eachMessage: async ({ topic, partition, message }) => {
       new Promise(async (resolve) => {
         // decode the kafka message using schema registry
-        const premarketMessage: PremarketData = await schemaRegistry.decode(<Buffer>message.value);
-
-        if (messageNumber > 0) {
-          waitTime = 420000;
+        const messageData: PremarketData = await schemaRegistry.decode(<Buffer>message.value);
+        const premarketMessage = {
+          ...messageData,
+          messageNumber
         }
-
-        await delay(waitTime);
 
         // const ca = CreateCaCertificate();
 
@@ -80,9 +73,7 @@ const run = async () => {
           workflowTaskTimeout: 480000
         });
 
-        console.log('priceAction result', priceActionResult.result());
-
-        return resolve(priceActionResult);
+        return resolve(priceActionResult.result());
       });
     }
   });

@@ -15,4 +15,5 @@ export interface PremarketData {
   supportResistance: { support: number, resistance: number },
   demandZones: DemandZones[],
   supplyZones: SupplyZones[],
+  messageNumber?: number
 }
