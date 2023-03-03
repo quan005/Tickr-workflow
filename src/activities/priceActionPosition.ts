@@ -1269,7 +1269,7 @@ export async function getUrlCode(): Promise<string> {
       });
 
       resp.on('close', () => {
-        if (data === null || data === undefined) {
+        if (data === null || data === undefined || typeof data !== "string") {
           throw new Error('Url code is not available.');
         }
         const parseUrl = url.parse(data, true).query;
@@ -1290,11 +1290,11 @@ export async function getUrlCode(): Promise<string> {
   });
 }
 
-export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
+export async function getLoginCredentials(urlCode: string): Promise<string> {
 
   const encodedPassword = encodeURIComponent(urlCode);
   Context.current().heartbeat(encodedPassword);
-  let token: Token;
+  let token: string;
   let data = '';
 
   return new Promise((resolve) => {
@@ -1317,89 +1317,21 @@ export async function getLoginCredentials(urlCode: string): Promise<TokenJSON> {
 
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
-        token = JSON.parse(parseJson);
-        const access_token_expire = Date.now() + token.expires_in;
-        const refresh_token_expire = Date.now() + token.refresh_token_expires_in;
-        const tokenJSON = {
-          access_token: token.access_token,
-          refresh_token: token.refresh_token,
-          access_token_expires_at: access_token_expire,
-          refresh_token_expires_at: refresh_token_expire,
-          logged_in: true,
-          access_token_expires_at_date: moment(access_token_expire).toISOString(),
-          refresh_token_expires_at_date: moment(refresh_token_expire).toISOString(),
-        };
+        token = JSON.stringify(parseJson);
 
-        Context.current().heartbeat(tokenJSON);
+        Context.current().heartbeat(token);
 
-        if (!tokenJSON.access_token) {
+        if (!token) {
           throw new Error('Access token not available!')
         }
 
-        return resolve(tokenJSON);
+        return resolve(token);
       })
     }).on('error', (e) => {
       throw new Error(e.message);
     });
 
     response.write(encodedPassword);
-    Context.current().heartbeat(response);
-    response.end();
-  });
-}
-
-export async function getRefreshToken(refresh_token: string): Promise<TokenJSON> {
-  const encodedRefreshToken = encodeURIComponent(refresh_token);
-  Context.current().heartbeat(encodedRefreshToken);
-  let token: Token;
-  let data = '';
-
-  return new Promise((resolve) => {
-    const authOptions = {
-      host: `${process.env.API_HOSTNAME}`,
-      path: '/api/refresh',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(encodedRefreshToken),
-      },
-      rejectUnauthorized: false,
-    };
-
-    const response = https.request(authOptions, (resp) => {
-
-      resp.on('data', (chunk) => {
-        data += chunk;
-        Context.current().heartbeat(data);
-      });
-
-      resp.on('close', () => {
-        const parseJson = JSON.parse(data);
-        token = JSON.parse(parseJson);
-        const access_token_expire = Date.now() + token.expires_in;
-        const tokenJSON = {
-          access_token: token.access_token,
-          refresh_token: null,
-          access_token_expires_at: access_token_expire,
-          refresh_token_expires_at: null,
-          logged_in: true,
-          access_token_expires_at_date: moment(access_token_expire).toISOString(),
-          refresh_token_expires_at_date: null,
-        };
-        Context.current().heartbeat(tokenJSON);
-
-        if (!tokenJSON.access_token) {
-          throw new Error('Access token not available!')
-        }
-
-        return resolve(tokenJSON);
-      })
-    }).on('error', (e) => {
-      throw new Error(e.message);
-    });
-
-    response.write(encodedRefreshToken);
-    Context.current().heartbeat(response);
     response.end();
   });
 }

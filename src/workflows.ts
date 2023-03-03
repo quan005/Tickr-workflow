@@ -39,7 +39,6 @@ const {
   waitToSignalClosePosition,
   getUrlCode,
   getLoginCredentials,
-  getRefreshToken,
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 1000000,
     heartbeatTimeout: 120000 * 3,
@@ -84,15 +83,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   const supplyZones = premarketData.supplyZones;
   const symbol = premarketData.symbol;
 
-  let token: TokenJSON = {
-    access_token: null,
-    refresh_token: null,
-    access_token_expires_at: null,
-    refresh_token_expires_at: null,
-    logged_in: null,
-    access_token_expires_at_date: null,
-    refresh_token_expires_at_date: null
-  };
+  let token = '';
 
   let urlCode = '';
 
@@ -113,7 +104,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   urlCode = await getUrlCode();
   token = await getLoginCredentials(urlCode);
   state = 'Getting User Principles 1';
-  gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
+  gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
   state = 'Opening The Current Price WebSocket Client';
@@ -127,29 +118,22 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Finding Setup';
   const positionSetup = await get_position_setup(surroundingKeyLevels, currentPrice.demandZone, currentPrice.supplyZone);
   state = 'Selecting Option';
-  const optionSelection = await getOptionsSelection(positionSetup, symbol, token.access_token);
+  const optionSelection = await getOptionsSelection(positionSetup, symbol, token);
 
-  if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
-    state = 'Getting Auth Token 2';
-    token = await getRefreshToken(token.refresh_token);
-    state = 'Getting User Principles 2';
-    gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-  } else {
-    state = 'Getting Auth Token 2';
-    urlCode = await getUrlCode();
-    token = await getLoginCredentials(urlCode);
-    state = 'Getting User Principles 2';
-    gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-  }
+
+  state = 'Getting Auth Token 2';
+  urlCode = await getUrlCode();
+  token = await getLoginCredentials(urlCode);
+  state = 'Getting User Principles 2';
+  gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
+  wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
   state = 'Opening The Open Position WebSocket Client';
   wsClient = await websocketClient(wsUri);
   await sleep(20);
 
   state = 'Opened Position';
-  const signalOpenPosition = await waitToSignalOpenPosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token.access_token, isHoliday);
+  const signalOpenPosition = await waitToSignalOpenPosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token, isHoliday);
   openedAt = new Date();
 
 
@@ -160,69 +144,49 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
       optionQuantity = signalOpenPosition.position.quantity;
     }
 
-    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
-      state = 'Getting Auth Token 3';
-      token = await getRefreshToken(token.refresh_token);
-      state = 'Getting User Principles 3';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-    } else {
-      state = 'Getting Auth Token 3';
-      urlCode = await getUrlCode();
-      token = await getLoginCredentials(urlCode);
-      state = 'Getting User Principles 3';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-    }
+    state = 'Getting Auth Token 3';
+    urlCode = await getUrlCode();
+    token = await getLoginCredentials(urlCode);
+    state = 'Getting User Principles 3';
+    gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
 
     state = 'Checking If Position Filled';
-    const quantity = await checkIfPositionFilled(signalOpenPosition.position.orderResponse, accountId, token.access_token);
+    const quantity = await checkIfPositionFilled(signalOpenPosition.position.orderResponse, accountId, token);
     state = 'Getting Option Symbol'
-    const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token.access_token);
+    const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token);
 
-    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
-      state = 'Getting Auth Token 4';
-      token = await getRefreshToken(token.refresh_token);
-      state = 'Getting User Principles 4';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-    } else {
-      state = 'Getting Auth Token 4';
-      urlCode = await getUrlCode();
-      token = await getLoginCredentials(urlCode);
-      state = 'Getting User Principles 4';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
-    }
+
+    state = 'Getting Auth Token 4';
+    urlCode = await getUrlCode();
+    token = await getLoginCredentials(urlCode);
+    state = 'Getting User Principles 4';
+    gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
+    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
+
 
     state = 'Opening The Cut Position WebSocket Client';
     wsClient = await websocketClient(wsUri);
     await sleep(20);
 
     state = 'Cut Position';
-    const cutFilled = await waitToSignalCutPosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
+    const cutFilled = await waitToSignalCutPosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
     cutAt = new Date();
     const remainingQuantity = quantity - cutFilled
 
-    if (new Date().valueOf() >= token.access_token_expires_at && token.refresh_token !== null && new Date().valueOf() < token.refresh_token_expires_at) {
-      state = 'Getting Auth Token 5';
-      token = await getRefreshToken(token.refresh_token);
-      state = 'Getting User Principles 5';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-    } else {
-      state = 'Getting Auth Token 5';
-      urlCode = await getUrlCode();
-      token = await getLoginCredentials(urlCode);
-      state = 'Getting User Principles 5';
-      gettingUserPrinciples = await getUserPrinciples(token.access_token, premarketData.symbol);
-      wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-    }
+
+    state = 'Getting Auth Token 5';
+    urlCode = await getUrlCode();
+    token = await getLoginCredentials(urlCode);
+    state = 'Getting User Principles 5';
+    gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
+    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
     state = 'Opening The Close Position WebSocket Client';
     wsClient = await websocketClient(wsUri);
     await sleep(20);
 
     state = 'Closed Position';
-    const signalClosePosition = await waitToSignalClosePosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token.access_token, isHoliday);
+    const signalClosePosition = await waitToSignalClosePosition(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
     await condition(() => !!signalClosePosition.orderResponse.orderId);
     closedAt = new Date();
 
