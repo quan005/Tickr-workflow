@@ -54,39 +54,32 @@ dotenv.config();
 //   expect(getAccount.securitiesAccount.accountId).toEqual(accountId);
 // });
 
-// it("returns an object with current price, and surrounding demand and supply zones", async () => {
-//   let token: TokenJSON = {
-//     access_token: null,
-//     refresh_token: null,
-//     access_token_expires_at: null,
-//     refresh_token_expires_at: null,
-//     logged_in: null,
-//     access_token_expires_at_date: null,
-//     refresh_token_expires_at_date: null
-//   };
-//   let gettingUserPrinciples = {
-//     userPrinciples: null,
-//     params: null,
-//     loginRequest: null,
-//     marketRequest: null,
-//     bookRequest: null,
-//     timeSalesRequest: null
-//   };
-//   const demandZones = mockPremarketData.premarketData.demandZones;
-//   const supplyZones = mockPremarketData.premarketData.supplyZones;
-//   const urlCode = await activities.getUrlCode();
-//   token = await activities.getLoginCredentials(urlCode);
+it("returns an object with current price, and surrounding demand and supply zones", async () => {
+  let token = ""
+  const gettingUserPrinciples = {
+    userPrinciples: null,
+    params: null,
+    loginRequest: null,
+    marketRequest: null,
+    bookRequest: null,
+    timeSalesRequest: null
+  };
+  const demandZones = mockPremarketData.premarketData.demandZones;
+  const supplyZones = mockPremarketData.premarketData.supplyZones;
+  const urlCode = await activities.getUrlCode();
+  token = await activities.getLoginCredentials(urlCode);
+  console.log('token', token)
 
-//   gettingUserPrinciples = await activities.getUserPrinciples(token.access_token, mockPremarketData.premarketData.symbol);
-//   const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+  // gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
+  // const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
 
-//   const wsClient = await activities.websocketClient(wsUri);
+  // const wsClient = await activities.websocketClient(wsUri);
 
-//   const currentPrice = await activities.get_current_price(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
-//   console.log(currentPrice);
-//   expect(typeof currentPrice).toBe("object");
-// });
+  // const currentPrice = await activities.get_current_price(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
+  // console.log(currentPrice);
+  expect(typeof token).toBe("string");
+});
 
 // it("returns the current price surrounding key levels", async () => {
 //   const currentPrice = 132.31;
