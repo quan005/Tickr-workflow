@@ -1337,7 +1337,8 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
 }
 
 export function getUserPrinciples(access_token: string, symbol: string): Promise<PrinciplesAndParams> {
-  const encodedtoken = encodeURIComponent(access_token);
+  const tokenSlice = access_token.slice(3, access_token.length - 4)
+  const encodedtoken = encodeURIComponent(tokenSlice);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
