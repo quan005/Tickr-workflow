@@ -11,7 +11,6 @@ import { PositionSetup } from "../interfaces/positionSetup";
 import { OptionsSelection } from "../interfaces/optionsSelection";
 import { OpenPositionSignal } from "../interfaces/openPositionSignal";
 import { UserPrinciples, PrinciplesAndParams } from "../interfaces/UserPrinciples";
-import { Token, TokenJSON } from "../interfaces/token";
 import {
   GetOrderResponse,
   OrdersConfig,
@@ -270,6 +269,12 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
     const messages: SocketResponse[] | null = [];
 
     wsClient.onopen = () => {
+      marketClose = moment().tz('America/New_York').format('Hmm');
+
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+        isMarketClosed = true;
+        wsClient.close();
+      }
 
       wsClient.send(JSON.stringify(login_request));
 
@@ -281,7 +286,7 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
     wsClient.onmessage = event => {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || messageCount >= 1 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
         isMarketClosed = true;
         wsClient.close();
       }
@@ -748,6 +753,10 @@ export async function waitToSignalOpenPosition(wsClient: WebSocket, login_reques
     const day = dateTime.format('dddd');
 
     wsClient.onopen = () => {
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+        noGoodBuys = true;
+        wsClient.close();
+      }
 
       wsClient.send(JSON.stringify(login_request));
 
@@ -758,7 +767,7 @@ export async function waitToSignalOpenPosition(wsClient: WebSocket, login_reques
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      if (parseInt(marketClose) >= 1600) {
         noGoodBuys = true;
         wsClient.close();
       }
@@ -995,6 +1004,12 @@ export async function waitToSignalCutPosition(wsClient: WebSocket, login_request
     let cutFilled = 0;
 
     wsClient.onopen = () => {
+      marketClose = moment().tz('America/New_York').format('Hmm');
+
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+        skipCut = true;
+        wsClient.close();
+      }
 
       wsClient.send(JSON.stringify(login_request));
 
@@ -1005,7 +1020,7 @@ export async function waitToSignalCutPosition(wsClient: WebSocket, login_request
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || quantity < 2 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      if (parseInt(marketClose) >= 1600 || quantity < 2) {
         skipCut = true;
         wsClient.close();
       }
@@ -1136,9 +1151,12 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, login_reque
     let waited = 0;
     let loggedIn = false;
 
-    wsClient.send(JSON.stringify(time_sales_request));
-
     wsClient.onopen = () => {
+      marketClose = moment().tz('America/New_York').format('Hmm');
+
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+        wsClient.close();
+      }
 
       wsClient.send(JSON.stringify(login_request));
 
@@ -1149,7 +1167,7 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, login_reque
     wsClient.onmessage = async function (event) {
       marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      if (parseInt(marketClose) >= 1600) {
         wsClient.close();
       }
 

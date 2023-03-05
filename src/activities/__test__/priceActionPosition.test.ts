@@ -56,7 +56,7 @@ dotenv.config();
 
 it("returns an object with current price, and surrounding demand and supply zones", async () => {
   let token = ""
-  const gettingUserPrinciples = {
+  let gettingUserPrinciples = {
     userPrinciples: null,
     params: null,
     loginRequest: null,
@@ -70,7 +70,8 @@ it("returns an object with current price, and surrounding demand and supply zone
   token = await activities.getLoginCredentials(urlCode);
   console.log('token', token)
 
-  // gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
+  gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
+  console.log('gettingUserPrinciples', gettingUserPrinciples);
   // const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
 
