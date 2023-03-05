@@ -1741,6 +1741,10 @@ export async function websocketClient(url: string): Promise<WebSocket> {
     const client = new WebSocket(url);
     Context.current().heartbeat(client);
 
+    while (client.readyState !== 1) {
+      Context.current().heartbeat(client.readyState);
+    }
+
     client.onerror = (err) => {
       throw new Error(err.message);
     }
