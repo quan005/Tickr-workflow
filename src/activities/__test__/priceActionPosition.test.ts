@@ -72,13 +72,13 @@ it("returns an object with current price, and surrounding demand and supply zone
 
   gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
   console.log('gettingUserPrinciples', gettingUserPrinciples);
-  // const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+  const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
 
-  // const wsClient = await activities.websocketClient(wsUri);
+  const wsClient = await activities.websocketClient(wsUri);
 
-  // const currentPrice = await activities.get_current_price(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
-  // console.log(currentPrice);
+  const currentPrice = await activities.get_current_price(wsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
+  console.log(currentPrice);
   expect(typeof token).toBe("string");
 });
 

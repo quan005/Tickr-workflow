@@ -261,20 +261,20 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
     };
     Context.current().heartbeat(currentPriceData);
     const dateTime = moment().tz('America/New_York');
-    let marketClose = dateTime.format('Hmm');
+    const marketClose = dateTime.format('Hmm');
     const day = dateTime.format('dddd');
-    let isMarketClosed = false;
+    const isMarketClosed = false;
     let messageCount = 0;
     let loggedIn = false;
     const messages: SocketResponse[] | null = [];
 
     wsClient.onopen = () => {
-      marketClose = moment().tz('America/New_York').format('Hmm');
+      // marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
-        isMarketClosed = true;
-        wsClient.close();
-      }
+      // if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      //   isMarketClosed = true;
+      //   wsClient.close();
+      // }
 
       wsClient.send(JSON.stringify(login_request));
 
@@ -284,12 +284,12 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
     };
 
     wsClient.onmessage = event => {
-      marketClose = moment().tz('America/New_York').format('Hmm');
+      // marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
-        isMarketClosed = true;
-        wsClient.close();
-      }
+      // if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
+      //   isMarketClosed = true;
+      //   wsClient.close();
+      // }
 
       if (loggedIn) {
         wsClient.send(JSON.stringify(market_request));
