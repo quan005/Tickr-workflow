@@ -268,7 +268,7 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
 
   const client = new WebSocket(wsUrl);
 
-  return new Promise(async (resolve) => {
+  return await new Promise(async (resolve) => {
     client.onerror = (err) => {
       throw new Error(err.message);
     }
