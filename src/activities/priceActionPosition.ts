@@ -266,9 +266,8 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
   let loggedIn = false;
   const messages: SocketResponse[] | null = [];
 
-  const client = new WebSocket(wsUrl);
-
-  return await new Promise(async (resolve) => {
+  try {
+    const client = new WebSocket(wsUrl);
     client.onerror = (err) => {
       throw new Error(err.message);
     }
@@ -330,7 +329,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           supplyZone,
         };
         Context.current().heartbeat(currentPriceData);
-        resolve(currentPriceData);
       } else if (demandZone?.length >= 1) {
         currentPriceData = {
           closePrice,
@@ -338,7 +336,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           supplyZone: [],
         };
         Context.current().heartbeat(currentPriceData);
-        resolve(currentPriceData);
       } else if (supplyZone?.length >= 1) {
         currentPriceData = {
           closePrice,
@@ -346,12 +343,15 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           supplyZone,
         };
         Context.current().heartbeat(currentPriceData);
-        resolve(currentPriceData);
       } else {
         throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no demand or supply zones!' });
       }
     }
-  })
+  } catch (err) {
+    throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no demand or supply zones!' });
+  }
+
+  return currentPriceData
 }
 
 export async function get_position_setup(surrounding_key_levels: SurroundingKeyLevels, demand_zone: number[][], supply_zone: number[][]): Promise<PositionSetup> {
