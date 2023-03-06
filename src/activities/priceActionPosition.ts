@@ -3,8 +3,6 @@ import { ApplicationFailure, Context } from "@temporalio/activity";
 import * as https from "https";
 import * as url from "url";
 import * as dotenv from "dotenv";
-import * as fs from "fs";
-import * as path from "path";
 import { tdCredentialsToString } from "../tda/middleware/tdCredentialToString";
 import { CurrentPriceData } from "../interfaces/currentPriceData";
 import { SurroundingKeyLevels } from "../interfaces/surroundingKeyLevels";
@@ -253,7 +251,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-export async function get_current_price(wsUrl: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<void> {
+export async function get_current_price(wsUrl: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
   let closePrice = 0;
   let currentPriceData: CurrentPriceData = {
     closePrice: closePrice,
@@ -261,102 +259,99 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
     supplyZone: [],
   };
   const dateTime = moment().tz('America/New_York');
-  const marketClose = dateTime.format('Hmm');
+  let marketClose = dateTime.format('Hmm');
   const day = dateTime.format('dddd');
-  const isMarketClosed = false;
+  let isMarketClosed = false;
   let messageCount = 0;
   let loggedIn = false;
   const messages: SocketResponse[] | null = [];
 
-  const client = new WebSocket(wsUrl);
-  client.onerror = (err) => {
-    throw new Error(err.message);
-  }
+  return await new Promise(async (resolve) => {
+    const client = new WebSocket(wsUrl);
 
-  client.onopen = () => {
-    // marketClose = moment().tz('America/New_York').format('Hmm');
-
-    // if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
-    //   isMarketClosed = true;
-    //   client.close();
-    // }
-
-    client.send(JSON.stringify(login_request));
-  };
-
-  client.onmessage = event => {
-    // marketClose = moment().tz('America/New_York').format('Hmm');
-
-    // if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
-    //   isMarketClosed = true;
-    //   client.close();
-    // }
-
-    if (loggedIn) {
-      client.send(JSON.stringify(market_request));
-      loggedIn = false;
+    client.onerror = (err) => {
+      throw new Error(err.message);
     }
 
-    const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-    Context.current().heartbeat(data);
+    client.onopen = () => {
+      marketClose = moment().tz('America/New_York').format('Hmm');
 
-    if (data.response && data.response[0].command === "LOGIN") {
-      loggedIn = true;
+      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+        isMarketClosed = true;
+        client.close();
+      }
+
+      client.send(JSON.stringify(login_request));
+    };
+
+    client.onmessage = event => {
+      marketClose = moment().tz('America/New_York').format('Hmm');
+
+      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
+        isMarketClosed = true;
+        client.close();
+      }
+
+      if (loggedIn) {
+        client.send(JSON.stringify(market_request));
+        loggedIn = false;
+      }
+
+      const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
+      Context.current().heartbeat(data);
+
+      if (data.response && data.response[0].command === "LOGIN") {
+        loggedIn = true;
+      }
+
+      if (data.data !== undefined) {
+        Context.current().heartbeat(data.data);
+
+        messages.push(data.data[0].content[0]);
+        messageCount += 1;
+        client.close();
+      }
+    };
+
+    client.onclose = async function () {
+      if (isMarketClosed) {
+        throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
+      }
+
+      closePrice = messages[0]["3"];
+
+      const demandZone = await find_demand_zone(closePrice, demand_zones);
+      const supplyZone = await find_supply_zone(closePrice, supply_zones);
+
+      if (demandZone?.length >= 1 && supplyZone?.length >= 1) {
+        currentPriceData = {
+          closePrice,
+          demandZone,
+          supplyZone,
+        };
+        Context.current().heartbeat(currentPriceData);
+        resolve(currentPriceData);
+      } else if (demandZone?.length >= 1) {
+        currentPriceData = {
+          closePrice,
+          demandZone,
+          supplyZone: [],
+        };
+        Context.current().heartbeat(currentPriceData);
+        resolve(currentPriceData);
+      } else if (supplyZone?.length >= 1) {
+        currentPriceData = {
+          closePrice,
+          demandZone: [],
+          supplyZone,
+        };
+        Context.current().heartbeat(currentPriceData);
+        resolve(currentPriceData);
+      } else {
+        throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no demand or supply zones!' });
+      }
     }
-
-    if (data.data !== undefined) {
-      Context.current().heartbeat(data.data);
-
-      messages.push(data.data[0].content[0]);
-      messageCount += 1;
-      client.close();
-    }
-  };
-
-  client.onclose = async function () {
-    if (isMarketClosed) {
-      throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
-    }
-
-    closePrice = messages[0]["3"];
-
-    const demandZone = await find_demand_zone(closePrice, demand_zones);
-    const supplyZone = await find_supply_zone(closePrice, supply_zones);
-
-    if (demandZone?.length >= 1 && supplyZone?.length >= 1) {
-      currentPriceData = {
-        closePrice,
-        demandZone,
-        supplyZone,
-      };
-      Context.current().heartbeat(currentPriceData);
-      fs.writeFile(path.resolve(__dirname, "./data/currentPrice.json"), JSON.stringify(currentPriceData, null, 1), function (err) {
-        if (err) console.log(err);
-      });
-    } else if (demandZone?.length >= 1) {
-      currentPriceData = {
-        closePrice,
-        demandZone,
-        supplyZone: [],
-      };
-      Context.current().heartbeat(currentPriceData);
-      fs.writeFile(path.resolve(__dirname, "./data/currentPrice.json"), JSON.stringify(currentPriceData, null, 1), function (err) {
-        if (err) console.log(err);
-      });
-    } else if (supplyZone?.length >= 1) {
-      currentPriceData = {
-        closePrice,
-        demandZone: [],
-        supplyZone,
-      };
-      Context.current().heartbeat(currentPriceData);
-      fs.writeFile(path.resolve(__dirname, "./data/currentPrice.json"), JSON.stringify(currentPriceData, null, 1), function (err) {
-        if (err) console.log(err);
-      });
-    } else {
-      throw ApplicationFailure.create({ nonRetryable: true, message: 'There are no demand or supply zones!' });
-    }
-  }
+  })
 }
 
 export async function get_position_setup(surrounding_key_levels: SurroundingKeyLevels, demand_zone: number[][], supply_zone: number[][]): Promise<PositionSetup> {
