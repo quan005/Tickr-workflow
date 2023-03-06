@@ -1273,7 +1273,7 @@ export async function waitToSignalClosePosition(wsClient: WebSocket, login_reque
 export async function getUrlCode(): Promise<string> {
   let data = '';
   Context.current().heartbeat(data);
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const urlOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/url-code',
@@ -1316,7 +1316,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
   let token: string;
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',
@@ -1355,12 +1355,12 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
   });
 }
 
-export function getUserPrinciples(access_token: string, symbol: string): Promise<PrinciplesAndParams> {
+export async function getUserPrinciples(access_token: string, symbol: string): Promise<PrinciplesAndParams> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/streamer-auth',
@@ -1505,12 +1505,12 @@ export function getUserPrinciples(access_token: string, symbol: string): Promise
   });
 }
 
-export function getAccount(access_token: string, account_id: string): Promise<Account> {
+export async function getAccount(access_token: string, account_id: string): Promise<Account> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1557,12 +1557,12 @@ export function getAccount(access_token: string, account_id: string): Promise<Ac
   });
 }
 
-export function placeOrder(access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
+export async function placeOrder(access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1609,12 +1609,12 @@ export function placeOrder(access_token: string, account_id: string, order_data:
   });
 }
 
-export function getOrder(access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
+export async function getOrder(access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       accountId: account_id,
@@ -1661,12 +1661,12 @@ export function getOrder(access_token: string, account_id: string, order_id: str
   });
 }
 
-export function getOptionChain(access_token: string, option_chain_config: OptionChainConfig): Promise<OptionChainResponse> {
+export async function getOptionChain(access_token: string, option_chain_config: OptionChainConfig): Promise<OptionChainResponse> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(encodedtoken);
   let data = '';
 
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     const postData = {
       token: encodedtoken,
       optionChainConfig: option_chain_config,
