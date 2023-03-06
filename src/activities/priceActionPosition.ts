@@ -259,7 +259,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
       demandZone: [],
       supplyZone: [],
     };
-    Context.current().heartbeat(currentPriceData);
     const dateTime = moment().tz('America/New_York');
     const marketClose = dateTime.format('Hmm');
     const day = dateTime.format('dddd');
