@@ -107,10 +107,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-  state = 'Opening The Current Price WebSocket Client';
-  const currentPriceWsClient = await websocketClient(wsUri);
-  await condition(() => currentPriceWsClient.readyState === 1);
-
   state = 'Getting Current Price';
   const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
   state = 'Getting Surrounding Key Levels';
