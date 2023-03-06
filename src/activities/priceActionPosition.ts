@@ -268,7 +268,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
     const messages: SocketResponse[] | null = [];
 
     const client = new WebSocket(wsUrl);
-    Context.current().heartbeat('client connecting');
 
     client.onerror = (err) => {
       throw new Error(err.message);
@@ -283,10 +282,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
       // }
 
       client.send(JSON.stringify(login_request));
-
-      Context.current().heartbeat(client);
-      console.log('client connection created');
-
     };
 
     client.onmessage = event => {
