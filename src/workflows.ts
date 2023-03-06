@@ -98,7 +98,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   const timeRemaining = await time_until_market_open(isHoliday) + additionalSleepTime;
 
-  await sleep(timeRemaining);
+  // await sleep(timeRemaining);
 
   state = 'Getting Auth Token 1';
   urlCode = await getUrlCode();
