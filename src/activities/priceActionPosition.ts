@@ -251,7 +251,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
   }
 }
 
-export async function get_current_price(wsClient: WebSocket, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
+export async function get_current_price(wsUrl: string, login_request: object, market_request: object, demand_zones: DemandZones[], supply_zones: SupplyZones[], is_holiday: boolean): Promise<CurrentPriceData> {
   return new Promise(async (resolve) => {
     let closePrice = 0;
     let currentPriceData: CurrentPriceData = {
@@ -268,31 +268,38 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
     let loggedIn = false;
     const messages: SocketResponse[] | null = [];
 
-    wsClient.onopen = () => {
+    const client = new WebSocket(wsUrl);
+    Context.current().heartbeat('client connecting');
+
+    client.onerror = (err) => {
+      throw new Error(err.message);
+    }
+
+    client.onopen = () => {
       // marketClose = moment().tz('America/New_York').format('Hmm');
 
       // if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
       //   isMarketClosed = true;
-      //   wsClient.close();
+      //   client.close();
       // }
 
-      wsClient.send(JSON.stringify(login_request));
+      client.send(JSON.stringify(login_request));
 
-      Context.current().heartbeat(wsClient);
+      Context.current().heartbeat(client);
       console.log('client connection created');
 
     };
 
-    wsClient.onmessage = event => {
+    client.onmessage = event => {
       // marketClose = moment().tz('America/New_York').format('Hmm');
 
       // if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
       //   isMarketClosed = true;
-      //   wsClient.close();
+      //   client.close();
       // }
 
       if (loggedIn) {
-        wsClient.send(JSON.stringify(market_request));
+        client.send(JSON.stringify(market_request));
         loggedIn = false;
       }
 
@@ -308,11 +315,11 @@ export async function get_current_price(wsClient: WebSocket, login_request: obje
 
         messages.push(data.data[0].content[0]);
         messageCount += 1;
-        wsClient.close();
+        client.close();
       }
     };
 
-    wsClient.onclose = async function () {
+    client.onclose = async function () {
       if (isMarketClosed) {
         throw ApplicationFailure.create({ nonRetryable: true, message: 'Market is currently closed!' });
       }
@@ -1742,7 +1749,7 @@ export async function websocketClient(url: string): Promise<WebSocket> {
     Context.current().heartbeat(client);
 
     while (client.readyState !== 1) {
-      Context.current().heartbeat(client.readyState);
+      Context.current().heartbeat('client not ready');
     }
 
     client.onerror = (err) => {

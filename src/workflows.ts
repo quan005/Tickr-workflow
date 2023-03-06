@@ -112,7 +112,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   await condition(() => currentPriceWsClient.readyState === 1);
 
   state = 'Getting Current Price';
-  const currentPrice = await get_current_price(currentPriceWsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
+  const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
   state = 'Getting Surrounding Key Levels';
   const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice.closePrice, keyLevels);
   state = 'Finding Setup';
