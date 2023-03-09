@@ -66,7 +66,7 @@ export interface CurrentBalances {
   stockBuyingPower: number;
   optionBuyingPower: number;
 }
-export interface ProjectBalances {
+export interface projectedBalances {
   cashAvailableForTrading: number;
   cashAvailableForWithdrawal: number;
 }
@@ -78,7 +78,7 @@ export interface SecuritiesAccount {
   isClosingOnlyRestricted: boolean;
   initialBalances: InitialBalances;
   currentBalances: CurrentBalances;
-  projectBalances: ProjectBalances;
+  projectedBalances: projectedBalances;
 }
 export interface Account {
   error?: string;

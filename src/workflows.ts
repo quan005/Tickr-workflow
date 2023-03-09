@@ -8,9 +8,8 @@ import {
 } from '@temporalio/workflow';
 import * as activities from "./activities/priceActionPosition";
 import { PremarketData } from "./interfaces/premarketData";
-import { TokenJSON } from './interfaces/token';
 
-type PositionState = 'Checking If It Is A Holiday' | 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Opening The Current Price WebSocket Client' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opening The Open Position WebSocket Client' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Getting Auth Token 4' | 'Getting User Principles 4' | 'Opening The Cut Position WebSocket Client' | 'Cut Position' | 'No position Available' | 'Getting Auth Token 5' | 'Getting User Principles 5' | 'Opening The Close Position WebSocket Client' | 'Closed Position'
+type PositionState = 'Checking If It Is A Holiday' | 'Getting Time Remaining' | 'Getting Auth Token 1' | 'Getting User Principles 1' | 'Getting Current Price' | 'Getting Surrounding Key Levels' | 'Finding Setup' | 'Selecting Option' | 'Getting Auth Token 2' | 'Getting User Principles 2' | 'Opened Position' | 'Getting Auth Token 3' | 'Getting User Principles 3' | 'Checking If Position Filled' | 'Getting Option Symbol' | 'Cut Position' | 'No position Available' | 'Closed Position';
 
 export interface PositionStatus {
   state: PositionState
@@ -28,7 +27,6 @@ const {
   time_until_market_open,
   is_holiday,
   get_current_price,
-  websocketClient,
   get_surrounding_key_levels,
   get_position_setup,
   getOptionsSelection,
@@ -96,9 +94,14 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     timeSalesRequest: null
   };
 
-  const timeRemaining = await time_until_market_open(isHoliday) + additionalSleepTime;
+  const marketOpen = await time_until_market_open(isHoliday)
 
-  // await sleep(timeRemaining);
+  if (typeof marketOpen === "string") {
+    return marketOpen;
+  }
+
+  const timeRemaining = marketOpen + additionalSleepTime;
+  await sleep(timeRemaining);
 
   state = 'Getting Auth Token 1';
   urlCode = await getUrlCode();
@@ -109,80 +112,71 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   state = 'Getting Current Price';
   const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
+
+  if (typeof currentPrice === "string") {
+    return currentPrice;
+  }
+
   state = 'Getting Surrounding Key Levels';
   const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice.closePrice, keyLevels);
+
+  if (typeof surroundingKeyLevels === "string") {
+    return surroundingKeyLevels;
+  }
+
   state = 'Finding Setup';
   const positionSetup = await get_position_setup(surroundingKeyLevels, currentPrice.demandZone, currentPrice.supplyZone);
+
+  if (positionSetup === "There are no good position setups!") {
+    return positionSetup;
+  }
+
   state = 'Selecting Option';
   const optionSelection = await getOptionsSelection(positionSetup, symbol, token);
 
-
-  state = 'Getting Auth Token 2';
-  urlCode = await getUrlCode();
-  token = await getLoginCredentials(urlCode);
-  state = 'Getting User Principles 2';
-  gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
-  wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
-
-  state = 'Opening The Open Position WebSocket Client';
-  const openPositionWsClient = await websocketClient(wsUri);
-  await condition(() => openPositionWsClient.readyState === 1);
+  if (optionSelection === "There are no call or put options that meets the requirements!") {
+    return optionSelection;
+  }
 
   state = 'Opened Position';
-  const signalOpenPosition = await waitToSignalOpenPosition(openPositionWsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token, isHoliday);
+  const signalOpenPosition = await waitToSignalOpenPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token, isHoliday);
   openedAt = new Date();
 
 
-  if (signalOpenPosition.position) {
+  if (typeof signalOpenPosition !== "string" && signalOpenPosition.position) {
     if (signalOpenPosition.position.price && signalOpenPosition.position.quantity && signalOpenPosition.position.optionSymbol) {
       option = signalOpenPosition.position.optionSymbol;
       openedPrice = signalOpenPosition.position.price;
       optionQuantity = signalOpenPosition.position.quantity;
     }
 
-    state = 'Getting Auth Token 3';
-    urlCode = await getUrlCode();
+    state = 'Getting Auth Token 2';
     token = await getLoginCredentials(urlCode);
-    state = 'Getting User Principles 3';
+    state = 'Getting User Principles 2';
     gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
+    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+
 
     state = 'Checking If Position Filled';
     const quantity = await checkIfPositionFilled(signalOpenPosition.position.orderResponse, accountId, token);
     state = 'Getting Option Symbol'
     const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token);
 
-
-    state = 'Getting Auth Token 4';
-    urlCode = await getUrlCode();
-    token = await getLoginCredentials(urlCode);
-    state = 'Getting User Principles 4';
-    gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
-    wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`
-
-
-    state = 'Opening The Cut Position WebSocket Client';
-    const cutPositionWsClient = await websocketClient(wsUri);
-    await condition(() => cutPositionWsClient.readyState === 1);
-
     state = 'Cut Position';
-    const cutFilled = await waitToSignalCutPosition(cutPositionWsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
+    const cutFilled = await waitToSignalCutPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
     cutAt = new Date();
     const remainingQuantity = quantity - cutFilled
 
 
-    state = 'Getting Auth Token 5';
+    state = 'Getting Auth Token 3';
     urlCode = await getUrlCode();
     token = await getLoginCredentials(urlCode);
-    state = 'Getting User Principles 5';
+    state = 'Getting User Principles 3';
     gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
-    state = 'Opening The Close Position WebSocket Client';
-    const closePositionWsClient = await websocketClient(wsUri);
-    await condition(() => closePositionWsClient.readyState === 1);
-
     state = 'Closed Position';
-    const signalClosePosition = await waitToSignalClosePosition(closePositionWsClient, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
+    const signalClosePosition = await waitToSignalClosePosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
     await condition(() => !!signalClosePosition.orderResponse.orderId);
     closedAt = new Date();
 

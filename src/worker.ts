@@ -1,4 +1,5 @@
 import { Worker, NativeConnection } from '@temporalio/worker';
+// import { MsgpackPayloadCodec } from './conversion/payloadCodec';
 import * as activities from "./activities/priceActionPosition";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
@@ -26,11 +27,17 @@ async function run() {
     // }
   });
 
+  // const payloadCodec = new MsgpackPayloadCodec();
+
   const worker = await Worker.create({
     connection,
     ...workflowOption(),
     activities,
     taskQueue: 'price-action-positions',
+    // dataConverter: {
+    //   payloadConverterPath: require.resolve('./conversion/payloadConverter'),
+    //   payloadCodecs: [payloadCodec]
+    // }
   });
 
   await worker.run();

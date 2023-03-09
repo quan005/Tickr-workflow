@@ -2,6 +2,7 @@ import { Kafka } from 'kafkajs';
 import { SchemaRegistry } from '@kafkajs/confluent-schema-registry';
 import { Connection, WorkflowClient } from '@temporalio/client';
 import { priceAction } from './workflows';
+// import { MsgpackPayloadCodec } from './conversion/payloadCodec';
 import { PremarketMessage, PremarketData } from './interfaces/premarketData';
 import { CreateCaCertificate, CreateSignedCertificate } from './cert';
 import * as dotenv from "dotenv";
@@ -59,9 +60,15 @@ const run = async () => {
           // }
         });
 
+        // const payloadCodec = new MsgpackPayloadCodec();
+
         const temporalClient = new WorkflowClient({
           connection,
           namespace: 'default',
+          // dataConverter: {
+          //   payloadConverterPath: require.resolve('./conversion/payloadConverter'),
+          //   payloadCodecs: [payloadCodec]
+          // }
         });
 
         messageNumber += 1;
