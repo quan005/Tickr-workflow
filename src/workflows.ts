@@ -56,21 +56,13 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   const isHoliday = await is_holiday();
   state = 'Getting Time Remaining';
   let option: string;
-  let openedAt: Date = new Date();
-  let openedPrice: number | string;
   let optionQuantity: number | string;
-  let cutAt: Date = new Date();
-  let closedAt: Date = new Date();
 
   setHandler(getStatusQuery, () => {
     return {
       state,
       option,
-      openedAt,
-      openedPrice,
-      optionQuantity,
-      cutAt,
-      closedAt,
+      optionQuantity
     }
   });
 
@@ -113,19 +105,19 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Getting Current Price';
   const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
 
-  if (typeof currentPrice === "string") {
+  if (currentPrice === "There are no demand or supply zones!") {
     return currentPrice;
   }
 
   state = 'Getting Surrounding Key Levels';
-  const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice.closePrice, keyLevels);
+  const surroundingKeyLevels = await get_surrounding_key_levels(currentPrice, keyLevels);
 
-  if (typeof surroundingKeyLevels === "string") {
+  if (surroundingKeyLevels === "There are no surrounding key levels!") {
     return surroundingKeyLevels;
   }
 
   state = 'Finding Setup';
-  const positionSetup = await get_position_setup(surroundingKeyLevels, currentPrice.demandZone, currentPrice.supplyZone);
+  const positionSetup = await get_position_setup(surroundingKeyLevels, currentPrice);
 
   if (positionSetup === "There are no good position setups!") {
     return positionSetup;
@@ -140,16 +132,9 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   state = 'Opened Position';
   const signalOpenPosition = await waitToSignalOpenPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token, isHoliday);
-  openedAt = new Date();
 
 
-  if (typeof signalOpenPosition !== "string" && signalOpenPosition.position) {
-    if (signalOpenPosition.position.price && signalOpenPosition.position.quantity && signalOpenPosition.position.optionSymbol) {
-      option = signalOpenPosition.position.optionSymbol;
-      openedPrice = signalOpenPosition.position.price;
-      optionQuantity = signalOpenPosition.position.quantity;
-    }
-
+  if (signalOpenPosition !== "Could not find any good buying opportunities!") {
     state = 'Getting Auth Token 2';
     token = await getLoginCredentials(urlCode);
     state = 'Getting User Principles 2';
@@ -158,13 +143,12 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
 
     state = 'Checking If Position Filled';
-    const quantity = await checkIfPositionFilled(signalOpenPosition.position.orderResponse, accountId, token);
+    const quantity = await checkIfPositionFilled(signalOpenPosition, accountId, token);
     state = 'Getting Option Symbol'
-    const optionSymbol = await getOptionSymbol(signalOpenPosition.position.orderResponse, accountId, token);
+    const optionSymbol = await getOptionSymbol(signalOpenPosition, accountId, token);
 
     state = 'Cut Position';
-    const cutFilled = await waitToSignalCutPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
-    cutAt = new Date();
+    const cutFilled = await waitToSignalCutPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, quantity, signalOpenPosition, positionSetup, accountId, token, isHoliday);
     const remainingQuantity = quantity - cutFilled
 
 
@@ -176,11 +160,10 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
 
     state = 'Closed Position';
-    const signalClosePosition = await waitToSignalClosePosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition.demandOrSupply, positionSetup, accountId, token, isHoliday);
-    await condition(() => !!signalClosePosition.orderResponse.orderId);
-    closedAt = new Date();
+    const signalClosePosition = await waitToSignalClosePosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, optionSymbol, remainingQuantity, signalOpenPosition, positionSetup, accountId, token, isHoliday);
+    await condition(() => signalClosePosition === 'position fully closed!');
 
-    return signalClosePosition.orderResponse.orderId;
+    return signalClosePosition;
   } else {
     state = 'No position Available'
     return state
