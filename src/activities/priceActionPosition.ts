@@ -173,7 +173,6 @@ export async function get_surrounding_key_levels(current_price: string, key_leve
       }
     }
   }
-
   return 'There are no surrounding key levels!';
 }
 
@@ -590,9 +589,15 @@ export async function getOptionsSelection(position_setup: string, symbol: string
           rho: put.rho,
         },
       });
+    } else {
+      return 'There are no call or put options that meets the requirements!';
     }
   } else if (callOptionResponse !== null) {
     const call = filterOptionResponse(callOptionResponse.callExpDateMap[optionString], "CALL");
+
+    if (call === null) {
+      return 'There are no call or put options that meets the requirements!';
+    }
 
     return JSON.stringify({
       CALL: {
@@ -613,6 +618,10 @@ export async function getOptionsSelection(position_setup: string, symbol: string
     });
   } else if (putOptionResponse !== null) {
     const put = filterOptionResponse(putOptionResponse.putExpDateMap[optionString], "PUT");
+
+    if (put === null) {
+      return 'There are no call or put options that meets the requirements!';
+    }
 
     return JSON.stringify({
       CALL: null,

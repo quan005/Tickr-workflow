@@ -105,7 +105,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Getting Current Price';
   const currentPrice = await get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, isHoliday);
 
-  if (currentPrice === "There are no demand or supply zones!") {
+  if (currentPrice === "There are no demand or supply zones!" || currentPrice === "Market is currently closed!") {
     return currentPrice;
   }
 
@@ -133,6 +133,9 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Opened Position';
   const signalOpenPosition = await waitToSignalOpenPosition(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.bookRequest, gettingUserPrinciples.timeSalesRequest, positionSetup, optionSelection, budget, accountId, token, isHoliday);
 
+  if (signalOpenPosition === "Account balance is too low!" || signalOpenPosition === "There are no call or put options selected for purchase") {
+    return signalOpenPosition
+  }
 
   if (signalOpenPosition !== "Could not find any good buying opportunities!") {
     state = 'Getting Auth Token 2';
