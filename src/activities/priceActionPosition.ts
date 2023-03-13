@@ -662,19 +662,19 @@ export async function openPosition(options: OptionsSelection, optionType: string
   if (options.CALL === null && options.PUT === null) {
     return 'There are no call or put options selected for purchase!';
   } else if (options.CALL !== null && options.PUT !== null) {
-    const quantityCall = Math.floor(budget / options.CALL.ask);
-    const quantityPut = Math.floor(budget / options.PUT.ask);
-    price = optionType === 'CALL' ? options.CALL.ask : options.PUT.ask;
+    const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
+    const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
+    price = optionType === 'CALL' ? options.CALL.ask * 100 : options.PUT.ask * 100;
     symbol = optionType === 'CALL' ? options.CALL.symbol : options.PUT.symbol;
     quantity = optionType === 'CALL' ? quantityCall : quantityPut;
   } else if (options.CALL !== null) {
-    const quantityCall = Math.floor(budget / options.CALL.ask);
-    price = options.CALL.ask;
+    const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
+    price = options.CALL.ask * 100;
     symbol = options.CALL.symbol;
     quantity = quantityCall;
   } else if (options.PUT !== null) {
-    const quantityPut = Math.floor(budget / options.PUT.ask);
-    price = options.PUT.ask;
+    const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
+    price = options.PUT.ask * 100;
     symbol = options.PUT.symbol;
     quantity = quantityPut;
   }
@@ -695,17 +695,16 @@ export async function openPosition(options: OptionsSelection, optionType: string
       session: SessionType.NORMAL,
       duration: DurationType.FILL_OR_KILL,
       orderStrategyType: OrderStrategyType.SINGLE,
-      orderLegCollection: {
+      orderLegCollection: [{
         orderLegType: OrderLegType.OPTION,
         instruction: InstructionType.BUY_TO_OPEN,
         quantity: quantity,
-        positionEffect: PositionEffect.AUTOMATIC,
         instrument: {
           assetType: AssetType.OPTION,
           symbol: symbol,
           putCall: optionType === 'CALL' ? PutCall.CALL : PutCall.PUT,
         },
-      },
+      }],
       complexOrderStrategyType: ComplexOrderStrategyType.NONE,
     },
   });
@@ -946,16 +945,15 @@ export async function cutPosition(symbol: string, quantity: number, account_id: 
       session: SessionType.NORMAL,
       duration: DurationType.FILL_OR_KILL,
       orderStrategyType: OrderStrategyType.SINGLE,
-      orderLegCollection: {
+      orderLegCollection: [{
         orderLegType: OrderLegType.OPTION,
         instruction: InstructionType.SELL_TO_CLOSE,
         quantity: newQuantity,
-        positionEffect: PositionEffect.AUTOMATIC,
         instrument: {
           assetType: AssetType.OPTION,
           symbol: symbol,
         },
-      },
+      }],
       complexOrderStrategyType: ComplexOrderStrategyType.NONE,
     },
   });
@@ -975,16 +973,15 @@ export async function closePosition(symbol: string, quantity: number, account_id
       session: SessionType.NORMAL,
       duration: DurationType.FILL_OR_KILL,
       orderStrategyType: OrderStrategyType.SINGLE,
-      orderLegCollection: {
+      orderLegCollection: [{
         orderLegType: OrderLegType.OPTION,
         instruction: InstructionType.SELL_TO_CLOSE,
         quantity: quantity,
-        positionEffect: PositionEffect.AUTOMATIC,
         instrument: {
           assetType: AssetType.OPTION,
           symbol: symbol,
         },
-      },
+      }],
       complexOrderStrategyType: ComplexOrderStrategyType.NONE,
     },
   });
@@ -1615,8 +1612,12 @@ export async function placeOrder(access_token: string, account_id: string, order
       });
 
       resp.on('close', () => {
+        if (data === null || data === undefined || data === "") {
+          throw new Error('order did not fill');
+        }
         const parseJson = JSON.parse(data);
-        const dataObject = JSON.parse(parseJson)
+        console.log('parseJson', parseJson);
+        const dataObject = JSON.parse(parseJson);
         Context.current().heartbeat(JSON.stringify(dataObject));
         return resolve(dataObject);
       });
@@ -1747,7 +1748,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
     if (optionType === "CALL" && optionMap[option][0].delta > .500 && optionMap[option][0].delta < .700) {
       optionsArray.push(optionMap[option][0]);
     }
-    if (optionType === "PUT" && optionMap[option][0].delta < -0.500 && optionMap[option][0].delta > -0.800) {
+    if (optionType === "PUT" && optionMap[option][0].delta < -0.400 && optionMap[option][0].delta > -0.800) {
       optionsArray.push(optionMap[option][0]);
     }
   }

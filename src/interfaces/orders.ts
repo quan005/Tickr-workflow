@@ -121,7 +121,7 @@ export interface Order {
   session: SessionType;
   duration: DurationType;
   orderStrategyType: OrderStrategyType;
-  orderLegCollection: OrderLeg;
+  orderLegCollection: OrderLeg[];
   cancelTime?: CancelTime;
   complexOrderStrategyType: ComplexOrderStrategyType;
   quantity?: number;
@@ -195,7 +195,7 @@ export interface OrderLeg {
   legId?: number;
   instruction: InstructionType;
   quantity: number;
-  positionEffect: PositionEffect;
+  positionEffect?: PositionEffect;
   quantityType?: QuantityType;
   instrument: Instrument | OptionInstrument;
 }
