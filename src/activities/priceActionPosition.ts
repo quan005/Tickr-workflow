@@ -193,7 +193,7 @@ export async function is_demand_zone(current_price: number, demand_zones: Demand
 
 export async function find_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
   const demandZone = await is_demand_zone(current_price, demand_zones);
-  Context.current().heartbeat(JSON.stringify(demandZone));
+  Context.current().heartbeat(JSON.stringify('got the demand zone'));
   const surroundingZones: number[][] = [];
 
   if (demandZone !== null) {
@@ -230,7 +230,7 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
 
 export async function find_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
   const supplyZone = await is_supply_zone(current_price, supply_zones);
-  Context.current().heartbeat(JSON.stringify(supplyZone));
+  Context.current().heartbeat(JSON.stringify('got the supply zone'));
   const surroundingZones: number[][] = [];
 
   if (supplyZone !== null) {
@@ -657,7 +657,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
   let price = 0;
   let quantity = 0;
   let symbol = '';
-  Context.current().heartbeat(price);
+  Context.current().heartbeat(JSON.stringify(price));
 
   if (options.CALL === null && options.PUT === null) {
     return 'There are no call or put options selected for purchase!';
@@ -679,7 +679,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
     quantity = quantityPut;
   }
 
-  Context.current().heartbeat(price);
+  Context.current().heartbeat(JSON.stringify(price));
 
   const accountBalance = await checkAccountAvailableBalance(access_token, account_id);
 
@@ -709,7 +709,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
     },
   });
 
-  Context.current().heartbeat(price);
+  Context.current().heartbeat(JSON.stringify(price));
 
   return JSON.stringify({
     orderResponse: openPositionResponse,
@@ -786,7 +786,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-      Context.current().heartbeat(JSON.stringify(data));
+      Context.current().heartbeat(JSON.stringify(event.data));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
@@ -795,7 +795,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       if (data.data) {
         if (newPositionSetup.demand && newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -834,7 +834,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
         } else if (newPositionSetup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -861,7 +861,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
         } else if (newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] <= newPositionSetup.supply.entry && data.data[0].content[i]["2"] > newPositionSetup.supply.cutPosition) {
               metSupplyEntryPrice += 1;
               supplySize += data.data[0].content[i]["3"];
@@ -878,7 +878,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           if (supplyTimeSalesEntryPercentage >= .6) {
             supplyForming += 1;
           }
-          Context.current().heartbeat(supplyForming);
+          Context.current().heartbeat(JSON.stringify(supplyForming));
 
           if (supplyForming >= 3 && supplySize > demandSize || supplyForming > 1 && supplyConfirmation) {
             callOrPut = 'PUT';
@@ -936,7 +936,7 @@ export async function getOptionSymbol(order: string, account_id: string, access_
 
 export async function cutPosition(symbol: string, quantity: number, account_id: string, access_token: string): Promise<string> {
   const newQuantity = Math.floor(quantity / 2);
-  Context.current().heartbeat(newQuantity);
+  Context.current().heartbeat(JSON.stringify(newQuantity));
 
   const cutPositionResponse = await placeOrder(access_token, account_id, {
     accountId: account_id,
@@ -1062,7 +1062,7 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && newPositionSetup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.cutPosition && data.data[0].content[i]["2"] < newPositionSetup.demand.takeProfit) {
               metDemandCutPrice += 1;
             } else if (data.data[0].content[i]["2"] <= newPositionSetup.demand.stopLoss) {
@@ -1077,7 +1077,7 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
           demandTimeSalesCutPercentage = metDemandCutPrice / data.data[0].content.length;
           demandTimeSalesStopLossPercentage = metDemandStopLossPrice / data.data[0].content.length;
           demandTimeSalesTakeProfitPercentage = metDemandTakeProfitPrice / data.data[0].content.length;
-          Context.current().heartbeat(demandTimeSalesCutPercentage);
+          Context.current().heartbeat(JSON.stringify(demandTimeSalesCutPercentage));
 
           if (demandTimeSalesCutPercentage >= .6) {
             client.close();
@@ -1091,7 +1091,7 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
 
         } else if (demandOrSupply === 'SUPPLY' && newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] <= newPositionSetup.supply.cutPosition && data.data[0].content[i]["2"] > newPositionSetup.supply.takeProfit) {
               metSupplyCutPrice += 1;
             } else if (data.data[0].content[i]["2"] >= newPositionSetup.supply.stopLoss) {
@@ -1106,7 +1106,7 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
           supplyTimeSalesCutPercentage = metSupplyCutPrice / data.data[0].content.length;
           supplyTimeSalesStopLossPercentage = metSupplyStopLossPrice / data.data[0].content.length;
           supplyTimeSalesTakeProfitPercentage = metSupplyTakeProfitPrice / data.data[0].content.length;
-          Context.current().heartbeat(supplyTimeSalesCutPercentage);
+          Context.current().heartbeat(JSON.stringify(supplyTimeSalesCutPercentage));
 
           if (supplyTimeSalesCutPercentage >= .6) {
             client.close();
@@ -1123,7 +1123,7 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
 
     client.onclose = async function () {
       if (skipCut) {
-        Context.current().heartbeat(cutFilled);
+        Context.current().heartbeat(JSON.stringify(cutFilled));
         resolve(cutFilled);
       } else if (stoppedOut) {
         position = await closePosition(symbol, quantity * 2, account_id, access_token);
@@ -1200,7 +1200,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
       }
 
       const data = JSON.parse(JSON.stringify(event.data));
-      Context.current().heartbeat(JSON.stringify(data));
+      Context.current().heartbeat(JSON.stringify(event.data));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
@@ -1209,7 +1209,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
       if (data.data) {
         if (demandOrSupply === 'DEMAND' && newPositionSetup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.cutPosition && data.data[0].content[i]["2"] < newPositionSetup.demand.takeProfit || data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition && data.data[0].content[i]["2"] >= newPositionSetup.demand.entry) {
               metDemandCutPrice += 1;
             } else if (data.data[0].content[i]["2"] >= newPositionSetup.demand.takeProfit) {
@@ -1224,7 +1224,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
           demandTimeSalesCutPercentage = metDemandCutPrice / data.data[0].content.length;
           demandTimeSalesStopLossPercentage = metDemandStopLossPrice / data.data[0].content.length;
           demandTimeSalesTakeProfitPercentage = metDemandTakeProfitPrice / data.data[0].content.length;
-          Context.current().heartbeat(demandTimeSalesCutPercentage);
+          Context.current().heartbeat(JSON.stringify(demandTimeSalesCutPercentage));
 
           if (demandTimeSalesCutPercentage >= .6) {
             waited += 1;
@@ -1238,7 +1238,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
 
         } else if (demandOrSupply === 'SUPPLY' && newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(i);
+            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] <= newPositionSetup.supply.cutPosition && data.data[0].content[i]["2"] > newPositionSetup.supply.takeProfit || data.data[0].content[i]["2"] > newPositionSetup.supply.cutPosition && data.data[0].content[i]["2"] <= newPositionSetup.supply.entry) {
               metSupplyCutPrice += 1;
             } else if (data.data[0].content[i]["2"] <= newPositionSetup.supply.takeProfit) {
@@ -1253,7 +1253,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
           supplyTimeSalesCutPercentage = metSupplyCutPrice / data.data[0].content.length;
           supplyTimeSalesStopLossPercentage = metSupplyStopLossPrice / data.data[0].content.length;
           supplyTimeSalesTakeProfitPercentage = metSupplyTakeProfitPrice / data.data[0].content.length;
-          Context.current().heartbeat(supplyTimeSalesCutPercentage);
+          Context.current().heartbeat(JSON.stringify(supplyTimeSalesCutPercentage));
 
           if (supplyTimeSalesCutPercentage >= .6) {
             waited += 1;
@@ -1270,13 +1270,13 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
 
     client.onclose = async function () {
       while (remainingQuantity > 0) {
-        Context.current().heartbeat(remainingQuantity);
+        Context.current().heartbeat(JSON.stringify(remainingQuantity));
         position = await closePosition(symbol, quantity, account_id, access_token);
         Context.current().heartbeat(JSON.stringify("recieved position"));
         closeFilled = await checkIfPositionFilled(position, account_id, access_token);
         Context.current().heartbeat(JSON.stringify("close filled"));
         remainingQuantity = quantity - closeFilled;
-        Context.current().heartbeat(remainingQuantity);
+        Context.current().heartbeat(JSON.stringify(remainingQuantity));
       }
 
       resolve('position fully closed!');
@@ -1561,7 +1561,7 @@ export async function getAccount(access_token: string, account_id: string): Prom
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify(dataObject));
+        Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(dataObject);
       });
     }).on('error', (e) => {
@@ -1618,7 +1618,7 @@ export async function placeOrder(access_token: string, account_id: string, order
         const parseJson = JSON.parse(data);
         console.log('parseJson', parseJson);
         const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify(dataObject));
+        Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(dataObject);
       });
     }).on('error', (e) => {
@@ -1671,7 +1671,7 @@ export async function getOrder(access_token: string, account_id: string, order_i
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify(dataObject));
+        Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(dataObject);
       });
     }).on('error', (e) => {
@@ -1723,7 +1723,7 @@ export async function getOptionChain(access_token: string, option_chain_config: 
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify(dataObject));
+        Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(dataObject);
       });
     }).on('error', (e) => {
@@ -1744,7 +1744,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   const optionsArray: OptionDetails[] = [];
 
   for (const option in optionMap) {
-    Context.current().heartbeat(JSON.stringify(option));
+    Context.current().heartbeat(JSON.stringify('this is the option'));
     if (optionType === "CALL" && optionMap[option][0].delta > .500 && optionMap[option][0].delta < .700) {
       optionsArray.push(optionMap[option][0]);
     }
@@ -1754,7 +1754,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   }
 
   optionsArray.sort((a, b) => (a.ask > b.ask) ? 1 : -1);
-  Context.current().heartbeat(JSON.stringify(optionsArray));
+  Context.current().heartbeat(JSON.stringify('got the option array'));
 
   if (optionsArray.length > 1) {
     return optionsArray[1];
