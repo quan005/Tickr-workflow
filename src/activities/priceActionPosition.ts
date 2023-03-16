@@ -1294,7 +1294,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
 
 export async function getUrlCode(): Promise<string> {
   let data = '';
-  // Context.current().heartbeat(JSON.stringify(data));
+  Context.current().heartbeat(JSON.stringify(data));
   return await new Promise((resolve) => {
     const urlOptions = {
       host: `${process.env.API_HOSTNAME}`,
@@ -1306,7 +1306,7 @@ export async function getUrlCode(): Promise<string> {
     const response = https.request(urlOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        // Context.current().heartbeat(JSON.stringify(data));
+        Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1320,7 +1320,7 @@ export async function getUrlCode(): Promise<string> {
         const code = parseUrl.code;
         const postData = JSON.stringify(code);
 
-        // Context.current().heartbeat(postData);
+        Context.current().heartbeat(postData);
 
         return resolve(postData);
       })
@@ -1328,7 +1328,7 @@ export async function getUrlCode(): Promise<string> {
       throw new Error(e.message);
     });
 
-    // Context.current().heartbeat(JSON.stringify("response in motion"));
+    Context.current().heartbeat(JSON.stringify("response in motion"));
 
     response.end();
   });
@@ -1336,7 +1336,7 @@ export async function getUrlCode(): Promise<string> {
 
 export async function getLoginCredentials(urlCode: string): Promise<string> {
   const encodedPassword = encodeURIComponent(urlCode);
-  // Context.current().heartbeat(JSON.stringify(encodedPassword));
+  Context.current().heartbeat(JSON.stringify(encodedPassword));
   let token: string;
   let data = '';
 
@@ -1355,7 +1355,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        // Context.current().heartbeat(JSON.stringify(data));
+        Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1368,7 +1368,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
         const parseJson = JSON.parse(data);
         token = JSON.stringify(parseJson);
 
-        // Context.current().heartbeat(token);
+        Context.current().heartbeat(token);
 
         if (!token) {
           throw new Error('Access token not available!')
@@ -1588,7 +1588,7 @@ export async function getAccount(access_token: string, account_id: string): Prom
 
 export async function placeOrder(access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
   const encodedtoken = encodeURIComponent(access_token);
-  // Context.current().heartbeat(JSON.stringify(encodedtoken));
+  Context.current().heartbeat(JSON.stringify(encodedtoken));
   let data = '';
 
   return await new Promise((resolve) => {
@@ -1599,7 +1599,7 @@ export async function placeOrder(access_token: string, account_id: string, order
     };
 
     const postDataAsString = JSON.stringify(postData);
-    // Context.current().heartbeat(postDataAsString);
+    Context.current().heartbeat(postDataAsString);
 
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
@@ -1617,7 +1617,7 @@ export async function placeOrder(access_token: string, account_id: string, order
       resp.on('data', (chunk) => {
         data += chunk;
         console.log('place order data', data);
-        // Context.current().heartbeat(JSON.stringify(data));
+        Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1630,7 +1630,7 @@ export async function placeOrder(access_token: string, account_id: string, order
           const dataObject = JSON.parse(parseJson);
           return resolve(dataObject);
         } catch (err) { }
-        // Context.current().heartbeat(JSON.stringify('dataObject'));
+        Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(parseJson)
 
       });
@@ -1643,7 +1643,7 @@ export async function placeOrder(access_token: string, account_id: string, order
     });
 
     response.write(postDataAsString);
-    // Context.current().heartbeat(JSON.stringify("response in motion"));
+    Context.current().heartbeat(JSON.stringify("response in motion"));
     response.end();
   });
 }
