@@ -87,7 +87,7 @@ export async function is_holiday(): Promise<boolean> {
 export async function get_surrounding_key_levels(current_price: string, key_levels: number[]): Promise<string> {
   const newCurrentPrice: CurrentPriceData = JSON.parse(current_price);
   for (let i = 0; i < key_levels.length; i++) {
-    Context.current().heartbeat(i);
+    Context.current().heartbeat(JSON.stringify('looping'));
     if (i == 0) {
       if (newCurrentPrice.closePrice < key_levels[i] && newCurrentPrice.closePrice > key_levels[i + 1]) {
         return JSON.stringify({
@@ -179,7 +179,7 @@ export async function get_surrounding_key_levels(current_price: string, key_leve
 export async function is_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
   // finds the demand zone that the price currently resides in else return null
   for (let i = 0; i < 7; i++) {
-    Context.current().heartbeat(i);
+    Context.current().heartbeat(JSON.stringify('looping'));
     if (current_price > demand_zones[i].bottom && current_price < demand_zones[i].top) {
       const zone = [[demand_zones[i].bottom, demand_zones[i].top]];
       return zone;
@@ -200,7 +200,7 @@ export async function find_demand_zone(current_price: number, demand_zones: Dema
     return demandZone;
   } else {
     for (let i = 0; i < demand_zones.length; i++) {
-      Context.current().heartbeat(i);
+      Context.current().heartbeat(JSON.stringify('looping'));
       if (i < demand_zones.length - 1 && (current_price < demand_zones[i].top && current_price > demand_zones[i + 1].bottom)) {
         const zone1: number[] = [demand_zones[i].bottom, demand_zones[i].top];
         const zone2: number[] = [demand_zones[i + 1].bottom, demand_zones[i + 1].top];
@@ -217,7 +217,7 @@ export async function find_demand_zone(current_price: number, demand_zones: Dema
 export async function is_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
   // finds the supply zone that the price currently resides in or is closest too
   for (let i = 0; i < supply_zones.length; i++) {
-    Context.current().heartbeat(i);
+    Context.current().heartbeat(JSON.stringify('looping'));
     if (current_price < supply_zones[i].top && current_price > supply_zones[i].bottom) {
       const zone = [[supply_zones[i].top, supply_zones[i].bottom]];
       return zone;
@@ -237,7 +237,7 @@ export async function find_supply_zone(current_price: number, supply_zones: Supp
     return supplyZone;
   } else {
     for (let i = 0; i < supply_zones.length; i++) {
-      Context.current().heartbeat(i);
+      Context.current().heartbeat(JSON.stringify('looping'));
       if (i < supply_zones.length - 1 && (current_price < supply_zones[i].top && current_price > supply_zones[i + 1].bottom)) {
         const zone1: number[] = [supply_zones[i].top, supply_zones[i].bottom];
         const zone2: number[] = [supply_zones[i + 1].top, supply_zones[i + 1].bottom];
@@ -655,6 +655,7 @@ export async function checkAccountAvailableBalance(access_token: string, account
 
 export async function openPosition(options: OptionsSelection, optionType: string, budget: number, account_id: string, access_token: string): Promise<string> {
   let price = 0;
+  let optionPrice = 0;
   let quantity = 0;
   let symbol = '';
   Context.current().heartbeat(JSON.stringify(price));
@@ -664,17 +665,20 @@ export async function openPosition(options: OptionsSelection, optionType: string
   } else if (options.CALL !== null && options.PUT !== null) {
     const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
     const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
-    price = optionType === 'CALL' ? options.CALL.ask * 100 : options.PUT.ask * 100;
+    optionPrice = optionType === 'CALL' ? options.CALL.ask : options.PUT.ask;
+    price = optionType === 'CALL' ? (options.CALL.ask * 100) * quantityCall : (options.PUT.ask * 100) * quantityPut;
     symbol = optionType === 'CALL' ? options.CALL.symbol : options.PUT.symbol;
     quantity = optionType === 'CALL' ? quantityCall : quantityPut;
   } else if (options.CALL !== null) {
     const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
-    price = options.CALL.ask * 100;
+    optionPrice = options.CALL.ask;
+    price = (options.CALL.ask * 100) * quantityCall;
     symbol = options.CALL.symbol;
     quantity = quantityCall;
   } else if (options.PUT !== null) {
     const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
-    price = options.PUT.ask * 100;
+    optionPrice = options.PUT.ask;
+    price = (options.PUT.ask * 100) * quantityPut;
     symbol = options.PUT.symbol;
     quantity = quantityPut;
   }
@@ -691,7 +695,7 @@ export async function openPosition(options: OptionsSelection, optionType: string
     accountId: account_id,
     order: {
       orderType: OrderType.LIMIT,
-      price: price,
+      price: optionPrice,
       session: SessionType.NORMAL,
       duration: DurationType.FILL_OR_KILL,
       orderStrategyType: OrderStrategyType.SINGLE,
@@ -708,6 +712,10 @@ export async function openPosition(options: OptionsSelection, optionType: string
       complexOrderStrategyType: ComplexOrderStrategyType.NONE,
     },
   });
+
+  if (openPositionResponse.error) {
+    throw new Error(openPositionResponse.error);
+  }
 
   Context.current().heartbeat(JSON.stringify(price));
 
@@ -786,7 +794,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-      Context.current().heartbeat(JSON.stringify(event.data));
+      Context.current().heartbeat(JSON.stringify('recieved data'));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
@@ -1200,7 +1208,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
       }
 
       const data = JSON.parse(JSON.stringify(event.data));
-      Context.current().heartbeat(JSON.stringify(event.data));
+      Context.current().heartbeat(JSON.stringify('recieved data'));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
@@ -1286,7 +1294,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
 
 export async function getUrlCode(): Promise<string> {
   let data = '';
-  Context.current().heartbeat(JSON.stringify(data));
+  // Context.current().heartbeat(JSON.stringify(data));
   return await new Promise((resolve) => {
     const urlOptions = {
       host: `${process.env.API_HOSTNAME}`,
@@ -1298,7 +1306,7 @@ export async function getUrlCode(): Promise<string> {
     const response = https.request(urlOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        Context.current().heartbeat(JSON.stringify(data));
+        // Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1312,7 +1320,7 @@ export async function getUrlCode(): Promise<string> {
         const code = parseUrl.code;
         const postData = JSON.stringify(code);
 
-        Context.current().heartbeat(postData);
+        // Context.current().heartbeat(postData);
 
         return resolve(postData);
       })
@@ -1320,7 +1328,7 @@ export async function getUrlCode(): Promise<string> {
       throw new Error(e.message);
     });
 
-    Context.current().heartbeat(JSON.stringify("response in motion"));
+    // Context.current().heartbeat(JSON.stringify("response in motion"));
 
     response.end();
   });
@@ -1328,7 +1336,7 @@ export async function getUrlCode(): Promise<string> {
 
 export async function getLoginCredentials(urlCode: string): Promise<string> {
   const encodedPassword = encodeURIComponent(urlCode);
-  Context.current().heartbeat(JSON.stringify(encodedPassword));
+  // Context.current().heartbeat(JSON.stringify(encodedPassword));
   let token: string;
   let data = '';
 
@@ -1347,7 +1355,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        Context.current().heartbeat(JSON.stringify(data));
+        // Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1360,7 +1368,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
         const parseJson = JSON.parse(data);
         token = JSON.stringify(parseJson);
 
-        Context.current().heartbeat(token);
+        // Context.current().heartbeat(token);
 
         if (!token) {
           throw new Error('Access token not available!')
@@ -1580,7 +1588,7 @@ export async function getAccount(access_token: string, account_id: string): Prom
 
 export async function placeOrder(access_token: string, account_id: string, order_data: OrdersConfig): Promise<PlaceOrdersResponse> {
   const encodedtoken = encodeURIComponent(access_token);
-  Context.current().heartbeat(JSON.stringify(encodedtoken));
+  // Context.current().heartbeat(JSON.stringify(encodedtoken));
   let data = '';
 
   return await new Promise((resolve) => {
@@ -1591,7 +1599,7 @@ export async function placeOrder(access_token: string, account_id: string, order
     };
 
     const postDataAsString = JSON.stringify(postData);
-    Context.current().heartbeat(postDataAsString);
+    // Context.current().heartbeat(postDataAsString);
 
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
@@ -1608,7 +1616,8 @@ export async function placeOrder(access_token: string, account_id: string, order
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        Context.current().heartbeat(JSON.stringify(data));
+        console.log('place order data', data);
+        // Context.current().heartbeat(JSON.stringify(data));
       });
 
       resp.on('close', () => {
@@ -1617,9 +1626,13 @@ export async function placeOrder(access_token: string, account_id: string, order
         }
         const parseJson = JSON.parse(data);
         console.log('parseJson', parseJson);
-        const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify('dataObject'));
-        return resolve(dataObject);
+        try {
+          const dataObject = JSON.parse(parseJson);
+          return resolve(dataObject);
+        } catch (err) { }
+        // Context.current().heartbeat(JSON.stringify('dataObject'));
+        return resolve(parseJson)
+
       });
     }).on('error', (e) => {
       throw new Error(e.message);
@@ -1630,7 +1643,7 @@ export async function placeOrder(access_token: string, account_id: string, order
     });
 
     response.write(postDataAsString);
-    Context.current().heartbeat(JSON.stringify("response in motion"));
+    // Context.current().heartbeat(JSON.stringify("response in motion"));
     response.end();
   });
 }
