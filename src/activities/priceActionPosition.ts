@@ -179,7 +179,6 @@ export async function get_surrounding_key_levels(current_price: string, key_leve
 export async function is_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
   // finds the demand zone that the price currently resides in else return null
   for (let i = 0; i < 7; i++) {
-    Context.current().heartbeat(JSON.stringify('looping'));
     if (current_price > demand_zones[i].bottom && current_price < demand_zones[i].top) {
       const zone = [[demand_zones[i].bottom, demand_zones[i].top]];
       return zone;
@@ -193,14 +192,12 @@ export async function is_demand_zone(current_price: number, demand_zones: Demand
 
 export async function find_demand_zone(current_price: number, demand_zones: DemandZones[]): Promise<number[][] | null> {
   const demandZone = await is_demand_zone(current_price, demand_zones);
-  Context.current().heartbeat(JSON.stringify('got the demand zone'));
   const surroundingZones: number[][] = [];
 
   if (demandZone !== null) {
     return demandZone;
   } else {
     for (let i = 0; i < demand_zones.length; i++) {
-      Context.current().heartbeat(JSON.stringify('looping'));
       if (i < demand_zones.length - 1 && (current_price < demand_zones[i].top && current_price > demand_zones[i + 1].bottom)) {
         const zone1: number[] = [demand_zones[i].bottom, demand_zones[i].top];
         const zone2: number[] = [demand_zones[i + 1].bottom, demand_zones[i + 1].top];
@@ -217,7 +214,6 @@ export async function find_demand_zone(current_price: number, demand_zones: Dema
 export async function is_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
   // finds the supply zone that the price currently resides in or is closest too
   for (let i = 0; i < supply_zones.length; i++) {
-    Context.current().heartbeat(JSON.stringify('looping'));
     if (current_price < supply_zones[i].top && current_price > supply_zones[i].bottom) {
       const zone = [[supply_zones[i].top, supply_zones[i].bottom]];
       return zone;
@@ -230,14 +226,12 @@ export async function is_supply_zone(current_price: number, supply_zones: Supply
 
 export async function find_supply_zone(current_price: number, supply_zones: SupplyZones[]): Promise<number[][] | null> {
   const supplyZone = await is_supply_zone(current_price, supply_zones);
-  Context.current().heartbeat(JSON.stringify('got the supply zone'));
   const surroundingZones: number[][] = [];
 
   if (supplyZone !== null) {
     return supplyZone;
   } else {
     for (let i = 0; i < supply_zones.length; i++) {
-      Context.current().heartbeat(JSON.stringify('looping'));
       if (i < supply_zones.length - 1 && (current_price < supply_zones[i].top && current_price > supply_zones[i + 1].bottom)) {
         const zone1: number[] = [supply_zones[i].top, supply_zones[i].bottom];
         const zone2: number[] = [supply_zones[i + 1].top, supply_zones[i + 1].bottom];
@@ -298,14 +292,12 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-      Context.current().heartbeat(JSON.stringify('recieved data'));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
       }
 
       if (data.data !== undefined) {
-        Context.current().heartbeat(JSON.stringify('recieved data'));
 
         messages.push(data.data[0].content[0]);
         messageCount += 1;
@@ -329,7 +321,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           demandZone,
           supplyZone,
         };
-        Context.current().heartbeat(JSON.stringify('got current price'));
         resolve(JSON.stringify(currentPriceData));
       } else if (demandZone?.length >= 1) {
         currentPriceData = {
@@ -337,7 +328,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           demandZone,
           supplyZone: [],
         };
-        Context.current().heartbeat(JSON.stringify('got current price'));
         resolve(JSON.stringify(currentPriceData));
       } else if (supplyZone?.length >= 1) {
         currentPriceData = {
@@ -345,7 +335,6 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
           demandZone: [],
           supplyZone,
         };
-        Context.current().heartbeat(JSON.stringify('got current price'));
         resolve(JSON.stringify(currentPriceData));
       } else {
         resolve('There are no demand or supply zones!');

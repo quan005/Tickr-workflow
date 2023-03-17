@@ -39,7 +39,7 @@ const {
   getLoginCredentials,
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 21600000,
-    heartbeatTimeout: 360000,
+    heartbeatTimeout: 1200000,
     retry: {
       maximumAttempts: 6,
       maximumInterval: 3000,
