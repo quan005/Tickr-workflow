@@ -253,9 +253,9 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
     supplyZone: [],
   };
   const dateTime = moment().tz('America/New_York');
-  let marketClose = dateTime.format('Hmm');
+  const marketClose = dateTime.format('Hmm');
   const day = dateTime.format('dddd');
-  let isMarketClosed = false;
+  const isMarketClosed = false;
   let messageCount = 0;
   let loggedIn = false;
   const messages: SocketResponse[] | null = [];
@@ -268,23 +268,23 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
     }
 
     client.onopen = () => {
-      marketClose = moment().tz('America/New_York').format('Hmm');
+      // marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
-        isMarketClosed = true;
-        client.close();
-      }
+      // if (parseInt(marketClose) >= 1600 || day === 'Saturday' || day === 'Sunday' || is_holiday) {
+      //   isMarketClosed = true;
+      //   client.close();
+      // }
 
       client.send(JSON.stringify(login_request));
     };
 
     client.onmessage = event => {
-      marketClose = moment().tz('America/New_York').format('Hmm');
+      // marketClose = moment().tz('America/New_York').format('Hmm');
 
-      if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
-        isMarketClosed = true;
-        client.close();
-      }
+      // if (parseInt(marketClose) >= 1600 || messageCount >= 1) {
+      //   isMarketClosed = true;
+      //   client.close();
+      // }
 
       if (loggedIn) {
         client.send(JSON.stringify(market_request));
@@ -306,9 +306,9 @@ export async function get_current_price(wsUrl: string, login_request: object, ma
     };
 
     client.onclose = async function () {
-      if (isMarketClosed) {
-        resolve('Market is currently closed!');
-      }
+      // if (isMarketClosed) {
+      //   resolve('Market is currently closed!');
+      // }
 
       closePrice = messages[0]["3"];
 
