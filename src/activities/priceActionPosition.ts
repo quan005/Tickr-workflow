@@ -350,121 +350,119 @@ export async function get_position_setup(surrounding_key_levels: string, current
   const supply_zone = newCurrentPrice.supplyZone;
 
   if (demand_zone[0] && supply_zone[0]) {
-    if (newSurroundingKeyLevels.above_resistance !== null && newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
+    if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null) {
       return JSON.stringify({
         demand: {
-          entry: newSurroundingKeyLevels.resistance,
-          stopLoss: newSurroundingKeyLevels.resistance - (Math.round(((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 4) * 10) / 10),
-          takeProfit: newSurroundingKeyLevels.above_resistance,
-          cutPosition: (((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 2) + newSurroundingKeyLevels.resistance),
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
         },
         supply: {
-          entry: newSurroundingKeyLevels.support,
-          stopLoss: newSurroundingKeyLevels.support + (Math.round(((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 4) * 10) / 10),
-          takeProfit: newSurroundingKeyLevels.below_support,
-          cutPosition: (newSurroundingKeyLevels.below_support - ((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 2)),
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
         },
       });
-    } else if (newSurroundingKeyLevels.resistance === null || newSurroundingKeyLevels.above_resistance === null) {
-      if (newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
-        return JSON.stringify({
-          demand: null,
-          supply: {
-            entry: newSurroundingKeyLevels.support,
-            stopLoss: newSurroundingKeyLevels.support + (Math.round(((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.below_support,
-            cutPosition: (newSurroundingKeyLevels.below_support - ((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 2)),
-          },
-        });
-      }
-    } else if (newSurroundingKeyLevels.support === null || newSurroundingKeyLevels.below_support === null) {
-      if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.above_resistance !== null) {
-        return JSON.stringify({
-          demand: {
-            entry: newSurroundingKeyLevels.resistance,
-            stopLoss: newSurroundingKeyLevels.resistance - (Math.round(((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.above_resistance,
-            cutPosition: (((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 2) + newSurroundingKeyLevels.resistance),
-          },
-          supply: null,
-        });
-      }
+    } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
+      return JSON.stringify({
+        demand: null,
+        supply: {
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+        },
+      });
+    } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
+      return JSON.stringify({
+        demand: {
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+        },
+        supply: null,
+      });
     } else {
       return 'There are no good position setups!';
     }
   } else if (demand_zone[0]) {
-    if (newSurroundingKeyLevels.above_resistance !== null && newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
+    if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null) {
       return JSON.stringify({
         demand: {
-          entry: newSurroundingKeyLevels.resistance,
-          stopLoss: newSurroundingKeyLevels.resistance - (Math.round(((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 4) * 10) / 10),
-          takeProfit: newSurroundingKeyLevels.above_resistance,
-          cutPosition: (((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 2) + newSurroundingKeyLevels.resistance),
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+        },
+        supply: {
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+        }
+      })
+    } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
+      return JSON.stringify({
+        demand: {
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
         },
         supply: null,
-      })
-    } else if (newSurroundingKeyLevels.support === null || newSurroundingKeyLevels.below_support === null) {
-      if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.above_resistance !== null) {
-        return JSON.stringify({
-          demand: {
-            entry: newSurroundingKeyLevels.resistance,
-            stopLoss: newSurroundingKeyLevels.resistance - (Math.round(((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.above_resistance,
-            cutPosition: (((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 2) + newSurroundingKeyLevels.resistance),
-          },
-          supply: null,
-        });
-      }
-    } else if (newSurroundingKeyLevels.resistance === null || newSurroundingKeyLevels.above_resistance === null) {
-      if (newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
-        return JSON.stringify({
-          demand: null,
-          supply: {
-            entry: newSurroundingKeyLevels.support,
-            stopLoss: newSurroundingKeyLevels.support + (Math.round(((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.below_support,
-            cutPosition: (newSurroundingKeyLevels.below_support - ((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 2)),
-          },
-        });
-      }
+      });
+    } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
+      return JSON.stringify({
+        demand: null,
+        supply: {
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+        },
+      });
     } else {
       return 'There are no good position setups!';
     }
   } else if (supply_zone[0]) {
-    if (newSurroundingKeyLevels.above_resistance !== null && newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
+    if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.support !== null) {
+      return JSON.stringify({
+        demand: {
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+        },
+        supply: {
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+        },
+      })
+    } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
+      return JSON.stringify({
+        demand: {
+          entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+        },
+        supply: null,
+      });
+    } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
       return JSON.stringify({
         demand: null,
         supply: {
-          entry: newSurroundingKeyLevels.support,
-          stopLoss: newSurroundingKeyLevels.support + (Math.round(((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 4) * 10) / 10),
-          takeProfit: newSurroundingKeyLevels.below_support,
-          cutPosition: (newSurroundingKeyLevels.below_support - ((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 2)),
+          entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
+          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
+          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
+          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
         },
-      })
-    } else if (newSurroundingKeyLevels.support === null || newSurroundingKeyLevels.below_support === null) {
-      if (newSurroundingKeyLevels.resistance !== null && newSurroundingKeyLevels.above_resistance !== null) {
-        return JSON.stringify({
-          demand: {
-            entry: newSurroundingKeyLevels.resistance,
-            stopLoss: newSurroundingKeyLevels.resistance - (Math.round(((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.above_resistance,
-            cutPosition: (((newSurroundingKeyLevels.above_resistance - newSurroundingKeyLevels.resistance) / 2) + newSurroundingKeyLevels.resistance),
-          },
-          supply: null,
-        });
-      }
-    } else if (newSurroundingKeyLevels.resistance === null || newSurroundingKeyLevels.above_resistance === null) {
-      if (newSurroundingKeyLevels.support !== null && newSurroundingKeyLevels.below_support !== null) {
-        return JSON.stringify({
-          demand: null,
-          supply: {
-            entry: newSurroundingKeyLevels.support,
-            stopLoss: newSurroundingKeyLevels.support + (Math.round(((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 4) * 10) / 10),
-            takeProfit: newSurroundingKeyLevels.below_support,
-            cutPosition: (newSurroundingKeyLevels.below_support - ((newSurroundingKeyLevels.support - newSurroundingKeyLevels.below_support) / 2)),
-          },
-        });
-      }
+      });
     } else {
       return 'There are no good position setups!';
     }
@@ -473,7 +471,6 @@ export async function get_position_setup(surrounding_key_levels: string, current
 }
 
 export async function getOptionsSelection(position_setup: string, symbol: string, access_token: string): Promise<string> {
-
   let callOptionResponse: OptionChainResponse | null = null;
   let putOptionResponse: OptionChainResponse | null = null;
   Context.current().heartbeat(JSON.stringify("getting option chain"));
@@ -636,7 +633,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
 
 export async function checkAccountAvailableBalance(access_token: string, account_id: string): Promise<number> {
   const getAccountResponse = await getAccount(access_token, account_id);
-  Context.current().heartbeat(JSON.stringify(getAccountResponse));
+  Context.current().heartbeat(JSON.stringify('got account info'));
   const availableBalance = getAccountResponse.securitiesAccount.projectedBalances.cashAvailableForTrading;
 
   return availableBalance;
@@ -765,8 +762,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
 
       client.send(JSON.stringify(login_request));
 
-      Context.current().heartbeat('login sent');
-
     };
 
     client.onmessage = async function (event) {
@@ -783,7 +778,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       }
 
       const data = JSON.parse(JSON.parse(JSON.stringify(event.data)));
-      Context.current().heartbeat(JSON.stringify('recieved data'));
 
       if (data.response && data.response[0].command === "LOGIN") {
         loggedIn = true;
@@ -792,7 +786,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       if (data.data) {
         if (newPositionSetup.demand && newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -810,15 +803,12 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
 
           demandTimeSalesEntryPercentage = metDemandEntryPrice / data.data[0].content.length;
           supplyTimeSalesEntryPercentage = metSupplyEntryPrice / data.data[0].content.length;
-          Context.current().heartbeat(JSON.stringify("recieved supply and demand"));
 
           if (demandTimeSalesEntryPercentage >= .6) {
             demandForming += 1;
           } else if (supplyTimeSalesEntryPercentage >= .6) {
             supplyForming += 1;
           }
-
-          Context.current().heartbeat(JSON.stringify("supply or demand forming"));
 
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
             callOrPut = 'CALL';
@@ -831,7 +821,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
         } else if (newPositionSetup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -843,13 +832,10 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
 
           demandTimeSalesEntryPercentage = metDemandEntryPrice / data.data[0].content.length;
-          Context.current().heartbeat(JSON.stringify('demand entry percentage'));
 
           if (demandTimeSalesEntryPercentage >= .6) {
             demandForming += 1;
           }
-
-          Context.current().heartbeat(demandForming);
 
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
             callOrPut = 'CALL';
@@ -858,7 +844,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
         } else if (newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            Context.current().heartbeat(JSON.stringify(i));
             if (data.data[0].content[i]["2"] <= newPositionSetup.supply.entry && data.data[0].content[i]["2"] > newPositionSetup.supply.cutPosition) {
               metSupplyEntryPrice += 1;
               supplySize += data.data[0].content[i]["3"];
@@ -870,12 +855,10 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
 
           supplyTimeSalesEntryPercentage = metSupplyEntryPrice / data.data[0].content.length;
-          Context.current().heartbeat(JSON.stringify('supply entry percentage'));
 
           if (supplyTimeSalesEntryPercentage >= .6) {
             supplyForming += 1;
           }
-          Context.current().heartbeat(JSON.stringify(supplyForming));
 
           if (supplyForming >= 3 && supplySize > demandSize || supplyForming > 1 && supplyConfirmation) {
             callOrPut = 'PUT';
@@ -887,7 +870,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
     }
 
     client.onclose = async function () {
-      Context.current().heartbeat(JSON.stringify(noGoodBuys));
       if (noGoodBuys) {
         resolve('Could not find any good buying opportunities!')
       }
@@ -899,7 +881,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       if (position === "Account balance is too low!" || position === "There are no call or put options selected for purchase") {
         resolve(position)
       } else {
-        Context.current().heartbeat(JSON.stringify(demandOrSupply));
         const newPosition: OrderDetails = JSON.parse(position);
         resolve(JSON.stringify({
           position: newPosition,
