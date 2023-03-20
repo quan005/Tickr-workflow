@@ -353,15 +353,15 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
@@ -369,18 +369,18 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: null,
       });
@@ -392,24 +392,24 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
-        }
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+        },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: null,
       });
@@ -418,9 +418,9 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
         },
       });
     } else {
@@ -431,24 +431,24 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
         },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.resistance - (Math.round((newSurroundingKeyLevels.resistance * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.resistance + (Math.round((newSurroundingKeyLevels.resistance * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
         },
         supply: null,
       });
@@ -457,9 +457,9 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round(newSurroundingKeyLevels.support + (Math.round((newSurroundingKeyLevels.support * 0.006) * 100) / 100) * 100) / 100,
-          takeProfit: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.018) * 100) / 100) * 100) / 100,
-          cutPosition: Math.round(newSurroundingKeyLevels.support - (Math.round((newSurroundingKeyLevels.support * 0.012) * 100) / 100) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
         },
       });
     } else {
