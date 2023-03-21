@@ -353,15 +353,15 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
@@ -369,18 +369,18 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: null,
       });
@@ -392,24 +392,24 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: null,
       });
@@ -418,9 +418,9 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       });
     } else {
@@ -431,24 +431,24 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
         },
         supply: null,
       });
@@ -457,9 +457,9 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.006)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.012)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
         },
       });
     } else {
@@ -626,7 +626,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
       },
     });
   } else {
-    return 'There are no call or put options that meets the requirements!';
+    return 'Both call and put responses were null!';
   }
 }
 
@@ -714,8 +714,8 @@ export async function openPosition(options: OptionsSelection, optionType: string
 
 export async function checkIfPositionFilled(order: string, account_id: string, access_token: string): Promise<number> {
   const openPositon: OpenPositionSignal = JSON.parse(order);
-  const orderID: PlaceOrdersResponse = openPositon.position.orderResponse;
-  const position = await getOrder(access_token, account_id, orderID.orderId);
+  const orderSymbol: PlaceOrdersResponse = openPositon.position.orderResponse;
+  const position = await getOrder(access_token, account_id, orderSymbol.orderSymbol);
   Context.current().heartbeat(JSON.stringify("recieved position"));
 
   if (position.status === 'FILLED' && position.filledQuantity) {
@@ -892,15 +892,15 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
 
 export async function getOptionSymbol(order: string, account_id: string, access_token: string): Promise<string> {
   const parsedOrder = JSON.parse(order);
-  let orderID: PlaceOrdersResponse;
+  let orderSymbol: PlaceOrdersResponse;
 
   if (parsedOrder.position) {
-    orderID = parsedOrder.position.orderResponse;
+    orderSymbol = parsedOrder.position.orderResponse;
   } else {
-    orderID = parsedOrder.orderResponse;
+    orderSymbol = parsedOrder.orderResponse;
   }
 
-  const option = await getOrder(access_token, account_id, orderID.orderId);
+  const option = await getOrder(access_token, account_id, orderSymbol.orderSymbol);
   Context.current().heartbeat(JSON.stringify("option signal"));
 
   if (option.orderLegCollection?.instrument.symbol) {
@@ -1567,18 +1567,15 @@ export async function placeOrder(access_token: string, account_id: string, order
       });
 
       resp.on('close', () => {
-        if (data === null || data === undefined || data === "") {
+        const parseJson = JSON.parse(data);
+        if (parseJson.error) {
           throw new Error('order did not fill');
         }
-        const parseJson = JSON.parse(data);
-        console.log('parseJson', parseJson);
-        try {
-          const dataObject = JSON.parse(parseJson);
-          return resolve(dataObject);
-        } catch (err) { }
+        const dataObject = {
+          orderSymbol: order_data.order.orderLegCollection[0].instrument.symbol
+        }
         Context.current().heartbeat(JSON.stringify('dataObject'));
-        return resolve(parseJson)
-
+        return resolve(dataObject)
       });
     }).on('error', (e) => {
       throw new Error(e.message);
@@ -1594,7 +1591,7 @@ export async function placeOrder(access_token: string, account_id: string, order
   });
 }
 
-export async function getOrder(access_token: string, account_id: string, order_id: string): Promise<GetOrderResponse> {
+export async function getOrder(access_token: string, account_id: string, order_symbol: string): Promise<GetOrderResponse> {
   const encodedtoken = encodeURIComponent(access_token);
   Context.current().heartbeat(JSON.stringify(encodedtoken));
   let data = '';
@@ -1603,7 +1600,7 @@ export async function getOrder(access_token: string, account_id: string, order_i
     const postData = {
       token: encodedtoken,
       accountId: account_id,
-      orderId: order_id,
+      orderSymbol: order_symbol,
     };
 
     const postDataAsString = JSON.stringify(postData);
@@ -1629,9 +1626,10 @@ export async function getOrder(access_token: string, account_id: string, order_i
 
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
-        const dataObject = JSON.parse(parseJson);
-        Context.current().heartbeat(JSON.stringify('dataObject'));
-        return resolve(dataObject);
+        if (parseJson.error) {
+          throw new Error(parseJson.error);
+        }
+        return resolve(parseJson);
       });
     }).on('error', (e) => {
       throw new Error(e.message);

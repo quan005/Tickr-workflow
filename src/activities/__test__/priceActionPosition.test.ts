@@ -1,21 +1,21 @@
-// import * as activities from "../priceActionPosition";
-// import * as mockPremarketData from "../mocks/premarketData.mock";
-// import * as moment from "moment-timezone";
-// import { tdCredentialsToString } from "../../tda/middleware/tdCredentialToString";
-// import { TokenJSON } from '../../interfaces/token';
-// import {
-//   AssetType,
-//   ComplexOrderStrategyType,
-//   DurationType,
-//   InstructionType,
-//   OrderLegType,
-//   OrderStrategyType,
-//   OrderType,
-//   PutCall,
-//   SessionType,
-// } from "../../interfaces/orders";
-// import * as dotenv from "dotenv";
-// dotenv.config();
+import * as activities from "../priceActionPosition";
+import * as mockPremarketData from "../mocks/premarketData.mock";
+import * as moment from "moment-timezone";
+import { tdCredentialsToString } from "../../tda/middleware/tdCredentialToString";
+import { TokenJSON } from '../../interfaces/token';
+import {
+  AssetType,
+  ComplexOrderStrategyType,
+  DurationType,
+  InstructionType,
+  OrderLegType,
+  OrderStrategyType,
+  OrderType,
+  PutCall,
+  SessionType,
+} from "../../interfaces/orders";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 
 // // it("returns an object with userid equal to TD_USERNAME env variable", async () => {
@@ -91,40 +91,40 @@
 // //   expect(typeof token).toBe("string");
 // // });
 
-// it("returns an object with current price, and surrounding demand and supply zones", async () => {
-//   let token = ""
-//   const account_id = process.env.TD_ACCOUNT_ID;
-//   const price = 275;
-//   const quantity = 1;
-//   const symbol = "AAPL_031723P155";
-//   const orderData = {
-//     accountId: account_id,
-//     order: {
-//       orderType: OrderType.LIMIT,
-//       price: price,
-//       session: SessionType.NORMAL,
-//       duration: DurationType.FILL_OR_KILL,
-//       orderStrategyType: OrderStrategyType.SINGLE,
-//       orderLegCollection: [{
-//         orderLegType: OrderLegType.OPTION,
-//         instruction: InstructionType.BUY_TO_OPEN,
-//         quantity: quantity,
-//         instrument: {
-//           assetType: AssetType.OPTION,
-//           symbol: symbol,
-//           putCall: PutCall.PUT,
-//         },
-//       }],
-//       complexOrderStrategyType: ComplexOrderStrategyType.NONE,
-//     },
-//   };
-//   const urlCode = await activities.getUrlCode();
-//   token = await activities.getLoginCredentials(urlCode);
-//   console.log('token', token);
-//   const openPositionResponse = await activities.placeOrder(token, account_id, orderData);
-//   console.log(openPositionResponse);
-//   expect(typeof token).toBe("string");
-// });
+it("returns an object with current price, and surrounding demand and supply zones", async () => {
+  let token = ""
+  const account_id = process.env.TD_ACCOUNT_ID;
+  const price = 0.02;
+  const quantity = 1;
+  const symbol = "AAPL_032423C180";
+  const orderData = {
+    accountId: account_id,
+    order: {
+      orderType: OrderType.LIMIT,
+      price: price,
+      session: SessionType.NORMAL,
+      duration: DurationType.FILL_OR_KILL,
+      orderStrategyType: OrderStrategyType.SINGLE,
+      orderLegCollection: [{
+        orderLegType: OrderLegType.OPTION,
+        instruction: InstructionType.BUY_TO_OPEN,
+        quantity: quantity,
+        instrument: {
+          assetType: AssetType.OPTION,
+          symbol: symbol,
+          putCall: PutCall.CALL,
+        },
+      }],
+      complexOrderStrategyType: ComplexOrderStrategyType.NONE,
+    },
+  };
+  const urlCode = await activities.getUrlCode();
+  token = await activities.getLoginCredentials(urlCode);
+  console.log('token', token);
+  const openPositionResponse = await activities.placeOrder(token, account_id, orderData);
+  console.log(openPositionResponse);
+  expect(typeof token).toBe("string");
+});
 
 // // it("returns the current price surrounding key levels", async () => {
 // //   const currentPrice = 132.31;

@@ -126,7 +126,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Selecting Option';
   const optionSelection = await getOptionsSelection(positionSetup, symbol, token);
 
-  if (optionSelection === "There are no call or put options that meets the requirements!") {
+  if (optionSelection === "There are no call or put options that meets the requirements!" || optionSelection === "Both call and put responses were null!") {
     return optionSelection;
   }
 

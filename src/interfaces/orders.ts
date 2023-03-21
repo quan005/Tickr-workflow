@@ -7,7 +7,7 @@ export interface OrderDetails {
 
 export interface PlaceOrdersResponse {
   error?: string;
-  orderId: string;
+  orderSymbol: string;
 }
 export interface OrdersConfig {
   accountId: string;
