@@ -476,7 +476,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
   const toDate = moment().add((5 - moment().isoWeekday()), 'day').format('YYYY-MM-DD');
   const fromDate = moment().isoWeekday() !== 5 ? moment().add((moment().isoWeekday() % 5), 'day').subtract(1, 'day').format('YYYY-MM-DD') : moment().add((moment().isoWeekday() % 5), 'day').format('YYYY-MM-DD');
   const numberOfDaysAway = moment().isoWeekday() !== 5 ? (5 - moment().isoWeekday()) : 0;
-  const optionString = `${fromDate}:${numberOfDaysAway}`;
+  const optionString = `${toDate}:${numberOfDaysAway}`;
   const newPositionSetup: PositionSetup = JSON.parse(position_setup);
 
   if (newPositionSetup.demand !== null) {
@@ -745,6 +745,9 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
   let marketClose = dateTime.format('Hmm');
   const day = dateTime.format('dddd');
   const newPositionSetup: PositionSetup = JSON.parse(position_setup);
+  // let threePriceBehind = 0;
+  // let twoPriceBehind = 0;
+  // let onePriceBehind = 0;
 
   return await new Promise(async (resolve) => {
     const client = new WebSocket(wsUrl);
@@ -785,6 +788,21 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
       if (data.data) {
         if (newPositionSetup.demand && newPositionSetup.supply) {
           for (let i = 0; i < data.data[0].content.length; i++) {
+            // if (threePriceBehind === 0) {
+            //   if (onePriceBehind === 0) {
+            //     onePriceBehind = data.data[0].content[i]["2"];
+            //     continue;
+            //   } else if (twoPriceBehind === 0) {
+            //     twoPriceBehind = onePriceBehind;
+            //     onePriceBehind = data.data[0].content[i]["2"];
+            //     continue;
+            //   } else {
+            //     threePriceBehind = twoPriceBehind;
+            //     twoPriceBehind = onePriceBehind;
+            //     onePriceBehind = data.data[0].content[i]["2"];
+            //     continue;
+            //   }
+            // }
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
@@ -1674,12 +1692,13 @@ export async function getOptionChain(access_token: string, option_chain_config: 
     const response = https.request(authOptions, (resp) => {
       resp.on('data', (chunk) => {
         data += chunk;
-        Context.current().heartbeat(JSON.stringify(data));
+        console.log('option data', data);
       });
 
       resp.on('close', () => {
         const parseJson = JSON.parse(data);
         const dataObject = JSON.parse(parseJson);
+        console.log('option dataObject', dataObject);
         Context.current().heartbeat(JSON.stringify('dataObject'));
         return resolve(dataObject);
       });
