@@ -791,16 +791,13 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
             // if (threePriceBehind === 0) {
             //   if (onePriceBehind === 0) {
             //     onePriceBehind = data.data[0].content[i]["2"];
-            //     continue;
             //   } else if (twoPriceBehind === 0) {
             //     twoPriceBehind = onePriceBehind;
             //     onePriceBehind = data.data[0].content[i]["2"];
-            //     continue;
             //   } else {
             //     threePriceBehind = twoPriceBehind;
             //     twoPriceBehind = onePriceBehind;
             //     onePriceBehind = data.data[0].content[i]["2"];
-            //     continue;
             //   }
             // }
             if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
@@ -1256,51 +1253,7 @@ export async function waitToSignalClosePosition(wsUrl: string, login_request: ob
   });
 }
 
-export async function getUrlCode(): Promise<string> {
-  let data = '';
-  Context.current().heartbeat(JSON.stringify(data));
-  return await new Promise((resolve) => {
-    const urlOptions = {
-      host: `${process.env.API_HOSTNAME}`,
-      path: '/api/url-code',
-      method: 'GET',
-      rejectUnauthorized: false,
-    }
-
-    const response = https.request(urlOptions, (resp) => {
-      resp.on('data', (chunk) => {
-        data += chunk;
-        Context.current().heartbeat(JSON.stringify(data));
-      });
-
-      resp.on('close', () => {
-        if (data === null || data === undefined || typeof data !== "string") {
-          throw new Error('Url code is not available.');
-        }
-        if (data[0] === "<") {
-          throw new Error('Url code is not available.');
-        }
-        const parseUrl = url.parse(data, true).query;
-        const code = parseUrl.code;
-        const postData = JSON.stringify(code);
-
-        Context.current().heartbeat(postData);
-
-        return resolve(postData);
-      })
-    }).on('error', (e) => {
-      throw new Error(e.message);
-    });
-
-    Context.current().heartbeat(JSON.stringify("response in motion"));
-
-    response.end();
-  });
-}
-
-export async function getLoginCredentials(urlCode: string): Promise<string> {
-  const encodedPassword = encodeURIComponent(urlCode);
-  Context.current().heartbeat(JSON.stringify(encodedPassword));
+export async function getLoginCredentials(): Promise<string> {
   let token: string;
   let data = '';
 
@@ -1308,11 +1261,7 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/auth',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(encodedPassword),
-      },
+      method: 'GET',
       rejectUnauthorized: false,
     };
 
@@ -1344,7 +1293,6 @@ export async function getLoginCredentials(urlCode: string): Promise<string> {
       throw new Error(e.message);
     });
 
-    response.write(encodedPassword);
     response.end();
   });
 }

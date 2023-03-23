@@ -35,7 +35,6 @@ const {
   getOptionSymbol,
   waitToSignalCutPosition,
   waitToSignalClosePosition,
-  getUrlCode,
   getLoginCredentials,
   getUserPrinciples } = proxyActivities<typeof activities>({
     startToCloseTimeout: 21600000,
@@ -75,8 +74,6 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   let token = '';
 
-  let urlCode = '';
-
   let gettingUserPrinciples = {
     userPrinciples: null,
     params: null,
@@ -96,8 +93,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   await sleep(timeRemaining);
 
   state = 'Getting Auth Token 1';
-  urlCode = await getUrlCode();
-  token = await getLoginCredentials(urlCode);
+  token = await getLoginCredentials();
   state = 'Getting User Principles 1';
   gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
   let wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
@@ -139,7 +135,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   if (signalOpenPosition !== "Could not find any good buying opportunities!") {
     state = 'Getting Auth Token 2';
-    token = await getLoginCredentials(urlCode);
+    token = await getLoginCredentials();
     state = 'Getting User Principles 2';
     gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
@@ -156,8 +152,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
 
     state = 'Getting Auth Token 3';
-    urlCode = await getUrlCode();
-    token = await getLoginCredentials(urlCode);
+    token = await getLoginCredentials();
     state = 'Getting User Principles 3';
     gettingUserPrinciples = await getUserPrinciples(token, premarketData.symbol);
     wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
