@@ -127,6 +127,10 @@ export interface OptionMap {
   [key: string]: OptionDetails[]
 }
 
+export interface QuoteOptionMap {
+  [key: string]: OptionDetails
+}
+
 export interface ExpDateMap {
   [key: string]: OptionMap
 }

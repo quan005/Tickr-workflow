@@ -1,6 +1,7 @@
 export interface OrderDetails {
   orderResponse: PlaceOrdersResponse;
   price?: number;
+  strikePrice: number;
   quantity?: number;
   optionSymbol?: string;
 }

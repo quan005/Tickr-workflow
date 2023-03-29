@@ -27,7 +27,7 @@ import {
   SessionType,
 } from "../interfaces/orders";
 import { Account } from "../interfaces/account";
-import { ContractType, OptionChainConfig, OptionChainResponse, OptionDetails, OptionMap, RangeType } from "../interfaces/optionChain";
+import { ContractType, OptionChainConfig, OptionChainResponse, OptionDetails, OptionMap, QuoteOptionMap, RangeType } from "../interfaces/optionChain";
 import { SocketResponse } from "../interfaces/websocketEvent";
 import * as moment from "moment-timezone";
 import Holidays, * as holidays from "date-holidays";
@@ -353,15 +353,17 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.resistance === null && newSurroundingKeyLevels.support !== null) {
@@ -369,18 +371,20 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       });
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: null,
       });
@@ -392,24 +396,27 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: null,
       });
@@ -418,9 +425,10 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       });
     } else {
@@ -431,24 +439,27 @@ export async function get_position_setup(surrounding_key_levels: string, current
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       })
     } else if (newSurroundingKeyLevels.support === null && newSurroundingKeyLevels.resistance !== null) {
       return JSON.stringify({
         demand: {
           entry: Math.round(newSurroundingKeyLevels.resistance * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.resistance - (newSurroundingKeyLevels.resistance * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.resistance + (newSurroundingKeyLevels.resistance * 0.015)) * 100) / 100,
         },
         supply: null,
       });
@@ -457,9 +468,10 @@ export async function get_position_setup(surrounding_key_levels: string, current
         demand: null,
         supply: {
           entry: Math.round(newSurroundingKeyLevels.support * 100) / 100,
-          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.009)) * 100) / 100,
-          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.027)) * 100) / 100,
-          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.018)) * 100) / 100,
+          stopLoss: Math.round((newSurroundingKeyLevels.support + (newSurroundingKeyLevels.support * 0.0075)) * 100) / 100,
+          breakEven: 0,
+          takeProfit: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.0225)) * 100) / 100,
+          cutPosition: Math.round((newSurroundingKeyLevels.support - (newSurroundingKeyLevels.support * 0.015)) * 100) / 100,
         },
       });
     } else {
@@ -469,12 +481,12 @@ export async function get_position_setup(surrounding_key_levels: string, current
   return 'There are no good position setups!';
 }
 
-export async function getOptionsSelection(position_setup: string, symbol: string, access_token: string): Promise<string> {
+export async function getOptionsSelection(position_setup: string, symbol: string, access_token: string, budget: number): Promise<string> {
   let callOptionResponse: OptionChainResponse | null = null;
   let putOptionResponse: OptionChainResponse | null = null;
   Context.current().heartbeat(JSON.stringify("getting option chain"));
   const toDate = moment().add((5 - moment().isoWeekday()), 'day').format('YYYY-MM-DD');
-  const fromDate = moment().isoWeekday() !== 5 ? moment().add((moment().isoWeekday() % 5), 'day').subtract(1, 'day').format('YYYY-MM-DD') : moment().add((moment().isoWeekday() % 5), 'day').format('YYYY-MM-DD');
+  const fromDate = moment().format('YYYY-MM-DD');
   const numberOfDaysAway = moment().isoWeekday() !== 5 ? (5 - moment().isoWeekday()) : 0;
   const optionString = `${toDate}:${numberOfDaysAway}`;
   const newPositionSetup: PositionSetup = JSON.parse(position_setup);
@@ -504,8 +516,8 @@ export async function getOptionsSelection(position_setup: string, symbol: string
   Context.current().heartbeat(JSON.stringify("recieved options"));
 
   if (callOptionResponse !== null && putOptionResponse !== null) {
-    const call = filterOptionResponse(callOptionResponse.callExpDateMap[optionString], "CALL");
-    const put = filterOptionResponse(putOptionResponse.putExpDateMap[optionString], "PUT");
+    const call = filterOptionResponse(callOptionResponse.callExpDateMap[optionString], "CALL", budget);
+    const put = filterOptionResponse(putOptionResponse.putExpDateMap[optionString], "PUT", budget);
 
     if (call && put) {
       return JSON.stringify({
@@ -522,6 +534,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
           theta: call.theta,
           vega: call.vega,
           rho: call.rho,
+          strikePrice: call.strikePrice
         },
         PUT: {
           symbol: put.symbol,
@@ -536,6 +549,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
           theta: put.theta,
           vega: put.vega,
           rho: put.rho,
+          strikePrice: put.strikePrice
         },
       });
     } else if (call) {
@@ -553,6 +567,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
           theta: call.theta,
           vega: call.vega,
           rho: call.rho,
+          strikePrice: call.strikePrice
         },
         PUT: null,
       });
@@ -572,16 +587,17 @@ export async function getOptionsSelection(position_setup: string, symbol: string
           theta: put.theta,
           vega: put.vega,
           rho: put.rho,
+          strikePrice: put.strikePrice
         },
       });
     } else {
       return 'There are no call or put options that meets the requirements!';
     }
   } else if (callOptionResponse !== null) {
-    const call = filterOptionResponse(callOptionResponse.callExpDateMap[optionString], "CALL");
+    const call = filterOptionResponse(callOptionResponse.callExpDateMap[optionString], "CALL", budget);
 
     if (call === null) {
-      return 'There are no call or put options that meets the requirements!';
+      return 'There are no call options that meets the requirements!';
     }
 
     return JSON.stringify({
@@ -598,14 +614,15 @@ export async function getOptionsSelection(position_setup: string, symbol: string
         theta: call.theta,
         vega: call.vega,
         rho: call.rho,
+        strikePrice: call.strikePrice,
       },
       PUT: null,
     });
   } else if (putOptionResponse !== null) {
-    const put = filterOptionResponse(putOptionResponse.putExpDateMap[optionString], "PUT");
+    const put = filterOptionResponse(putOptionResponse.putExpDateMap[optionString], "PUT", budget);
 
     if (put === null) {
-      return 'There are no call or put options that meets the requirements!';
+      return 'There are no put options that meets the requirements!';
     }
 
     return JSON.stringify({
@@ -623,6 +640,7 @@ export async function getOptionsSelection(position_setup: string, symbol: string
         theta: put.theta,
         vega: put.vega,
         rho: put.rho,
+        strikePrice: put.strikePrice
       },
     });
   } else {
@@ -643,34 +661,29 @@ export async function openPosition(options: OptionsSelection, optionType: string
   let optionPrice = 0;
   let quantity = 0;
   let symbol = '';
+  let strikePrice = 0;
+
   Context.current().heartbeat(JSON.stringify('default option price'));
 
   if (options.CALL === null && options.PUT === null) {
     return 'There are no call or put options selected for purchase!';
   } else if (options.CALL !== null && options.PUT !== null) {
-    const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
-    const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
-    optionPrice = optionType === 'CALL' ? options.CALL.ask : options.PUT.ask;
-    price = optionType === 'CALL' ? (options.CALL.ask * 100) * quantityCall : (options.PUT.ask * 100) * quantityPut;
     symbol = optionType === 'CALL' ? options.CALL.symbol : options.PUT.symbol;
-    quantity = optionType === 'CALL' ? quantityCall : quantityPut;
+    strikePrice = optionType === 'CALL' ? options.CALL.strikePrice : options.PUT.strikePrice;
   } else if (options.CALL !== null) {
-    const quantityCall = Math.floor(budget / (options.CALL.ask * 100));
-    optionPrice = options.CALL.ask;
-    price = (options.CALL.ask * 100) * quantityCall;
     symbol = options.CALL.symbol;
-    quantity = quantityCall;
+    strikePrice = options.CALL.strikePrice;
   } else if (options.PUT !== null) {
-    const quantityPut = Math.floor(budget / (options.PUT.ask * 100));
-    optionPrice = options.PUT.ask;
-    price = (options.PUT.ask * 100) * quantityPut;
     symbol = options.PUT.symbol;
-    quantity = quantityPut;
+    strikePrice = options.PUT.strikePrice;
   }
 
-  Context.current().heartbeat(JSON.stringify('got option price'));
-
   const accountBalance = await checkAccountAvailableBalance(access_token, account_id);
+  const optionDetails = await getQuote(access_token, symbol);
+  optionPrice = optionDetails[symbol].ask;
+
+  quantity = Math.floor(budget / (optionPrice * 100));
+  price = Math.floor((optionPrice * 100) * quantity);
 
   if (accountBalance < price) {
     return 'Account balance is too low!';
@@ -698,6 +711,8 @@ export async function openPosition(options: OptionsSelection, optionType: string
     },
   });
 
+  Context.current().heartbeat(JSON.stringify('got option price'));
+
   if (openPositionResponse.error) {
     throw new Error(openPositionResponse.error);
   }
@@ -706,7 +721,8 @@ export async function openPosition(options: OptionsSelection, optionType: string
 
   return JSON.stringify({
     orderResponse: openPositionResponse,
-    price,
+    price: optionPrice,
+    strikePrice,
     quantity,
     optionSymbol: symbol
   });
@@ -744,7 +760,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
   const dateTime = moment().tz('America/New_York');
   let marketClose = dateTime.format('Hmm');
   const day = dateTime.format('dddd');
-  const newPositionSetup: PositionSetup = JSON.parse(position_setup);
+  let newPositionSetup: PositionSetup = JSON.parse(position_setup);
   // let threePriceBehind = 0;
   // let twoPriceBehind = 0;
   // let onePriceBehind = 0;
@@ -800,16 +816,12 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
             //     onePriceBehind = data.data[0].content[i]["2"];
             //   }
             // }
-            if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
+            if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
-            } else if (data.data[0].content[i]["2"] > newPositionSetup.demand.entry && demandForming >= 2) {
-              demandConfirmation = true;
-            } else if (data.data[0].content[i]["2"] <= newPositionSetup.supply.entry && data.data[0].content[i]["2"] > newPositionSetup.supply.cutPosition) {
+            } else if (data.data[0].content[i]["2"] <= newPositionSetup.supply.entry) {
               metSupplyEntryPrice += 1;
               supplySize += data.data[0].content[i]["3"];
-            } else if (data.data[0].content[i]["2"] < newPositionSetup.supply.entry && supplyForming >= 2) {
-              supplyConfirmation = true;
             } else {
               continue;
             }
@@ -824,6 +836,12 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
             supplyForming += 1;
           }
 
+          if (demandForming >= 2) {
+            demandConfirmation = true;
+          } else if (supplyForming >= 2) {
+            supplyConfirmation = true;
+          }
+
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
             callOrPut = 'CALL';
             demandOrSupply = 'DEMAND';
@@ -835,11 +853,9 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
           }
         } else if (newPositionSetup.demand) {
           for (let i = 0; i < data.data[0].content.length; i++) {
-            if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry && data.data[0].content[i]["2"] < newPositionSetup.demand.cutPosition) {
+            if (data.data[0].content[i]["2"] >= newPositionSetup.demand.entry) {
               metDemandEntryPrice += 1;
               demandSize += data.data[0].content[i]["3"];
-            } else if (data.data[0].content[i]["2"] > newPositionSetup.demand.entry && demandForming >= 2) {
-              demandConfirmation = true;
             } else {
               continue;
             }
@@ -849,6 +865,10 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
 
           if (demandTimeSalesEntryPercentage >= .6) {
             demandForming += 1;
+          }
+
+          if (demandForming >= 2) {
+            demandConfirmation = true;
           }
 
           if (demandForming >= 3 && demandSize > supplySize || demandForming > 1 && demandConfirmation) {
@@ -861,8 +881,6 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
             if (data.data[0].content[i]["2"] <= newPositionSetup.supply.entry && data.data[0].content[i]["2"] > newPositionSetup.supply.cutPosition) {
               metSupplyEntryPrice += 1;
               supplySize += data.data[0].content[i]["3"];
-            } else if (data.data[0].content[i]["2"] < newPositionSetup.supply.entry && supplyForming >= 2) {
-              supplyConfirmation = true;
             } else {
               continue;
             }
@@ -872,6 +890,10 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
 
           if (supplyTimeSalesEntryPercentage >= .6) {
             supplyForming += 1;
+          }
+
+          if (supplyForming >= 2) {
+            supplyConfirmation = true;
           }
 
           if (supplyForming >= 3 && supplySize > demandSize || supplyForming > 1 && supplyConfirmation) {
@@ -896,8 +918,33 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
         resolve(position)
       } else {
         const newPosition: OrderDetails = JSON.parse(position);
+        if (callOrPut === 'CALL') {
+          newPositionSetup = {
+            ...newPositionSetup,
+            demand: {
+              ...newPositionSetup.demand,
+              stopLoss: Math.round(((newPosition.strikePrice - (0.09 * newPosition.price)) + newPosition.price) * 100) / 100,
+              breakEven: Math.round((newPosition.price + newPosition.strikePrice) * 100) / 100,
+              cutPosition: Math.round(((newPosition.strikePrice + (0.18 * newPosition.price)) + newPosition.price) * 100) / 100,
+              takeProfit: Math.round(((newPosition.strikePrice + (0.27 * newPosition.price)) + newPosition.price) * 100) / 100,
+            }
+          }
+        } else if (callOrPut === 'PUT') {
+          newPositionSetup = {
+            ...newPositionSetup,
+            supply: {
+              ...newPositionSetup.supply,
+              stopLoss: Math.round(((newPosition.strikePrice + (0.09 * newPosition.price)) - newPosition.price) * 100) / 100,
+              breakEven: Math.round((newPosition.price + newPosition.strikePrice) * 100) / 100,
+              cutPosition: Math.round(((newPosition.strikePrice - (0.18 * newPosition.price)) - newPosition.price) * 100) / 100,
+              takeProfit: Math.round(((newPosition.strikePrice - (0.27 * newPosition.price)) - newPosition.price) * 100) / 100,
+            }
+          }
+        }
+
         resolve(JSON.stringify({
           position: newPosition,
+          positionSetup: newPositionSetup,
           demandOrSupply,
         }));
       }
@@ -905,7 +952,7 @@ export async function waitToSignalOpenPosition(wsUrl: string, login_request: obj
   })
 }
 
-export async function getOptionSymbol(order: string, account_id: string, access_token: string): Promise<string> {
+export async function getOptionSymbol(order: string): Promise<string> {
   const parsedOrder = JSON.parse(order);
   let orderSymbol: PlaceOrdersResponse;
 
@@ -915,11 +962,10 @@ export async function getOptionSymbol(order: string, account_id: string, access_
     orderSymbol = parsedOrder.orderResponse;
   }
 
-  const option = await getOrder(access_token, account_id, orderSymbol.orderSymbol);
   Context.current().heartbeat(JSON.stringify("option signal"));
 
-  if (option.orderLegCollection?.instrument.symbol) {
-    return option.orderLegCollection?.instrument.symbol;
+  if (orderSymbol.orderSymbol) {
+    return orderSymbol.orderSymbol;
   } else {
     throw ApplicationFailure.create({ nonRetryable: true, message: 'There is not an order to get!' });
   }
@@ -986,8 +1032,8 @@ export async function closePosition(symbol: string, quantity: number, account_id
 }
 
 export async function waitToSignalCutPosition(wsUrl: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, order: string, position_setup: string, account_id: string, access_token: string, is_holiday: boolean): Promise<number> {
-  const openPositon: OpenPositionSignal = JSON.parse(order);
-  const demandOrSupply = openPositon.demandOrSupply;
+  const openPositonSignal: OpenPositionSignal = JSON.parse(order);
+  const demandOrSupply = openPositonSignal.demandOrSupply;
   let demandTimeSalesCutPercentage = 0;
   let demandTimeSalesStopLossPercentage = 0;
   let demandTimeSalesTakeProfitPercentage = 0;
@@ -1008,7 +1054,11 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
   let marketClose = dateTime.format('Hmm');
   const day = dateTime.format('dddd');
   let cutFilled = 0;
-  const newPositionSetup: PositionSetup = JSON.parse(position_setup);
+  const newPositionSetup: PositionSetup = openPositonSignal.positionSetup;
+
+  if (quantity < 2) {
+    return cutFilled
+  }
 
   return await new Promise(async (resolve) => {
     const client = new WebSocket(wsUrl);
@@ -1123,8 +1173,8 @@ export async function waitToSignalCutPosition(wsUrl: string, login_request: obje
 }
 
 export async function waitToSignalClosePosition(wsUrl: string, login_request: object, book_request: object, time_sales_request: object, symbol: string, quantity: number, order: string, position_setup: string, account_id: string, access_token: string, is_holiday: boolean): Promise<string> {
-  const openPositon: OpenPositionSignal = JSON.parse(order);
-  const demandOrSupply = openPositon.demandOrSupply;
+  const openPositonSignal: OpenPositionSignal = JSON.parse(order);
+  const demandOrSupply = openPositonSignal.demandOrSupply;
   let demandTimeSalesCutPercentage = 0;
   let demandTimeSalesStopLossPercentage = 0;
   let demandTimeSalesTakeProfitPercentage = 0;
@@ -1559,7 +1609,7 @@ export async function placeOrder(access_token: string, account_id: string, order
 
 export async function getOrder(access_token: string, account_id: string, order_symbol: string): Promise<GetOrderResponse> {
   const encodedtoken = encodeURIComponent(access_token);
-  Context.current().heartbeat(JSON.stringify(encodedtoken));
+  // Context.current().heartbeat(JSON.stringify(encodedtoken));
   let data = '';
 
   return await new Promise((resolve) => {
@@ -1570,11 +1620,64 @@ export async function getOrder(access_token: string, account_id: string, order_s
     };
 
     const postDataAsString = JSON.stringify(postData);
-    Context.current().heartbeat(postDataAsString);
+    // Context.current().heartbeat(postDataAsString);
 
     const authOptions = {
       host: `${process.env.API_HOSTNAME}`,
       path: '/api/td-get-order',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postDataAsString),
+      },
+      rejectUnauthorized: false,
+      timeout: 10000,
+    };
+
+    const response = https.request(authOptions, (resp) => {
+      resp.on('data', (chunk) => {
+        data += chunk;
+        // Context.current().heartbeat(JSON.stringify(data));
+      });
+
+      resp.on('close', () => {
+        const parseJson = JSON.parse(data);
+        if (parseJson.error) {
+          throw new Error(parseJson.error);
+        }
+        return resolve(parseJson);
+      });
+    }).on('error', (e) => {
+      throw new Error(e.message);
+    });
+
+    response.on('timeout', () => {
+      throw new Error('Connection timed out');
+    });
+
+    response.write(postDataAsString);
+    // Context.current().heartbeat(JSON.stringify("response in motion"));
+    response.end();
+  });
+}
+
+export async function getQuote(access_token: string, quote_symbol: string): Promise<QuoteOptionMap> {
+  const encodedtoken = encodeURIComponent(access_token);
+  Context.current().heartbeat(JSON.stringify(encodedtoken));
+  let data = '';
+
+  return await new Promise((resolve) => {
+    const postData = {
+      token: encodedtoken,
+      quoteSymbol: quote_symbol,
+    };
+
+    const postDataAsString = JSON.stringify(postData);
+    Context.current().heartbeat(postDataAsString);
+
+    const authOptions = {
+      host: `${process.env.API_HOSTNAME}`,
+      path: '/api/td-quotes',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1664,7 +1767,7 @@ export async function getOptionChain(access_token: string, option_chain_config: 
   });
 }
 
-export function filterOptionResponse(optionMap: OptionMap, optionType: string): OptionDetails | null {
+export function filterOptionResponse(optionMap: OptionMap, optionType: string, budget: number): OptionDetails | null {
   const optionsArray: OptionDetails[] = [];
 
   for (const option in optionMap) {
@@ -1672,7 +1775,7 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
     if (optionType === "CALL" && optionMap[option][0].delta > .500 && optionMap[option][0].delta < .700) {
       optionsArray.push(optionMap[option][0]);
     }
-    if (optionType === "PUT" && optionMap[option][0].delta < -0.400 && optionMap[option][0].delta > -0.800) {
+    if (optionType === "PUT" && optionMap[option][0].delta < -0.700 && optionMap[option][0].delta > -0.900) {
       optionsArray.push(optionMap[option][0]);
     }
   }
@@ -1680,7 +1783,9 @@ export function filterOptionResponse(optionMap: OptionMap, optionType: string): 
   optionsArray.sort((a, b) => (a.ask > b.ask) ? 1 : -1);
   Context.current().heartbeat(JSON.stringify('got the option array'));
 
-  if (optionsArray.length > 1) {
+  if (optionsArray.length > 2 && optionsArray[2].ask < budget) {
+    return optionsArray[2];
+  } else if (optionsArray.length > 1) {
     return optionsArray[1];
   } else if (optionsArray.length === 1) {
     return optionsArray[0];

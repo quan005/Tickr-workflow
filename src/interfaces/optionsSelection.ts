@@ -11,7 +11,8 @@ export interface OptionsSelection {
     gamma: number,
     theta: number,
     vega: number,
-    rho: number
+    rho: number,
+    strikePrice: number
   } | null,
   PUT: {
     symbol: string,
@@ -25,6 +26,7 @@ export interface OptionsSelection {
     gamma: number,
     theta: number,
     vega: number,
-    rho: number
+    rho: number,
+    strikePrice: number
   } | null,
 }
