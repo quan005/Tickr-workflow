@@ -1,10 +1,10 @@
-export interface DemandZones {
+export interface DemandZone {
   bottom: number;
   top: number;
   dateTime?: string;
 }
 
-export interface SupplyZones {
+export interface SupplyZone {
   top: number;
   bottom: number;
   dateTime?: string;

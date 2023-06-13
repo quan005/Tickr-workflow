@@ -8,6 +8,7 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
+    "downlevelIteration": true,
   },
   "include": ["./src/**/*", "proxy", "./src/certs/*", "../src/interfaces/account.ts", "../src/scripts/build-workflow-bundle.ts"]
 }

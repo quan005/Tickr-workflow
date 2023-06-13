@@ -10,14 +10,17 @@ export interface PlaceOrdersResponse {
   error?: string;
   orderSymbol: string;
 }
+
 export interface OrdersConfig {
   accountId: string;
   order: Order;
 }
+
 export interface CancelOrderConfig {
   accountId: string;
   orderId: string;
 }
+
 export interface CancelTime {
   date: string;
   shortFormat: boolean;
@@ -82,6 +85,7 @@ export enum RequestedDestination {
   C2 = "C2",
   AUTO = "AUTO",
 }
+
 export enum StopPriceLinkBasis {
   MANUAL = "MANUAL",
   BASE = "BASE",
@@ -93,11 +97,13 @@ export enum StopPriceLinkBasis {
   MARK = "MARK",
   AVERAGE = "AVERAGE",
 }
+
 export enum StopPriceLinkType {
   VALUE = "VALUE",
   PERCENT = "PERCENT",
   TICK = "TICK",
 }
+
 export enum StopType {
   STANDARD = "STANDARD",
   BID = "BID",
@@ -105,6 +111,7 @@ export enum StopType {
   LAST = "LAST",
   MARK = "MARK",
 }
+
 export enum PriceLinkBasis {
   MANUAL = "MANUAL",
   BASE = "BASE",
@@ -116,6 +123,7 @@ export enum PriceLinkBasis {
   MARK = "MARK",
   AVERAGE = "AVERAGE",
 }
+
 export interface Order {
   orderType: OrderType;
   price?: number;
@@ -140,6 +148,7 @@ export interface Order {
   priceLinkType?: PriceLinkType;
   taxLotMethod?: TaxLotMethod;
 }
+
 export enum TaxLotMethod {
   FIFO = "",
   LIFO = "",
@@ -148,11 +157,13 @@ export enum TaxLotMethod {
   AVERAGE_COST = "",
   SPECIFIC_LOT = "",
 }
+
 export enum PriceLinkType {
   VALUE = "VALUE",
   PERCENT = "PERCENT",
   TICK = "TICK",
 }
+
 export enum OrderType {
   MARKET = "MARKET",
   LIMIT = "LIMIT",
@@ -166,22 +177,26 @@ export enum OrderType {
   NET_CREDIT = "NET_CREDIT",
   NET_ZERO = "NET_ZERO",
 }
+
 export enum SessionType {
   NORMAL = "NORMAL",
   AM = "AM",
   PM = "PM",
   SEAMLESS = "SEAMLESS",
 }
+
 export enum DurationType {
   DAY = "DAY",
   GOOD_TILL_CANCEL = "GOOD_TILL_CANCEL",
   FILL_OR_KILL = "FILL_OR_KILL",
 }
+
 export enum OrderStrategyType {
   SINGLE = "SINGLE",
   OCO = "OCO",
   TRIGGER = "TRIGGER",
 }
+
 export enum OrderLegType {
   EQUITY = "EQUITY",
   OPTION = "OPTION",
@@ -191,6 +206,7 @@ export enum OrderLegType {
   FIXED_INCOME = "FIXED_INCOME",
   CURRENCY = "CURRENCY",
 }
+
 export interface OrderLeg {
   orderLegType: OrderLegType;
   legId?: number;
@@ -200,6 +216,7 @@ export interface OrderLeg {
   quantityType?: QuantityType;
   instrument: Instrument | OptionInstrument;
 }
+
 export enum AssetType {
   EQUITY = "EQUITY",
   OPTION = "OPTION",
@@ -209,15 +226,18 @@ export enum AssetType {
   FIXED_INCOME = "FIXED_INCOME",
   CURRENCY = "CURRENCY",
 }
+
 export enum OptionInstrumentType {
   VANILLA = "VANILLA",
   BINARY = "BINARY",
   BARRIER = "BARRIER",
 }
+
 export enum PutCall {
   PUT = "PUT",
   CALL = "CALL",
 }
+
 export interface OptionInstrument {
   assetType: AssetType;
   cusip?: string;
@@ -229,28 +249,33 @@ export interface OptionInstrument {
   optionMultiplier?: number;
   optionDeliverables?: OptionDeliverable;
 }
+
 export interface OptionDeliverable {
   symbol: string;
   deliverableUnits: number;
   currencyType: CurrencyType;
   assetType: AssetType;
 }
+
 export enum CurrencyType {
   USD = "USD",
   CAD = "CAD",
   EUR = "EUR",
   JPY = "JPY",
 }
+
 export enum QuantityType {
   ALL_SHARES = "ALL_SHARES",
   DOLLARS = "DOLLARS",
   SHARES = "SHARES",
 }
+
 export enum PositionEffect {
   OPENING = "OPENING",
   CLOSING = "CLOSING",
   AUTOMATIC = "AUTOMATIC",
 }
+
 export enum InstructionType {
   BUY = "BUY",
   SELL = "SELL",
@@ -262,10 +287,12 @@ export enum InstructionType {
   SELL_TO_CLOSE = "SELL_TO_CLOSE",
   EXCHANGE = "EXCHANGE",
 }
+
 export interface Instrument {
   symbol: string;
   assetType: AssetType;
 }
+
 export interface OrdersByQueryConfig {
   accountId?: string;
   maxResults?: number;

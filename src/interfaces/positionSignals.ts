@@ -6,3 +6,10 @@ export interface OpenPositionSignal {
   demandOrSupply: string,
   positionSetup: PositionSetup | null
 }
+
+export interface CutPositionSignal {
+  position: OrderDetails | null,
+  positionSetup: PositionSetup | null,
+  quantity: number,
+  isCut: boolean
+}

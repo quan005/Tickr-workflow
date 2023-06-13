@@ -16,11 +16,13 @@ export interface OptionChainConfig {
   expMonth?: Month;
   optionType?: OptionType;
 }
+
 export enum ContractType {
   CALL = "CALL",
   PUT = "PUT",
-  ALL = "ALL",
+  ALL = "ALL"
 }
+
 export enum OptionStrategyType {
   SINGLE = "SINGLE",
   ANALYTICAL = "ANALYTICAL",
@@ -33,8 +35,9 @@ export enum OptionStrategyType {
   CONDOR = "CONDOR",
   DIAGONAL = "DIAGONAL",
   COLLAR = "COLLAR",
-  ROLL = "ROLL",
+  ROLL = "ROLL"
 }
+
 export enum RangeType {
   ITM = "ITM",
   NTM = "NTM",
@@ -42,8 +45,9 @@ export enum RangeType {
   SAK = "SAK",
   SBK = "SBK",
   SNK = "SNK",
-  ALL = "ALL",
+  ALL = "ALL"
 }
+
 export enum Month {
   JAN = "JAN",
   FEB = "FEB",
@@ -58,69 +62,127 @@ export enum Month {
   NOV = "NOV",
   DEC = "DEC",
 }
+
 export enum OptionType {
   S = "S",
   NS = "NS",
   ALL = "ALL",
 }
 
-export interface optionDeliverables {
-  symbol: string,
-  assetType: string,
-  deliverableUnits: string,
-  currencyType: string,
+export interface OptionDeliverables {
+  symbol: string;
+  assetType: string;
+  deliverableUnits: string;
+  currencyType: string;
 }
 
 export interface OptionDetails {
-  putCall: string,
+  putCall: string;
+  symbol: string;
+  description: string;
+  exchangeName: string;
+  bid: number;
+  ask: number;
+  last: number;
+  mark: number;
+  bidSize: number;
+  askSize: number;
+  bidAskSize: string;
+  lastSize: number;
+  highPrice: number;
+  lowPrice: number;
+  openPrice: number;
+  closePrice: number;
+  totalVolume: number;
+  tradeDate: string | null;
+  tradeTimeInLong: number;
+  quoteTimeInLong: number;
+  netChange: number;
+  volatility: number;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+  rho: number;
+  openInterest: number;
+  timeValue: number;
+  theoreticalOptionValue: number;
+  theoreticalVolatility: number;
+  optionDeliverablesList: OptionDeliverables[] | null;
+  strikePrice: number;
+  expirationDate: number;
+  daysToExpiration: number;
+  expirationType: string;
+  lastTradingDay: number;
+  multiplier: number;
+  settlementType: string;
+  deliverableNote: string;
+  isIndexOption: boolean | null;
+  percentChange: number;
+  markChange: number;
+  markPercentChange: number;
+  intrinsicValue: number;
+  nonStandard: boolean;
+  pennyPilot: boolean;
+  inTheMoney: boolean;
+  mini: boolean;
+}
+
+export interface QuoteDetails {
+  assetType: string,
+  assetMainType: string,
+  cusip: string,
   symbol: string,
   description: string,
-  exchangeName: string,
-  bid: number,
-  ask: number,
-  last: number,
-  mark: number,
+  bidPrice: number,
   bidSize: number,
+  askPrice: number,
   askSize: number,
-  bidAskSize: string,
+  lastPrice: number,
   lastSize: number,
+  openPrice: number,
   highPrice: number,
   lowPrice: number,
-  openPrice: number,
   closePrice: number,
-  totalVolume: number,
-  tradeDate: string | null,
-  tradeTimeInLong: number,
-  quoteTimeInLong: number,
   netChange: number,
+  totalVolume: number,
+  quoteTimeInLong: number,
+  tradeTimeInLong: number,
+  mark: number,
+  openInterest: number,
   volatility: number,
+  moneyIntrinsicValue: number,
+  multiplier: number,
+  digits: number,
+  strikePrice: number,
+  contractType: string,
+  underlying: string,
+  expirationDay: number,
+  expirationMonth: number,
+  expirationYear: number,
+  daysToExpiration: number,
+  timeValue: number,
+  deliverables: string,
   delta: number,
   gamma: number,
   theta: number,
   vega: number,
   rho: number,
-  openInterest: number,
-  timeValue: number,
+  securityStatus: string,
   theoreticalOptionValue: number,
-  theoreticalVolatility: number,
-  optionDeliverablesList: optionDeliverables[] | null,
-  strikePrice: number,
-  expirationDate: number,
-  daysToExpiration: number,
-  expirationType: string,
+  underlyingPrice: number,
+  uvExpirationType: string,
+  exchange: string,
+  exchangeName: string,
   lastTradingDay: number,
-  multiplier: number,
   settlementType: string,
-  deliverableNote: string,
-  isIndexOption: boolean | null,
-  percentChange: number,
-  markChange: number,
-  markPercentChange: number,
-  intrinsicValue: number,
-  nonStandard: boolean,
-  pennyPilot: boolean,
-  inTheMoney: boolean,
-  mini: boolean,
+  netPercentChangeInDouble: number,
+  markChangeInDouble: number,
+  markPercentChangeInDouble: number,
+  impliedYield: number,
+  isPennyPilot: boolean,
+  delayed: boolean,
+  realtimeEntitled: boolean
 }
 
 export interface OptionMap {
@@ -128,11 +190,11 @@ export interface OptionMap {
 }
 
 export interface QuoteOptionMap {
-  [key: string]: OptionDetails
+  [key: string]: QuoteDetails
 }
 
 export interface ExpDateMap {
-  [key: string]: OptionMap
+  [key: string]: OptionMap;
 }
 
 export interface OptionChainResponse {
@@ -152,6 +214,7 @@ export interface OptionChainResponse {
   putExpDateMap?: ExpDateMap;
   monthlyStrategyList?: MonthlyStrategy[];
 }
+
 export interface Underlying {
   ask: number;
   askSize: number;
@@ -192,6 +255,7 @@ export interface MonthlyStrategy {
   secondaryLeap: boolean;
   optionStrategyList: OptionStrategy[];
 }
+
 export interface OptionStrategy {
   primaryLeg: Option;
   secondaryLeg: Option;
@@ -199,6 +263,7 @@ export interface OptionStrategy {
   strategyBid: number;
   strategyAsk: number;
 }
+
 export interface Option {
   symbol: string;
   putCallInd: string;

@@ -1,21 +1,21 @@
-// import * as activities from "../priceActionPosition";
-// import * as mockPremarketData from "../mocks/premarketData.mock";
-// import * as moment from "moment-timezone";
-// import { tdCredentialsToString } from "../../tda/middleware/tdCredentialToString";
-// import { TokenJSON } from '../../interfaces/token';
-// import {
-//   AssetType,
-//   ComplexOrderStrategyType,
-//   DurationType,
-//   InstructionType,
-//   OrderLegType,
-//   OrderStrategyType,
-//   OrderType,
-//   PutCall,
-//   SessionType,
-// } from "../../interfaces/orders";
-// import * as dotenv from "dotenv";
-// dotenv.config();
+import * as activities from "../priceActionPosition";
+import * as mockPremarketData from "../mocks/premarketData.mock";
+import * as moment from "moment-timezone";
+import { tdCredentialsToString } from "../../tda/middleware/tdCredentialToString";
+import { TokenJSON } from '../../interfaces/token';
+import {
+  AssetType,
+  ComplexOrderStrategyType,
+  DurationType,
+  InstructionType,
+  OrderLegType,
+  OrderStrategyType,
+  OrderType,
+  PutCall,
+  SessionType,
+} from "../../interfaces/orders";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 
 // // it("returns an object with userid equal to TD_USERNAME env variable", async () => {
@@ -41,55 +41,51 @@
 // //   expect(typeof code).toEqual('');
 // // });
 
-// // it("returns an object with the account info", async () => {
-// //   let token: TokenJSON = {
-// //     access_token: null,
-// //     refresh_token: null,
-// //     access_token_expires_at: null,
-// //     refresh_token_expires_at: null,
-// //     logged_in: null,
-// //     access_token_expires_at_date: null,
-// //     refresh_token_expires_at_date: null
-// //   };
-// //   let gettingUserPrinciples = {
-// //     userPrinciples: null,
-// //     params: null,
-// //   };
-// //   const clientId = process.env.TD_CLIENT_ID;
+it("returns an object with the account info", async () => {
+  let Symbol = 'AAPL';
+  let token = '';
+  let gettingUserPrinciples = {
+    userPrinciples: null,
+    params: null,
+    loginRequest: null,
+    marketRequest: null,
+    bookRequest: null,
+    timeSalesRequest: null
+  };
 
-// //   while (gettingUserPrinciples.params === null) {
-// //     token = await activities.getLoginCredentials(clientId);
-// //     gettingUserPrinciples = await activities.getUserPrinciples(token.access_token);
-// //   }
-// //   const accountId = process.env.TD_ACCOUNT_ID;
-// //   const getAccount = await activities.getAccount(token.access_token, accountId);
-// //   expect(getAccount.securitiesAccount.accountId).toEqual(accountId);
-// // });
 
-// // it("returns an object with current price, and surrounding demand and supply zones", async () => {
-// //   let token = ""
-// //   let gettingUserPrinciples = {
-// //     userPrinciples: null,
-// //     params: null,
-// //     loginRequest: null,
-// //     marketRequest: null,
-// //     bookRequest: null,
-// //     timeSalesRequest: null
-// //   };
-// //   const demandZones = mockPremarketData.premarketData.demandZones;
-// //   const supplyZones = mockPremarketData.premarketData.supplyZones;
-// //   const urlCode = await activities.getUrlCode();
-// //   token = await activities.getLoginCredentials(urlCode);
-// //   console.log('token', token)
+  token = await activities.getLoginCredentials();
+  gettingUserPrinciples = await activities.getUserPrinciples(token, Symbol);
 
-// //   gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
-// //   console.log('gettingUserPrinciples', gettingUserPrinciples);
-// //   const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+  const accountId = process.env.TD_ACCOUNT_ID;
+  const getAccount = await activities.getAccount(token, accountId);
+  console.log(`getAccount`, getAccount);
+  expect(getAccount.securitiesAccount.accountId).toEqual(accountId);
+});
 
-// //   const currentPrice = await activities.get_current_price(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
-// //   console.log(currentPrice);
-// //   expect(typeof token).toBe("string");
-// // });
+it("returns an object with current price, and surrounding demand and supply zones", async () => {
+  let token = ""
+  let gettingUserPrinciples = {
+    userPrinciples: null,
+    params: null,
+    loginRequest: null,
+    marketRequest: null,
+    bookRequest: null,
+    timeSalesRequest: null
+  };
+  const demandZones = mockPremarketData.premarketData.demandZones;
+  const supplyZones = mockPremarketData.premarketData.supplyZones;
+  token = await activities.getLoginCredentials();
+  console.log('token', token)
+
+  gettingUserPrinciples = await activities.getUserPrinciples(token, mockPremarketData.premarketData.symbol);
+  console.log('gettingUserPrinciples', gettingUserPrinciples);
+  const wsUri = `wss://${gettingUserPrinciples.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
+
+  const currentPrice = await activities.getCurrentPrice(wsUri, gettingUserPrinciples.loginRequest, gettingUserPrinciples.marketRequest, demandZones, supplyZones, false);
+  console.log(currentPrice);
+  expect(typeof token).toBe("string");
+});
 
 // it("returns an object with current price, and surrounding demand and supply zones", async () => {
 //   let token = ""
@@ -123,6 +119,14 @@
 //   console.log('token', token);
 //   const openPositionResponse = await activities.placeOrder(token, account_id, orderData);
 //   console.log(openPositionResponse);
+//   expect(typeof token).toBe("string");
+// });
+
+// it("returns an object with current price, and surrounding demand and supply zones", async () => {
+//   let token = ""
+//   token = await activities.getLoginCredentials();
+//   const quote = await activities.getQuote(token, 'AAPL_033123C146');
+//   console.log('quote', quote);
 //   expect(typeof token).toBe("string");
 // });
 

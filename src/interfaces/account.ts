@@ -5,6 +5,7 @@ export interface AccountConfig {
     [key: string]: string
   };
 }
+
 export interface InitialBalances {
   accruedInterest: number;
   cashAvailableForTrading: number;
@@ -25,6 +26,7 @@ export interface InitialBalances {
   pendingDeposits: number;
   accountValue: number;
 }
+
 export interface CurrentBalances {
   accruedInterest: number;
   cashBalance: number;
@@ -66,10 +68,12 @@ export interface CurrentBalances {
   stockBuyingPower: number;
   optionBuyingPower: number;
 }
+
 export interface projectedBalances {
   cashAvailableForTrading: number;
   cashAvailableForWithdrawal: number;
 }
+
 export interface SecuritiesAccount {
   type: string;
   accountId: string;
@@ -80,6 +84,7 @@ export interface SecuritiesAccount {
   currentBalances: CurrentBalances;
   projectedBalances: projectedBalances;
 }
+
 export interface Account {
   error?: string;
   securitiesAccount: SecuritiesAccount;
