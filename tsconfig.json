@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -9,6 +10,22 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@src/*": [
+        "src/*"
+      ]
+    }
   },
-  "include": ["./src/**/*", "proxy", "./src/certs/*", "../src/interfaces/account.ts", "../src/scripts/build-workflow-bundle.ts"]
+  "include": [
+    "./src/**/*", 
+    "proxy", 
+    "./src/certs/*", 
+    "../src/interfaces/account.ts", 
+    "../src/scripts/build-workflow-bundle.ts"
+  ],
+  "exclude": [
+    "node_modules",
+  ]
 }

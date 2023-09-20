@@ -3,6 +3,7 @@ export interface PrinciplesAndParams {
   params: string | null,
   loginRequest: WSRequestConfig | null,
   marketRequest: WSRequestConfig | null,
+  chartRequest: WSRequestConfig | null,
   bookRequest: WSRequestConfig | null,
   timeSalesRequest: WSRequestConfig | null,
 }

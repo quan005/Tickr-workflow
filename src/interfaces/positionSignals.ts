@@ -1,15 +1,28 @@
 import { OrderDetails } from "./orders";
-import { PositionSetup } from "./positionSetup";
 
 export interface OpenPositionSignal {
   position: OrderDetails | null,
-  demandOrSupply: string,
-  positionSetup: PositionSetup | null
+  callOrPut: string,
+  entry: number;
+  breakEven: number;
+  stoploss: number;
+  cutPosition: number;
+  takeProfit: number;
+  higherProfit: number;
+  MaxProfit: number;
 }
 
 export interface CutPositionSignal {
-  position: OrderDetails | null,
-  positionSetup: PositionSetup | null,
-  quantity: number,
+  position?: OrderDetails | null,
+  entry: number;
+  breakEven: number;
+  stoploss: number;
+  cutPosition: number;
+  takeProfit: number;
+  higherProfit: number;
+  MaxProfit: number;
+  callOrPut: string;
+  purchasedQuantity: number,
+  cutQuantity?: number,
   isCut: boolean
 }

@@ -1,4 +1,4 @@
-import { SupplyZone, DemandZone } from "./supplyDemandZones";
+import { Zone } from "./supplyDemandZones";
 
 export interface PremarketMessage {
   Premarket: PremarketData
@@ -13,7 +13,7 @@ export interface PremarketData {
   sentiment: string,
   keyLevels: number[],
   supportResistance: { support: number, resistance: number },
-  demandZones: DemandZone[],
-  supplyZones: SupplyZone[],
+  demandZones: Zone[],
+  supplyZones: Zone[],
   messageNumber?: number
 }

@@ -1,11 +1,10 @@
-export interface DemandZone {
+export interface Zone {
   bottom: number;
   top: number;
   dateTime?: string;
 }
 
-export interface SupplyZone {
-  top: number;
-  bottom: number;
-  dateTime?: string;
+export interface ZonesInProximity {
+  supplyZones: Zone[] | null;
+  demandZones: Zone[] | null;
 }

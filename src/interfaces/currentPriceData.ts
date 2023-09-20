@@ -1,6 +1,8 @@
+import { Zone } from "./supplyDemandZones";
+
 export interface CurrentPriceData {
   error?: string;
   closePrice?: number;
-  demandZone?: number[][];
-  supplyZone?: number[][];
+  demandZone?: Zone[];
+  supplyZone?: Zone[];
 }
