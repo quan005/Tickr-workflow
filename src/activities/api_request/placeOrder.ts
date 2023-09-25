@@ -1,5 +1,8 @@
 import axios from "axios";
+import * as dotenv from 'dotenv';
 import { OrdersConfig, PlaceOrdersResponse } from "@src/interfaces/orders";
+
+dotenv.config();
 
 const ORDER_URL = `https://${process.env.API_HOSTNAME}/api/td-place-order`;
 

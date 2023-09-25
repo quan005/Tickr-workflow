@@ -1,5 +1,8 @@
 import axios from "axios";
+import * as dotenv from 'dotenv';
 import { Account } from "@src/interfaces/account";
+
+dotenv.config();
 
 const ACCOUNT_URL = `https://${process.env.API_HOSTNAME}/api/td-account`;
 

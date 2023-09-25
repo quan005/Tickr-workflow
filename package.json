@@ -97,7 +97,7 @@
     "cors": "^2.8.5",
     "cpx2": "^4.2.0",
     "date-holidays": "^3.16.17",
-    "dotenv": "^16.0.3",
+    "dotenv": "^16.3.1",
     "express": "^4.17.3",
     "express-session": "^1.17.2",
     "helmet": "^5.0.2",

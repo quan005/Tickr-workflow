@@ -1,4 +1,7 @@
 import axios from "axios";
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const CREDENTIALS_URL = `https://${process.env.API_HOSTNAME}/api/auth`;
 

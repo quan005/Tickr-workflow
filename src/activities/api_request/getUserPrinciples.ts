@@ -1,6 +1,9 @@
 import axios from "axios";
+import * as dotenv from 'dotenv';
 import { tdCredentialsToString } from "@src/tda/middleware/tdCredentialToString";
 import { UserPrinciples, PrinciplesAndParams } from "@src/interfaces/UserPrinciples";
+
+dotenv.config();
 
 const USER_PRINCIPLES_URL = `https://${process.env.API_HOSTNAME}/api/streamer-auth`;
 
