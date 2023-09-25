@@ -2,6 +2,7 @@ require('module-alias/register');
 import { WebSocket } from "ws";
 import { Context } from "@temporalio/activity";
 import * as dotenv from "dotenv";
+import * as moment from "moment-timezone";
 import { CurrentPriceData } from "@src/interfaces/currentPriceData";
 import { Zone } from "@src/interfaces/supplyDemandZones";
 import { SignalClosePositionState, SignalCutPositionState, SignalOpenPositionState } from "@src/interfaces/state";
@@ -15,9 +16,9 @@ import {
   getMarketClose,
   getOptionsSelection,
   getOptionSymbol,
+  holiday,
   isOrderVelocityIncreasing,
   isPositionFilled,
-  timeUntilMarketOpen,
 } from "./utilities";
 import { closePosition, cutPosition, openPosition, processTimeSalesData } from "./helpers";
 import { getUserPrinciples } from "./api_request";
@@ -40,6 +41,30 @@ export interface MessageResponse {
 
 export interface Message {
   response: MessageResponse[] | null
+}
+
+export function timeUntilMarketOpen(): Promise<number> {
+  if (holiday() || getMarketClose()) {
+      return Promise.resolve(-1);
+  }
+
+  const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 30);
+  const now = moment().tz('America/New_York');
+  const diff = moment.duration(marketOpen.diff(now));
+
+  const hoursRemaining = diff.hours();
+  const hoursToMilliSeconds = ((hoursRemaining * 60) * 60) * 1000;
+
+  const minutesRemaining = diff.minutes();
+  const minutesToMilliSeconds = (minutesRemaining * 60) * 1000;
+
+  let total = hoursToMilliSeconds + minutesToMilliSeconds;
+
+  if (total < 0) {
+      total = 0;
+  }
+
+  return Promise.resolve(total);
 }
 
 export async function getPremarketData(symbol: string): Promise<string> {
@@ -66,8 +91,8 @@ export async function getPremarketData(symbol: string): Promise<string> {
       throw new Error(`WebSocket error: ${err.message}`);
     };
 
-    client.onopen = function () {
-      timeLeft = timeUntilMarketOpen(); 
+    client.onopen = async function () {
+      timeLeft = await timeUntilMarketOpen(); 
       if (timeLeft === -1) {
           client?.close();
       } else {
@@ -75,8 +100,8 @@ export async function getPremarketData(symbol: string): Promise<string> {
       }
     };
 
-    client.onmessage = function (event) {
-      timeLeft = timeUntilMarketOpen();
+    client.onmessage = async function (event) {
+      timeLeft = await timeUntilMarketOpen();
       if (timeLeft <= 0) {
           client?.close();
       } else if (loggedIn) {
@@ -450,7 +475,7 @@ export async function waitToSignalOpenPosition(
     nextTime: utcTime,
     marketTrend: 'data insufficient',
     orderVelocity: 0,
-    orderVelocityArray: new FixedSizeQueue<number>(7),
+    orderVelocityArray: new FixedSizeQueue<number>(30),
     orderVelocityAvg: 0,
     lastOrderVelocity: 0,
     nextOrderVelocityTime: orderVelocityTime,

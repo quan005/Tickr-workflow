@@ -1,4 +1,3 @@
-export * from './getTimeUntilMarketOpen';
 export * from './createOrderRequest';
 export * from './filterOptionResponse';
 export * from './getAvailableBalance';
@@ -8,10 +7,8 @@ export * from './getMarketClose';
 export * from './getOptionSelection';
 export * from './getOptionSymbol';
 export * from './getSupplyDemandZones';
-export * from './getTimeUntilMarketOpen';
 export * from './getTrend';
 export * from './indicators';
 export * from './isDeltaShifting';
 export * from './isOrderVelocityIncreasing';
 export * from './isPositionFilled';
-// export * from './timer';

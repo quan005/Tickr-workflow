@@ -33,9 +33,10 @@ export interface PositionStatus {
 export const getStatusQuery = defineQuery<PositionStatus>('getStatus');
 
 const {
-  getPremarketData,
+  // getPremarketData,
   getCurrentPrice,
   // getSurroundingKeyLevels,
+  timeUntilMarketOpen,
   getPositionSetup,
   waitToSignalOpenPosition,
   waitToSignalCutPosition,
@@ -54,8 +55,14 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     throw ApplicationFailure.create({ nonRetryable: true, message: 'Premarket analysis error' });
   }
 
-  const additionalSleepTime = premarketData.messageNumber ? premarketData.messageNumber * 30000 : 0;
+  const additionalSleepTime = 0;
   let state: PositionState = 'Getting Time Remaining';
+  let marketOpen = await timeUntilMarketOpen();
+  
+  if (marketOpen < 0) {
+    marketOpen = 0;
+  }
+
   let option: string;
   let optionQuantity: number | string;
   const optionFee = 0.65;
@@ -75,15 +82,15 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   const supplyZones = premarketData.supplyZones;
   const symbol = premarketData.symbol;
 
-  const timeRemaining = additionalSleepTime;
+  const timeRemaining = additionalSleepTime + marketOpen;
   await sleep(timeRemaining);
 
-  state = 'Getting Premarket Data';
-  const premarketPrices = await getPremarketData(premarketData.symbol);
+  // state = 'Getting Premarket Data';
+  // const premarketPrices = await getPremarketData(premarketData.symbol);
 
-  if (premarketPrices === "Market is Currently closed!") {
-    return premarketPrices
-  }
+  // if (premarketPrices === "Market is Currently closed!") {
+  //   return premarketPrices
+  // }
 
   state = 'Getting Current Price';
   const currentPrice = await getCurrentPrice(premarketData.symbol, demandZones, supplyZones);

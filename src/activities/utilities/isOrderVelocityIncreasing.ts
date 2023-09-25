@@ -12,12 +12,21 @@ export function linearRegressionSlope(y: number[]): number {
     return slope;
 };
 
+export function exponentialRegressionSlope(y: number[]): number | null {
+    // Filter out y-values that are <= 0, as ln(y) would be undefined
+    const filteredY = y.filter(val => val > 0);
+    if (filteredY.length < 2) return null;  // Insufficient points for regression
+    
+    const lnY = filteredY.map(val => Math.log(val));
+    return linearRegressionSlope(lnY);
+};
+
 export function isOrderVelocityIncreasing(orderVelocityQueue: FixedSizeQueue<number>): boolean {
     const orderVelocityArray = orderVelocityQueue.getItems();
     
-    const velocity = linearRegressionSlope(orderVelocityArray);
+    const velocity = exponentialRegressionSlope(orderVelocityArray);
 
-    if (velocity <= 0) {
+    if (velocity === null || velocity <= 0) {
         return false
     }
 
