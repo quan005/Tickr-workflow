@@ -569,69 +569,6 @@ export async function waitToSignalOpenPosition(
             const content:SocketResponse["content"] = data.data[0].content;
 
             state = processTimeSalesData(content, state, utcTime);
-
-            // Todo: Figure out how to use the delta footprint to confirm entry.
-            //       This can be done by:
-            //       1. Tracking the trend using delta, whether buyers are strong or sellers are strong
-            //          over a certain period of time along with order velocity and supply and demand zones.
-            //          If price is in a zone either supply or demand and as it approaches the entry level,
-            //          the past couple deltas supports the price's direction by getting bigger and bigger
-            //          and order velocity picks up to confirm the prices movement.
-            //       2. Using delta and order velocity to spot reversals, this can be done using key levels and
-            //          supply and demand zones as well. If price hits a key level whether its a previous/current
-            //          day high/low or a supply/demand reversal level and denys it and the past couple deltas
-            //          confirms that price is getting ready to reverse by getting smaller and smaller in terms
-            //          of the dirction the opposite of the reversal and order velocity and delta starts to pick 
-            //          up in the direction of the reversal.
-
-            //      ## Breakdown
-
-            //      1. The code establishes a WebSocket connection to stream market data.
-            //      2. This market data is processed in the `onmessage` event, which appears to involve order velocity and delta calculation.
-            //      3. The `processTimeSalesData` function computes additional metrics from the received time-sales data, such as deltas, demand/supply metrics, etc.
-            //      4. The `getDeltaFootprint` function computes a so-called "delta footprint" for each price level based on the time-sales data, which calculates the buy and sell volume deltas.
-
-            //      ## Strategy
-
-            //      ### 1. Track Trend
-
-            //      To determine if buyers or sellers are in control, one must look at the "delta" over a certain period. A positive delta means more buying, and a negative delta indicates more selling. Alongside, if the velocity of orders is increasing, it suggests strong market interest in the direction of the trend.
-
-            //      **Approach**:
-            //      - Look at the running average of delta over a given period, say the last 10 or 20 deltas (or any suitable period). 
-            //      - If this average is consistently positive, it indicates a trend upwards. If consistently negative, it indicates a trend downwards.
-            //      - Simultaneously, look at the order velocity. If it's increasing and aligns with the trend direction, it provides confirmation.
-
-            //      This information can be combined with supply and demand zones. For instance:
-            //      - If the price is in a demand zone, and both delta and order velocity indicate strong buying, it's a positive confirmation.
-            //      - If the price is in a supply zone, and both delta and order velocity indicate strong selling, it's a negative confirmation.
-
-            //      ### 2. Spot Reversals
-
-            //      For reversals, deltas getting smaller and smaller suggest that the prevailing trend (be it up or down) is weakening.
-
-            //      **Approach**:
-            //      - Keep an array or buffer of recent deltas.
-            //      - If you observe that the absolute values of the deltas are reducing over a given period (suggesting weakening momentum) and they then start increasing in the opposite direction, it might be an indication of a trend reversal.
-            //      - Combine this with order velocity. If, at key reversal levels, you see delta change direction and order velocity pick up in that opposite direction, that's another confirmation of a potential reversal.
-
-            //      Incorporating supply/demand zones:
-            //      - If the price hits a supply zone, and the deltas are getting smaller (indicating less buying or even increased selling) followed by a shift in the delta and order velocity indicating selling, it's a potential reversal to the downside.
-            //      - Similarly, if the price is at a demand zone, and the deltas are getting smaller (indicating less selling or more buying) followed by a shift in delta and order velocity indicating buying, it's a potential reversal to the upside.
-
-            //      ## Implementation
-
-            //      Given the existing codebase, you would need to extend or modify certain sections to achieve the above:
-
-            //      1. **Tracking Trend**:
-            //          - Maintain a buffer of recent deltas and compute their running average.
-            //          - Similarly, track the order velocity over the same duration.
-            //          - Use these to check for the trend and confirm it with supply/demand zones.
-
-            //      2. **Spot Reversals**:
-            //          - Maintain a buffer of recent deltas to observe if the trend is weakening.
-            //          - If a weakening trend is spotted, look for deltas in the opposite direction and increasing order velocity for confirmation.
-            //          - Use supply/demand zones for additional confirmation.
   
             if (state.demandForming >= 30) { // in a demand zone
               if (state.marketTrend === 'uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
@@ -679,15 +616,6 @@ export async function waitToSignalOpenPosition(
   }
 
   openClient();
-
-  // return await new Promise((resolve) => {
-  //   if (client) {
-  //     client.onclose = async function () {
-  //       client.terminate();
-  //       client = null;
-  //     }
-  //   }
-  // })
 
   return await new Promise((resolve) => {
     if (client) {

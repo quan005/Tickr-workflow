@@ -15,7 +15,7 @@ export function linearRegressionSlope(y: number[]): number {
 export function exponentialRegressionSlope(y: number[]): number | null {
     // Filter out y-values that are <= 0, as ln(y) would be undefined
     const filteredY = y.filter(val => val > 0);
-    if (filteredY.length < 2) return null;  // Insufficient points for regression
+    if (filteredY.length < 5) return null;  // Insufficient points for regression
     
     const lnY = filteredY.map(val => Math.log(val));
     return linearRegressionSlope(lnY);
