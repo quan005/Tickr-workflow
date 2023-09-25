@@ -7,7 +7,7 @@ import { Zone } from "@src/interfaces/supplyDemandZones";
 import { SignalClosePositionState, SignalCutPositionState, SignalOpenPositionState } from "@src/interfaces/state";
 import { OpenPositionSignal, CutPositionSignal } from "@src/interfaces/positionSignals";
 import { PrinciplesAndParams } from "@src/interfaces/UserPrinciples";
-import { SocketResponse, Chart, Quote } from "@src/interfaces/websocketEvent";
+import { SocketResponse, Quote } from "@src/interfaces/websocketEvent";
 
 import {
   findZones,
@@ -19,13 +19,14 @@ import {
   isPositionFilled,
   timeUntilMarketOpen,
 } from "./utilities";
-import { closePosition, cutPosition, openPosition, processChartData, processTimeSalesData } from "./helpers";
+import { closePosition, cutPosition, openPosition, processTimeSalesData } from "./helpers";
 import { getUserPrinciples } from "./api_request";
 import { OptionsSelection } from "@src/interfaces/optionsSelection";
 import { OrderDetails } from "@src/interfaces/orders";
 import { PositionSetup } from "@src/interfaces/positionSetup";
 import { FixedSizeQueue } from "./utilities/classes";
 import { DeltaMetrics } from "@src/interfaces/delta";
+import { TimeSales } from "@src/interfaces/websocketEvent";
 
 dotenv.config();
 
@@ -44,65 +45,77 @@ export interface Message {
 export async function getPremarketData(symbol: string): Promise<string> {
   let principles: PrinciplesAndParams;
   let loggedIn = false;
+  let timeLeft: number;
   const prices = [];
   let client: WebSocket | null = null;
 
   try {
-      principles = await getUserPrinciples(symbol);
+    principles = await getUserPrinciples(symbol);
   } catch (error) {
-      throw new Error(error.message);
+    throw new Error(error.message);
   }
 
   const wsUrl = `wss://${principles.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   const loginRequest = principles.loginRequest;
-  const chartRequest = principles.chartRequest;
+  const timeSalesRequest = principles.timeSalesRequest;
 
-  return new Promise((resolve, reject) => {
-      function openClient() {
-          client = new WebSocket(wsUrl);
+  function openClient() {
+    client = new WebSocket(wsUrl);
 
-          client.onerror = function (err) {
-              reject(`WebSocket error: ${err.message}`);
-          };
+    client.onerror = function (err) {
+      throw new Error(`WebSocket error: ${err.message}`);
+    };
 
-          client.onopen = async function () {
-              const timeLeft = await timeUntilMarketOpen();
-              if (typeof timeLeft === "string") {
-                  client?.close();
-                  resolve(timeLeft);
-              } else {
-                  client?.send(JSON.stringify(loginRequest));
-              }
-          };
-
-          client.onmessage = async function (event) {
-              const timeLeft = await timeUntilMarketOpen();
-
-              if (typeof timeLeft === 'number' && timeLeft <= 0 || typeof timeLeft === "string") {
-                  client?.close();
-              } else if (loggedIn) {
-                  client?.send(JSON.stringify(chartRequest));
-                  loggedIn = false;
-              } else {
-                  const data = JSON.parse(event.data as string);
-
-                  if (data.response && data.response[0].command === 'LOGIN') {
-                      loggedIn = true;
-                  } else if (data.data !== undefined) {
-                      const content = data.data[0].content[0];
-                      prices.push(content['1'], content['2'], content['3'], content['4']);
-                  }
-              }
-          };
-
-          client.onclose = function () {
-              client = null;
-              resolve(JSON.stringify(prices));
-          };
+    client.onopen = function () {
+      timeLeft = timeUntilMarketOpen(); 
+      if (timeLeft === -1) {
+          client?.close();
+      } else {
+          client?.send(JSON.stringify(loginRequest));
       }
+    };
 
-      openClient();
+    client.onmessage = function (event) {
+      timeLeft = timeUntilMarketOpen();
+      if (timeLeft <= 0) {
+          client?.close();
+      } else if (loggedIn) {
+          client?.send(JSON.stringify(timeSalesRequest));
+          loggedIn = false;
+      } else {
+          const data = JSON.parse(event.data as string);
+
+          if (data.response && data.response[0].command === 'LOGIN') {
+              loggedIn = true;
+          } else if (data.data !== undefined) {
+              const content = data.data[0].content;
+
+              for (let i = 0; i < content.length; i++) {
+                const order: TimeSales = content[i];
+                const price = order["2"];
+                prices.push(price);
+              };
+          }
+      }
+    };
+  }
+
+  openClient();
+
+  return await new Promise((resolve) => {
+    if (client) {
+      client.onclose = function () {
+        client.terminate();
+        client = null;
+        if (timeLeft === -1) {
+          return resolve('Market is Currently closed!')
+        }
+
+        return resolve(JSON.stringify(prices));
+      };
+    }
   });
+
 }
 
 export async function getSurroundingKeyLevels(
@@ -524,11 +537,6 @@ export async function waitToSignalOpenPosition(
 
           if (service === "CHART_EQUITY") {
             console.log("chart request", data.data[0].content[0]);
-
-            const content: Chart = data.data[0].content[0];
-            const updatedState = processChartData(content, state);
-
-            state = updatedState;
           }
 
           if (service === "TIMESALE_EQUITY") {
@@ -600,22 +608,22 @@ export async function waitToSignalOpenPosition(
             //          - If a weakening trend is spotted, look for deltas in the opposite direction and increasing order velocity for confirmation.
             //          - Use supply/demand zones for additional confirmation.
   
-            if (state.demandForming >= 30 || content[content.length - 1]["2"] > state.vwap) { // in a demand zone
+            if (state.demandForming >= 30) { // in a demand zone
               if (state.marketTrend === 'uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
                 console.log('Open Demand confirmed due to uptrend and increasing order velocity.');
                 state.demandConfirmation = true;
               }
-            } else if (state.demandReversalForming >= 30 || content[content.length - 1]["2"] < state.vwap) { // in a demand zone reversal
+            } else if (state.demandReversalForming >= 30) { // in a demand zone reversal
               if (state.marketTrend === 'downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray) || state.marketTrend === 'potential pullback in downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
                 console.log('Potential reversal to the downside detected.');
                 state.demandReversalConfirmation = true;
               }
-            } else if (state.supplyForming >= 30 || content[content.length - 1]["2"] < state.vwap) { // in a supply zone
+            } else if (state.supplyForming >= 30) { // in a supply zone
               if (state.marketTrend === 'downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
                 console.log('Open Supply confirmed due to downtrend and increasing order velocity.');
                 state.supplyConfirmation = true;
               }
-            } else if (state.supplyReversalForming >= 30 || content[content.length - 1]["2"] > state.vwap) { // in a supply zone reversal
+            } else if (state.supplyReversalForming >= 30) { // in a supply zone reversal
               if (state.marketTrend === 'uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray) || state.marketTrend === 'potential pullback in uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
                 console.log('Potential reversal to the upside detected.');
                 state.supplyReversalConfirmation = true;
@@ -698,8 +706,8 @@ export async function waitToSignalOpenPosition(
           const commissionIncludedPrice = newPosition.price + commission;
 
           if (state.callOrPut === 'PUT') {
-            breakEven = Math.round(entry + commissionIncludedPrice * 100) / 100;
-            stoploss = Math.round((breakEven + (0.10 * commissionIncludedPrice)) * 100) / 100;
+            breakEven = Math.round(entry - commissionIncludedPrice * 100) / 100;
+            stoploss = Math.round((entry + (0.10 * commissionIncludedPrice)) * 100) / 100;
             cutPosition = Math.round((breakEven - (0.14 * commissionIncludedPrice)) * 100) / 100;
             takeProfit = Math.round((breakEven  - (0.21 * commissionIncludedPrice)) * 100) / 100;
             higherProfit = Math.round((breakEven  - (0.28 * commissionIncludedPrice)) * 100) / 100;
@@ -707,8 +715,8 @@ export async function waitToSignalOpenPosition(
           } 
           
           if (state.callOrPut === 'CALL') {
-            breakEven = Math.round((entry - commissionIncludedPrice) * 100) / 100;
-            stoploss = Math.round((breakEven - (0.10 * commissionIncludedPrice)) * 100) / 100;
+            breakEven = Math.round((entry + commissionIncludedPrice) * 100) / 100;
+            stoploss = Math.round((entry - (0.10 * commissionIncludedPrice)) * 100) / 100;
             cutPosition = Math.round((breakEven + (0.14 * commissionIncludedPrice)) * 100) / 100;
             takeProfit = Math.round((breakEven  + (0.21 * commissionIncludedPrice)) * 100) / 100;
             higherProfit = Math.round((breakEven  + (0.28 * commissionIncludedPrice)) * 100) / 100;

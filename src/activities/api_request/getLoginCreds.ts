@@ -1,49 +1,18 @@
-import * as https from "https";
+import axios from "axios";
 
-export function getLoginCredentials(): Promise<string> {
-    let token: string;
-  
-    return new Promise((resolve, reject) => {
-      const authOptions = {
-        host: `${process.env.API_HOSTNAME}`,
-        path: '/api/auth',
-        method: 'GET',
-        rejectUnauthorized: false,
-      };
-  
-      const request = https.request(authOptions, (resp) => {
-        let data = '';
+const CREDENTIALS_URL = `https://${process.env.API_HOSTNAME}/api/auth`;
 
-        resp.on('data', (chunk) => {
-          data += chunk;
-        });
-  
-        resp.on('end', () => {
-          try {
-            console.log('login data', data)
+export async function getLoginCredentials(): Promise<string> {
+  try {
+    const response = await axios.get(CREDENTIALS_URL);
 
-            if (!data || data[0] === "<" || JSON.parse(data) === undefined) {
-              return reject(new Error('Url code is not available.'));
-            }
+    if (response.status !== 200) {
+      throw new Error(`Received a non-OK status code: ${response.status}`);
+    }
 
-            const parsedJson = JSON.parse(data);
-            token = JSON.stringify(parsedJson);
-    
-            if (!token) {
-              return reject(new Error('Access token not available!'));
-            }
-    
-            return resolve(token);
-          } catch (e) {
-            reject(new Error('Failed to parse response.'));
-          }
-        })
-      })
-      
-      request.on('error', (e) => {
-        reject(new Error(e.message));
-      });
-  
-      request.end();
-    });
+    return response.data;
+  } catch(e) {
+    console.log(e);
+    throw new Error(e);
   }
+}

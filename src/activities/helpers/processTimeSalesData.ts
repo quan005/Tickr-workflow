@@ -1,7 +1,7 @@
 import { SignalOpenPositionState } from "@src/interfaces/state";
 import { TimeSales, SocketResponse } from "@src/interfaces/websocketEvent";
 import { DeltaMetrics } from "@src/interfaces/delta";
-import { getDeltaFootprint, getTrend } from "../utilities";
+import { getDeltaFootprint, getTrend, getVwap } from "../utilities";
 
 export function processTimeSalesData(content: SocketResponse["content"], state: SignalOpenPositionState, utcTime: string): SignalOpenPositionState {
     const lastPrice = content[content.length - 1]["2"];
@@ -26,12 +26,13 @@ export function processTimeSalesData(content: SocketResponse["content"], state: 
         const order: TimeSales = content[i];
         const price = order["2"];
         const volume = order["3"];
+        const vwap = getVwap(state.cumulativeVolume, state.cumulativeVolumeWeightedPrice, null, order);
         const deltaFootprint = getDeltaFootprint(state, order, state.lastPrice, utcTime);
-
-        state = deltaFootprint
 
         // console.log(`order${i}`, order);
         // console.dir(state.deltaFootprint, { depth: null});
+        state = deltaFootprint;
+        state.vwap = vwap.vwap;
         state.lastPrice = price;
         state.totalOrderVolume += volume // use this to see if total volume surpasses average volume
         

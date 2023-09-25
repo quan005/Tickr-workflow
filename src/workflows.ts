@@ -108,11 +108,10 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
 
   state = 'Opening A Position';
   const signalOpenPosition = await waitToSignalOpenPosition(currentPrice, positionSetup, symbol, budget, accountId, 300, 500, 60000, 30000, optionFee);
-
   if (
     signalOpenPosition === "Could not find any good buying opportunities!" || 
     signalOpenPosition === "Account balance is too low!" || 
-    signalOpenPosition === "There are no call or put options selected for purchase" || 
+    signalOpenPosition === "There are no call or put options selected for purchase!" || 
     signalOpenPosition === "There are no call or put options that meet the requirements!" || 
     signalOpenPosition === 'There are no call options that meet the requirements!' || 
     signalOpenPosition === 'There are no put options that meet the requirements!' ||

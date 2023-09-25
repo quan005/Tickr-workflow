@@ -1,9 +1,9 @@
-import { holiday } from './getMarketClose';
+import { holiday, getMarketClose } from './getMarketClose';
 import * as moment from "moment-timezone";
 
-export async function timeUntilMarketOpen(): Promise<number | string> {
-  if (holiday() || moment().tz('America/New_York').isoWeekday() >= 6) { // Also check for weekends
-      return 'Market is Currently closed!';
+export function timeUntilMarketOpen(): number {
+  if (holiday() || getMarketClose()) {
+      return -1;
   }
 
   const marketOpen = moment().tz('America/New_York').set('hour', 9).set('minute', 30);

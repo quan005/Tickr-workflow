@@ -1,61 +1,28 @@
-import * as https from "https";
-import { getLoginCredentials } from "./getLoginCreds";
+import axios from "axios";
 import { GetOrderResponse } from "@src/interfaces/orders";
 
-export async function getOrder( 
-    account_id: string, 
-    order_symbol: string
-  ): Promise<GetOrderResponse> {
-    let token: string;
+const ORDER_URL = `https://${process.env.API_HOSTNAME}/api/td-get-order`;
 
-    try {
-        token = await getLoginCredentials();
-    } catch (error) {
-        throw new Error(error.message)
+export async function getOrder(account_id: string, order_symbol: string): Promise<GetOrderResponse> {
+  try {
+    const postData = {
+      accountId: account_id,
+      orderSymbol: order_symbol,
+    };
+
+    const response = await axios.post(ORDER_URL, postData, {
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+
+    if (response.status !== 200) {
+      throw new Error(`Received a non-OK status code: ${response.status}`);
     }
 
-    const encodedtoken = encodeURIComponent(token);
-    let data = '';
-  
-    return await new Promise((resolve) => {
-      const postData = {
-        token: encodedtoken,
-        accountId: account_id,
-        orderSymbol: order_symbol,
-      };
-      const postDataAsString = JSON.stringify(postData);
-      const authOptions = {
-        host: `${process.env.API_HOSTNAME}`,
-        path: '/api/td-get-order',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postDataAsString),
-        },
-        rejectUnauthorized: false,
-        timeout: 10000,
-      };
-      const response = https.request(authOptions, (resp) => {
-        resp.on('data', (chunk) => {
-          data += chunk;
-        });
-  
-        resp.on('end', () => {
-          const parseJson = JSON.parse(data);
-          if (parseJson.error) {
-            throw new Error(`Get order error: ${parseJson.error}`);
-          }
-          return resolve(parseJson);
-        });
-      }).on('error', (e) => {
-        throw new Error(`Get order error: ${e.message}`);
-      });
-  
-      response.on('timeout', () => {
-        throw new Error('Connection timed out');
-      });
-  
-      response.write(postDataAsString);
-      response.end();
-    });
+    return response.data;
+  } catch (e) {
+    console.log(e);
+    throw new Error(e);
   }
+}
