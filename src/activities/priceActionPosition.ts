@@ -245,7 +245,7 @@ export async function getCurrentPrice(
     supplyZone: [],
   };
   let messageCount = 0;
-  const messages: SocketResponse[] = [];
+  const messages: number[] = [];
   let client: WebSocket | null = null;
 
   try {
@@ -256,7 +256,7 @@ export async function getCurrentPrice(
 
   const wsUrl = `wss://${principles.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   const loginRequest = principles.loginRequest;
-  const marketRequest= principles.marketRequest;
+  const timeSalesRequest = principles.timeSalesRequest;
 
   function openClient() {
     client = new WebSocket(wsUrl);
@@ -278,7 +278,7 @@ export async function getCurrentPrice(
         client?.close();
       } else {
         if (loggedIn) {
-          client?.send(JSON.stringify(marketRequest));
+          client?.send(JSON.stringify(timeSalesRequest));
           loggedIn = false;
         }
   
@@ -286,13 +286,16 @@ export async function getCurrentPrice(
   
         if (data.response && data.response[0].command === 'LOGIN') {
           loggedIn = true;
-        } else if (data.data !== undefined) {
-          messages.push(data.data[0].content[0]);
+        } else if (data.data) {
           messageCount = messages.length;
 
           if (messageCount >= 1) {
             client?.close();
           }
+
+          const content:SocketResponse["content"] = data.data[0].content;
+          const lastPrice = content[content.length - 1]["2"];
+          messages.push(lastPrice);
         }
       }
     };
@@ -313,10 +316,10 @@ export async function getCurrentPrice(
         console.log('messages', messages);
 
         if (messages.length == 0) {
-          return resolve('There are no demand or supply zones!');
+          return resolve('could not get close price!');
         }
 
-        closePrice = messages[0]['3'];
+        closePrice = messages[0];
 
         const zones = await findZones(closePrice, supplyZones, demandZones);
 

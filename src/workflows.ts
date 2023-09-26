@@ -95,7 +95,10 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
   state = 'Getting Current Price';
   const currentPrice = await getCurrentPrice(premarketData.symbol, demandZones, supplyZones);
 
-  if (currentPrice === "There are no demand or supply zones!" || currentPrice === "Market is currently closed!") {
+  if (
+    currentPrice === "There are no demand or supply zones!" || 
+    currentPrice === "Market is currently closed!" || 
+    currentPrice === "could not get close price!") {
     return currentPrice;
   }
 
