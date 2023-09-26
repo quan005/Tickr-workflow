@@ -244,7 +244,6 @@ export async function getCurrentPrice(
     demandZone: [],
     supplyZone: [],
   };
-  let messageCount = 0;
   const messages: number[] = [];
   let client: WebSocket | null = null;
 
@@ -287,15 +286,17 @@ export async function getCurrentPrice(
         if (data.response && data.response[0].command === 'LOGIN') {
           loggedIn = true;
         } else if (data.data) {
-          messageCount = messages.length;
+          const service = data.data[0].service;
 
-          if (messageCount >= 1) {
-            client?.close();
+          if (service === "TIMESALE_EQUITY") {
+            if (messages.length > 0) {
+              client?.close();
+            }
+  
+            const content:SocketResponse["content"] = data.data[0].content;
+            const lastPrice = content[content.length - 1]["2"];
+            messages.push(lastPrice);
           }
-
-          const content:SocketResponse["content"] = data.data[0].content;
-          const lastPrice = content[content.length - 1]["2"];
-          messages.push(lastPrice);
         }
       }
     };
@@ -315,7 +316,7 @@ export async function getCurrentPrice(
 
         console.log('messages', messages);
 
-        if (messages.length == 0) {
+        if (messages.length === 0) {
           return resolve('could not get close price!');
         }
 
