@@ -2,28 +2,23 @@ module.exports = {
     apps : [
         {
             name: 'worker1',
-            script: 'node -r tsconfig-paths/register -P ./tsconfig.json ./lib/worker.js',
-            watch: true,
+            script: 'npm -- run start:worker'
         },
         {
             name: 'worker2',
-            script: 'node -r tsconfig-paths/register -P ./tsconfig.json ./lib/worker.js',
-            watch: true,
+            script: 'npm -- run start:worker'
         },
         {
             name: 'worker3',
-            script: 'node -r tsconfig-paths/register -P ./tsconfig.json ./lib/worker.js',
-            watch: true,
+            script: 'npm -- run start:worker'
         },
         {
             name: 'client1',
-            script: 'node -r tsconfig-paths/register -P ./tsconfig.json ./lib/client.js',
-            watch: true,
+            script: 'npm -- run start:client'
         },
         {
             name: 'client2',
-            script: 'node -r tsconfig-paths/register -P ./tsconfig.json ./lib/client.js',
-            watch: true,
-        },
+            script: 'npm -- run start:client'
+        }
     ]
 };
