@@ -33,7 +33,6 @@ export interface SignalOpenPositionState {
     reversal: boolean,
     position: OrderDetails | string,
     noGoodBuys: boolean,
-    loggedIn: boolean,
     demandOrSupply: string,
     callOrPut: string,
     vwap: number,
@@ -76,7 +75,6 @@ export interface SignalCutPositionState {
     newPosition: OrderDetails | string,
     skipCut: boolean,
     stoppedOut: boolean,
-    loggedIn: boolean,
     cutFilled: number,
 }
 
@@ -89,7 +87,6 @@ export interface SignalClosePositionState {
     newPosition: OrderDetails | string,
     closeFilled: number,
     remainingQuantity: number,
-    loggedIn: boolean,
     passedOriginalTakeProfit: boolean,
     passedSecondTakeProfit: boolean
 }

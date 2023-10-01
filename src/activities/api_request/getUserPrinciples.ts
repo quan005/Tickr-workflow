@@ -16,7 +16,6 @@ export async function getUserPrinciples(symbol: string): Promise<PrinciplesAndPa
       }
 
       const userPrinciples: UserPrinciples = response.data;
-      console.log('userPrinciples', userPrinciples);
 
       let dataObject: PrinciplesAndParams = {
         userPrinciples: userPrinciples,

@@ -8,7 +8,7 @@ import { Zone } from "@src/interfaces/supplyDemandZones";
 import { SignalClosePositionState, SignalCutPositionState, SignalOpenPositionState } from "@src/interfaces/state";
 import { OpenPositionSignal, CutPositionSignal } from "@src/interfaces/positionSignals";
 import { PrinciplesAndParams } from "@src/interfaces/UserPrinciples";
-import { SocketResponse, Quote } from "@src/interfaces/websocketEvent";
+import { SocketResponse, Chart } from "@src/interfaces/websocketEvent";
 
 import {
   findZones,
@@ -140,7 +140,6 @@ export async function getPremarketData(symbol: string): Promise<string> {
       };
     }
   });
-
 }
 
 export async function getSurroundingKeyLevels(
@@ -238,13 +237,6 @@ export async function getCurrentPrice(
 ): Promise<string> {
   let principles: PrinciplesAndParams;
   let closePrice = 0;
-  let loggedIn = false;
-  const currentPriceData = {
-    closePrice,
-    demandZone: [],
-    supplyZone: [],
-  };
-  const messages: number[] = [];
   let client: WebSocket | null = null;
 
   try {
@@ -273,30 +265,24 @@ export async function getCurrentPrice(
     };
 
     client.onmessage = function (event) {
+      console.log('onmessage', event);
       if (getMarketClose()) {
+        console.log('onmessage Closed');
         client?.close();
+
       } else {
-        if (loggedIn) {
-          client?.send(JSON.stringify(timeSalesRequest));
-          loggedIn = false;
-        }
-  
         const data = JSON.parse(event.data as string);
   
         if (data.response && data.response[0].command === 'LOGIN') {
-          loggedIn = true;
-        } else if (data.data) {
-          const service = data.data[0].service;
+          console.log('logged in = true');
+          client?.send(JSON.stringify(timeSalesRequest));
 
-          if (service === "TIMESALE_EQUITY") {
-            if (messages.length > 0) {
-              client?.close();
-            }
-  
-            const content:SocketResponse["content"] = data.data[0].content;
-            const lastPrice = content[content.length - 1]["2"];
-            messages.push(lastPrice);
-          }
+        } else if (data.data && data.data[0].service === "TIMESALE_EQUITY") {
+          console.log('data.data', data.data);
+          const content:SocketResponse["content"] = data.data[0].content;
+          closePrice = content[content.length - 1]["2"];
+          client?.close();
+
         }
       }
     };
@@ -304,47 +290,30 @@ export async function getCurrentPrice(
 
   openClient();
 
-  return await new Promise((resolve) => {
-    if (client) {
-      client.onclose = async function () {
-        client.terminate();
-        client = null;
+  return new Promise((resolve) => {
+    client.onclose = async function () {
+      if (closePrice === 0) {
+        return resolve('could not get close price!');
+      }
 
-        if (getMarketClose()) {
-          return resolve('Market is currently closed!');
-        }
+      if (getMarketClose()) {
+        return resolve('Market is currently closed!');
+      }
 
-        console.log('messages', messages);
+      const zones = await findZones(closePrice, supplyZones, demandZones);
 
-        if (messages.length === 0) {
-          return resolve('could not get close price!');
-        }
+      if (!zones.demandZones?.length && !zones.supplyZones?.length) {
+        return resolve('There are no demand or supply zones!');
+      }
 
-        closePrice = messages[0];
-
-        const zones = await findZones(closePrice, supplyZones, demandZones);
-
-        const demandZone = zones.demandZones;
-        const supplyZone = zones.supplyZones;
-
-        if (demandZone?.length >= 1 && supplyZone?.length >= 1) {
-          currentPriceData.closePrice = closePrice;
-          currentPriceData.demandZone = demandZone;
-          currentPriceData.supplyZone = supplyZone;
-          return resolve(JSON.stringify(currentPriceData));
-        } else if (demandZone?.length >= 1) {
-          currentPriceData.closePrice = closePrice;
-          currentPriceData.demandZone = demandZone;
-          return resolve(JSON.stringify(currentPriceData));
-        } else if (supplyZone?.length >= 1) {
-          currentPriceData.closePrice = closePrice;
-          currentPriceData.supplyZone = supplyZone;
-          return resolve(JSON.stringify(currentPriceData));
-        } else {
-          return resolve('There are no demand or supply zones!');
-        }
+      const currentPriceData = {
+        closePrice,
+        demandZone: zones.demandZones || [],
+        supplyZone: zones.supplyZones|| [],
       };
-    }
+
+      return resolve(JSON.stringify(currentPriceData));
+    };
   });
 }
 
@@ -451,7 +420,6 @@ export async function waitToSignalOpenPosition(
     reversal: false,
     position: '',
     noGoodBuys: false,
-    loggedIn: false,
     demandOrSupply: '',
     callOrPut: '',
     vwap: 0,
@@ -530,17 +498,12 @@ export async function waitToSignalOpenPosition(
         state.noGoodBuys = true;
         client?.close();
       } else {
-        if (state.loggedIn) {
-          client?.send(JSON.stringify(timeSalesRequest));
-          client?.send(JSON.stringify(chartRequest));
-          client?.send(JSON.stringify(marketRequest));
-          state.loggedIn = false;
-        }
-
         const data = JSON.parse(event.data as string);
 
         if (data.response && data.response[0].command === "LOGIN") {
-          state.loggedIn = true;
+          client?.send(JSON.stringify(timeSalesRequest));
+          client?.send(JSON.stringify(chartRequest));
+          client?.send(JSON.stringify(marketRequest));
         } else if (data.data) {
           const service = data.data[0].service;
 
@@ -621,79 +584,74 @@ export async function waitToSignalOpenPosition(
 
   openClient();
 
-  return await new Promise((resolve) => {
-    if (client) {
-      client.onclose = async function () {
-        client.terminate();
-        client = null;
+  return new Promise((resolve) => {
+    client.onclose = async function () {
+      if (state.noGoodBuys) {
+        return resolve('Could not find any good buying opportunities!');
+      }
 
-        if (state.noGoodBuys) {
-          return resolve('Could not find any good buying opportunities!');
+      const optionSelection = await getOptionsSelection(position_setup, state.reversal, symbol, budget);
+
+      if (
+        optionSelection === "There are no call or put options that meet the requirements!" || 
+        optionSelection === 'There are no call options that meet the requirements!' || 
+        optionSelection === 'There are no put options that meet the requirements!' || 
+        optionSelection === "Both call and put responses were null!"
+      ) {
+        return resolve(optionSelection);
+      }
+
+      const newOptions: OptionsSelection = JSON.parse(optionSelection);
+      state.position = await openPosition(newOptions, state.callOrPut, budget, account_id);
+
+      if (
+        state.position === "Account balance is too low!" || 
+        state.position === "There are no call or put options selected for purchase!"
+      ) {
+        return resolve(state.position);
+      } else {
+        const newPosition: OrderDetails = JSON.parse(state.position);
+        const entry: number = state.updatedPrice;
+        let stoploss: number;
+        let breakEven: number;
+        let cutPosition: number;
+        let takeProfit: number;
+        let higherProfit: number;
+        let MaxProfit: number;
+        const commission = fee / 100;
+        const commissionIncludedPrice = newPosition.price + commission;
+
+        if (state.callOrPut === 'PUT') {
+          breakEven = Math.round(entry - commissionIncludedPrice * 100) / 100;
+          stoploss = Math.round((entry + (0.10 * commissionIncludedPrice)) * 100) / 100;
+          cutPosition = Math.round((breakEven - (0.5 * commissionIncludedPrice)) * 100) / 100;
+          takeProfit = Math.round((breakEven  - (0.10 * commissionIncludedPrice)) * 100) / 100;
+          higherProfit = Math.round((breakEven  - (0.20 * commissionIncludedPrice)) * 100) / 100;
+          MaxProfit = Math.round((breakEven  - (0.30 * commissionIncludedPrice)) * 100) / 100;
+        } 
+        
+        if (state.callOrPut === 'CALL') {
+          breakEven = Math.round((entry + commissionIncludedPrice) * 100) / 100;
+          stoploss = Math.round((entry - (0.10 * commissionIncludedPrice)) * 100) / 100;
+          cutPosition = Math.round((breakEven + (0.5 * commissionIncludedPrice)) * 100) / 100;
+          takeProfit = Math.round((breakEven  + (0.10 * commissionIncludedPrice)) * 100) / 100;
+          higherProfit = Math.round((breakEven  + (0.20 * commissionIncludedPrice)) * 100) / 100;
+          MaxProfit = Math.round((breakEven  + (0.30 * commissionIncludedPrice)) * 100) / 100;
         }
 
-        const optionSelection = await getOptionsSelection(position_setup, state.reversal, symbol, budget);
-  
-        if (
-          optionSelection === "There are no call or put options that meet the requirements!" || 
-          optionSelection === 'There are no call options that meet the requirements!' || 
-          optionSelection === 'There are no put options that meet the requirements!' || 
-          optionSelection === "Both call and put responses were null!"
-        ) {
-          return resolve(optionSelection);
-        }
-  
-        const newOptions: OptionsSelection = JSON.parse(optionSelection);
-        state.position = await openPosition(newOptions, state.callOrPut, budget, account_id);
-  
-        if (
-          state.position === "Account balance is too low!" || 
-          state.position === "There are no call or put options selected for purchase!"
-        ) {
-          return resolve(state.position);
-        } else {
-          const newPosition: OrderDetails = JSON.parse(state.position);
-          const entry: number = state.updatedPrice;
-          let stoploss: number;
-          let breakEven: number;
-          let cutPosition: number;
-          let takeProfit: number;
-          let higherProfit: number;
-          let MaxProfit: number;
-          const commission = fee / 100;
-          const commissionIncludedPrice = newPosition.price + commission;
-
-          if (state.callOrPut === 'PUT') {
-            breakEven = Math.round(entry - commissionIncludedPrice * 100) / 100;
-            stoploss = Math.round((entry + (0.10 * commissionIncludedPrice)) * 100) / 100;
-            cutPosition = Math.round((breakEven - (0.14 * commissionIncludedPrice)) * 100) / 100;
-            takeProfit = Math.round((breakEven  - (0.21 * commissionIncludedPrice)) * 100) / 100;
-            higherProfit = Math.round((breakEven  - (0.28 * commissionIncludedPrice)) * 100) / 100;
-            MaxProfit = Math.round((breakEven  - (0.35 * commissionIncludedPrice)) * 100) / 100;
-          } 
-          
-          if (state.callOrPut === 'CALL') {
-            breakEven = Math.round((entry + commissionIncludedPrice) * 100) / 100;
-            stoploss = Math.round((entry - (0.10 * commissionIncludedPrice)) * 100) / 100;
-            cutPosition = Math.round((breakEven + (0.14 * commissionIncludedPrice)) * 100) / 100;
-            takeProfit = Math.round((breakEven  + (0.21 * commissionIncludedPrice)) * 100) / 100;
-            higherProfit = Math.round((breakEven  + (0.28 * commissionIncludedPrice)) * 100) / 100;
-            MaxProfit = Math.round((breakEven  + (0.35 * commissionIncludedPrice)) * 100) / 100;
-          }
-  
-          return resolve(JSON.stringify({
-            position: newPosition,
-            callOrPut: state.callOrPut,
-            entry: entry,
-            breakEven: breakEven,
-            stoploss: stoploss,
-            cutPosition: cutPosition,
-            takeProfit: takeProfit,
-            higherProfit: higherProfit,
-            MaxProfit: MaxProfit
-          }));
-        }
-      };
-    }
+        return resolve(JSON.stringify({
+          position: newPosition,
+          callOrPut: state.callOrPut,
+          entry: entry,
+          breakEven: breakEven,
+          stoploss: stoploss,
+          cutPosition: cutPosition,
+          takeProfit: takeProfit,
+          higherProfit: higherProfit,
+          MaxProfit: MaxProfit
+        }));
+      }
+    };
   });
 }
 
@@ -712,7 +670,6 @@ export async function waitToSignalCutPosition(
     newPosition: '',
     skipCut: false,
     stoppedOut: false,
-    loggedIn: false,
     cutFilled: 0,
   }
   
@@ -749,7 +706,7 @@ export async function waitToSignalCutPosition(
 
   const wsUrl = `wss://${state.principles.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   const loginRequest = state.principles.loginRequest;
-  const marketRequest = state.principles.marketRequest;
+  const chartRequest = state.principles.chartRequest;
 
 
   function openClient() {
@@ -773,19 +730,14 @@ export async function waitToSignalCutPosition(
         state.skipCut = true;
         client?.close();
       } else {
-        if (state.loggedIn) {
-          client.send(JSON.stringify(marketRequest));
-          state.loggedIn = false;
-        }
-
         const data = JSON.parse(event.data as string);
 
         if (data.response && data.response[0].command === "LOGIN") {
-          state.loggedIn = true;
+          client.send(JSON.stringify(chartRequest));
         } else if (data.data) {
           console.log('Cut Data Data: ', data.data);
-          const content: Quote = data.data[0].content[0];
-          const price = content["3"];
+          const content: Chart = data.data[0].content[0];
+          const price = content["4"];
 
           if (state.callOrPut === 'CALL') {
             console.log('Cut Demand Data Data Content', data.data[0].content);
@@ -838,37 +790,14 @@ export async function waitToSignalCutPosition(
 
   return new Promise<string>((resolve) => {
     let returnString = ''
-    if (client) {
-      client.onclose = async function () {
-        client.terminate();
-        client = null;
-  
-        if (state.skipCut) {
-          console.log('cut was skipped');
-          returnString = JSON.stringify({
-            position: state.openPositonSignal.position,
-            purchasedQuantity: quantity,
-            cutQuantity: state.cutFilled,
-            isCut: false,
-            entry: entry,
-            breakEven: breakEven,
-            stoploss: stoploss,
-            cutPosition: cut,
-            takeProfit: takeProfit,
-            higherProfit: higherProfit,
-            MaxProfit: MaxProfit
-          })
-          return resolve(returnString);
-        }
-
-        state.position = state.stoppedOut ? await closePosition(symbol, quantity, account_id) : await cutPosition(symbol, quantity, account_id);
-        state.newPosition = JSON.parse(state.position);
-        state.cutFilled = await isPositionFilled(symbol, account_id);
-        returnString = state.stoppedOut ? 'Stopped out' : JSON.stringify({
-          position: state.newPosition,
+    client.onclose = async function () {
+      if (state.skipCut) {
+        console.log('cut was skipped');
+        returnString = JSON.stringify({
+          position: state.openPositonSignal.position,
           purchasedQuantity: quantity,
           cutQuantity: state.cutFilled,
-          isCut: true,
+          isCut: false,
           entry: entry,
           breakEven: breakEven,
           stoploss: stoploss,
@@ -876,10 +805,28 @@ export async function waitToSignalCutPosition(
           takeProfit: takeProfit,
           higherProfit: higherProfit,
           MaxProfit: MaxProfit
-        });
+        })
         return resolve(returnString);
-      };
-    }
+      }
+
+      state.position = state.stoppedOut ? await closePosition(symbol, quantity, account_id) : await cutPosition(symbol, quantity, account_id);
+      state.newPosition = JSON.parse(state.position);
+      state.cutFilled = await isPositionFilled(symbol, account_id);
+      returnString = state.stoppedOut ? 'Stopped out' : JSON.stringify({
+        position: state.newPosition,
+        purchasedQuantity: quantity,
+        cutQuantity: state.cutFilled,
+        isCut: true,
+        entry: entry,
+        breakEven: breakEven,
+        stoploss: stoploss,
+        cutPosition: cut,
+        takeProfit: takeProfit,
+        higherProfit: higherProfit,
+        MaxProfit: MaxProfit
+      });
+      return resolve(returnString);
+    };
   });
 }
 
@@ -902,7 +849,6 @@ export async function waitToSignalClosePosition(
     newPosition: '',
     closeFilled: 0,
     remainingQuantity: cutQuantity,
-    loggedIn: false,
     passedOriginalTakeProfit: false,
     passedSecondTakeProfit: false,
   }
@@ -918,7 +864,7 @@ export async function waitToSignalClosePosition(
 
   const wsUrl = `wss://${state.principles.userPrinciples.streamerInfo.streamerSocketUrl}/ws`;
   const loginRequest = state.principles.loginRequest;
-  const marketRequest = state.principles.marketRequest;
+  const chartRequest = state.principles.chartRequest;
 
   function openClient() {
     client = new WebSocket(wsUrl);
@@ -939,18 +885,14 @@ export async function waitToSignalClosePosition(
       if (getMarketClose()) {
         client?.close();
       } else {
-        if (state.loggedIn) {
-          client?.send(JSON.stringify(marketRequest));
-          state.loggedIn = false;
-        }
-  
         const data = JSON.parse(event.data as string);
   
         if (data.response && data.response[0].command === 'LOGIN') {
-          state.loggedIn = true;
+          client?.send(JSON.stringify(chartRequest));
         } else if (data.data) {
           console.log('Close Data Data: ', data.data);
-          const price = data.data[0].content[0]['3'];
+          const content: Chart = data.data[0].content[0];
+          const price = content["4"];
 
           if (state.callOrPut === 'CALL') {
             console.log('Close Demand Data Data Content', data.data[0].content);
@@ -1009,23 +951,18 @@ export async function waitToSignalClosePosition(
 
   openClient();
 
-  return await new Promise((resolve) => {
-    if (client) {
-      client.onclose = async function () {
-        client.terminate();
-        client = null;
+  return new Promise((resolve) => {
+    client.onclose = async function () {
+      state.position = await closePosition(symbol, state.remainingQuantity, account_id);
+      state.closeFilled = await isPositionFilled(symbol, account_id);
+      state.remainingQuantity =state.remainingQuantity - state.closeFilled;
 
-        state.position = await closePosition(symbol, state.remainingQuantity, account_id);
+      while (state.remainingQuantity !== 0) {
         state.closeFilled = await isPositionFilled(symbol, account_id);
-        state.remainingQuantity =state.remainingQuantity - state.closeFilled;
+        state.remainingQuantity = state.remainingQuantity - state.closeFilled;
+      }
 
-        while (state.remainingQuantity !== 0) {
-          state.closeFilled = await isPositionFilled(symbol, account_id);
-          state.remainingQuantity = state.remainingQuantity - state.closeFilled;
-        }
-
-        return resolve('position fully closed!');
-      };
-    }
+      return resolve('position fully closed!');
+    };
   });
 }
