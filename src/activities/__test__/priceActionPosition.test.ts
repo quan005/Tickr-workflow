@@ -1,5 +1,6 @@
-// import * as activities from "../priceActionPosition";
-// import * as mockPremarketData from "../mocks/premarketData.mock";
+require('module-alias/register');
+import * as activities from "../priceActionPosition";
+import * as mockPremarketData from "../mocks/premarketData.mock";
 // import * as moment from "moment-timezone";
 // import { tdCredentialsToString } from "../../tda/middleware/tdCredentialToString";
 // import { TokenJSON } from '../../interfaces/token';
@@ -14,32 +15,16 @@
 //   PutCall,
 //   SessionType,
 // } from "../../interfaces/orders";
-// import * as dotenv from "dotenv";
-// dotenv.config();
+import * as dotenv from "dotenv";
+dotenv.config();
 
 
-// // it("returns an object with userid equal to TD_USERNAME env variable", async () => {
-// //   const startTime = new Date().getTime();
-// //   let token: TokenJSON = {
-// //     access_token: null,
-// //     refresh_token: null,
-// //     access_token_expires_at: null,
-// //     refresh_token_expires_at: null,
-// //     logged_in: null,
-// //     access_token_expires_at_date: null,
-// //     refresh_token_expires_at_date: null
-// //   };
-
-// //   const code = await activities.getUrlCode();
-// //   console.log('code', code);
-// //   token = await activities.getLoginCredentials(code);
-// //   console.log('token', token);
-// //   const endTime = new Date().getTime();
-// //   // const refresh = await activities.getRefreshToken(token.refresh_token);
-// //   console.log('it took', `${endTime - startTime} ms`);
-
-// //   expect(typeof code).toEqual('');
-// // });
+it("returns an object with userid equal to TD_USERNAME env variable", async () => {
+  const premarketData = mockPremarketData.premarketData;
+  const currentPrice = await activities.getCurrentPrice(premarketData['symbol'], premarketData["demandZones"], premarketData["supplyZones"]);
+  console.log('currentPrice', currentPrice);
+//   expect(typeof code).toEqual('');
+});
 
 // it("returns an object with the account info", async () => {
 //   let Symbol = 'AAPL';

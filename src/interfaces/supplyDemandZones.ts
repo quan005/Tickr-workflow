@@ -1,7 +1,7 @@
 export interface Zone {
   bottom: number;
   top: number;
-  dateTime?: string;
+  datetime?: string;
 }
 
 export interface ZonesInProximity {

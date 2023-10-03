@@ -47,7 +47,21 @@
     ],
     "setupFilesAfterEnv": [
       "./src/test/setup.ts"
-    ]
+    ],
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "./tsconfig.json",
+        "compiler": "ttypescript",
+        "diagnostics": {
+          "ignoreCodes": [
+            151001
+          ]
+        }
+      }
+    },
+    "moduleNameMapper": {
+      "^@src/(.*)$": "<rootDir>/src/$1"
+    }
   },
   "repository": {
     "type": "git",
@@ -72,7 +86,8 @@
     "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^3.0.1",
     "ts-node-dev": "^2.0.0",
-    "tsconfig-paths": "^4.2.0"
+    "tsconfig-paths": "^4.2.0",
+    "ttypescript": "^1.5.15"
   },
   "dependencies": {
     "@kafkajs/confluent-schema-registry": "^3.2.0",

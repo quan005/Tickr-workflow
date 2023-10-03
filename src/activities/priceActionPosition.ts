@@ -265,20 +265,16 @@ export async function getCurrentPrice(
     };
 
     client.onmessage = function (event) {
-      console.log('onmessage', event);
       if (getMarketClose()) {
-        console.log('onmessage Closed');
         client?.close();
 
       } else {
         const data = JSON.parse(event.data as string);
   
         if (data.response && data.response[0].command === 'LOGIN') {
-          console.log('logged in = true');
           client?.send(JSON.stringify(timeSalesRequest));
 
         } else if (data.data && data.data[0].service === "TIMESALE_EQUITY") {
-          console.log('data.data', data.data);
           const content:SocketResponse["content"] = data.data[0].content;
           closePrice = content[content.length - 1]["2"];
           client?.close();
