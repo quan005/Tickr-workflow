@@ -1,7 +1,34 @@
 import { Zone, ZonesInProximity } from '@src/interfaces/supplyDemandZones';
 
 function filterZonesSurroundingPrice(currentPrice: number, zones: Zone[]): Zone[] {
-  return zones.filter((zone) => currentPrice >= zone.bottom && currentPrice <= zone.top);
+  // Sort the zones based on the 'top' value
+  const sortedZones = [...zones].sort((a, b) => b.top - a.top);
+
+  for (let i = 0; i < sortedZones.length; i++) {
+    const zone = sortedZones[i];
+    if (currentPrice > zone.top) {
+      // If currentPrice is greater than the top of the first zone
+      if (i === 0) {
+        return [sortedZones[0], sortedZones[1]];
+      }
+      // If currentPrice is less than zone[i] top, and greater than zone[i] bottom
+      else if (currentPrice > zone.bottom) {
+        // If zone is the last zone
+        if (i === sortedZones.length - 1) {
+          return [sortedZones[i - 1], sortedZones[i]];
+        } else {
+          return [sortedZones[i], sortedZones[i + 1]];
+        }
+      }
+      // If currentPrice lies in between zone[i] top and zone[i+1] bottom
+      else if (i < sortedZones.length - 1 && currentPrice > sortedZones[i + 1].bottom) {
+        return [sortedZones[i], sortedZones[i + 1]];
+      }
+    }
+  }
+
+  // If currentPrice is less than the bottom of the last zone
+  return [sortedZones[sortedZones.length - 2], sortedZones[sortedZones.length - 1]];
 };
 
 export async function findZones(
@@ -9,30 +36,8 @@ export async function findZones(
   supplyZones: Zone[],
   demandZones: Zone[]
 ): Promise<ZonesInProximity> {
-  let filteredSupplyZones = filterZonesSurroundingPrice(currentPrice,supplyZones);
-  let filteredDemandZones = filterZonesSurroundingPrice(currentPrice, demandZones);
-
-  const sortZonesByDistance = (zones: Zone[]): Zone[] => {
-    return zones.sort(
-      (a, b) => Math.abs(currentPrice - a.top) - Math.abs(currentPrice - b.top)
-    );
-  };
-
-  if (filteredSupplyZones.length === 0) {
-    supplyZones = sortZonesByDistance(supplyZones);
-    filteredSupplyZones =
-      currentPrice < supplyZones[0].bottom
-        ? [supplyZones[0], supplyZones[1]]
-        : [supplyZones[supplyZones.length - 1], supplyZones[supplyZones.length - 2]];
-  }
-
-  if (filteredDemandZones.length === 0) {
-    demandZones = sortZonesByDistance(demandZones);
-    filteredDemandZones =
-      currentPrice < demandZones[0].bottom
-        ? [demandZones[0], demandZones[1]]
-        : [demandZones[demandZones.length - 1], demandZones[demandZones.length - 2]];
-  }
+  const filteredSupplyZones = filterZonesSurroundingPrice(currentPrice, supplyZones);
+  const filteredDemandZones = filterZonesSurroundingPrice(currentPrice, demandZones);
 
   return {
     supplyZones: filteredSupplyZones,

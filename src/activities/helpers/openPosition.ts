@@ -24,7 +24,10 @@ export async function openPosition(
     let quantity = 0;
     let symbol = '';
     let strikePrice = 0;
-  
+    
+    console.log('optionType', optionType);
+    console.log('call', options.CALL);
+    console.log('put', options.PUT);
   
     if (optionType === 'CALL' && options.CALL !== null) {
       const { symbol: callSymbol, strikePrice: callStrikePrice } = options.CALL;

@@ -55,7 +55,7 @@ export async function priceAction(premarketData: PremarketData): Promise<string>
     throw ApplicationFailure.create({ nonRetryable: true, message: 'Premarket analysis error' });
   }
 
-  const additionalSleepTime = 0;
+  const additionalSleepTime = premarketData.messageNumber ? premarketData.messageNumber * 30000 : 0;
   let state: PositionState = 'Getting Time Remaining';
   let marketOpen = await timeUntilMarketOpen();
   
