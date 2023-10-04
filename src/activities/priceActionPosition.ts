@@ -482,6 +482,7 @@ export async function waitToSignalOpenPosition(
     };
 
     client.onmessage = function (event) {
+      console.log('message event:', event);
       now = new Date();
       orderVelocityNow = now;
 
@@ -581,7 +582,8 @@ export async function waitToSignalOpenPosition(
   openClient();
 
   return new Promise((resolve) => {
-    client.onclose = async function () {
+    client.onclose = async function (event) {
+      console.log(`client closed with callOrPut:${state.callOrPut}`, event)
       if (state.noGoodBuys) {
         return resolve('Could not find any good buying opportunities!');
       }
