@@ -30,26 +30,6 @@ dotenv.config();
 it("returns a object with the selected supply and demand zones", async () => {
     const supply = [
     {
-        "top": 121.86,
-        "bottom": 121.32,
-        "datetime": "('NKE', Timestamp('2023-03-09 15:30:00'))"
-    },
-    {
-        "top": 121.41,
-        "bottom": 121.21,
-        "datetime": "('NKE', Timestamp('2023-03-09 16:00:00'))"
-    },
-    {
-        "top": 118.67,
-        "bottom": 118.625,
-        "datetime": "('NKE', Timestamp('2023-03-09 20:00:00'))"
-    },
-    {
-        "top": 118.99,
-        "bottom": 118.83,
-        "datetime": "('NKE', Timestamp('2023-03-10 14:30:00'))"
-    },
-    {
         "top": 117.66,
         "bottom": 117.51,
         "datetime": "('NKE', Timestamp('2023-03-10 20:30:00'))"
@@ -1506,7 +1486,7 @@ it("returns a object with the selected supply and demand zones", async () => {
     },
     {
         "top": 89.3,
-        "bottom": 89.13,
+        "bottom": 89.29,
         "datetime": "('NKE', Timestamp('2023-09-28 14:00:00'))"
     },
     {
@@ -1548,35 +1528,30 @@ it("returns a object with the selected supply and demand zones", async () => {
         "top": 95.91,
         "bottom": 95.895,
         "datetime": "('NKE', Timestamp('2023-10-03 14:00:00'))"
+    },
+    {
+        "top": 95.73,
+        "bottom": 95.68,
+        "datetime": "('NKE', Timestamp('2023-10-04 14:00:00'))"
+    },
+    {
+        "top": 96.255,
+        "bottom": 96,
+        "datetime": "('NKE', Timestamp('2023-10-04 19:30:00'))"
+    },
+    {
+        "top": 96.06,
+        "bottom": 96.0597,
+        "datetime": "('NKE', Timestamp('2023-10-05 19:00:00'))"
+    },
+    {
+        "top": 96.02,
+        "bottom": 95.97,
+        "datetime": "('NKE', Timestamp('2023-10-05 19:30:00'))"
     }
     ]
     
     const demand = [
-    {
-        "bottom": 118.9701,
-        "top": 119.54,
-        "datetime": "('NKE', Timestamp('2023-03-08 15:00:00'))"
-    },
-    {
-        "bottom": 119.135,
-        "top": 119.135,
-        "datetime": "('NKE', Timestamp('2023-03-08 20:30:00'))"
-    },
-    {
-        "bottom": 119.8675,
-        "top": 120.08,
-        "datetime": "('NKE', Timestamp('2023-03-09 14:30:00'))"
-    },
-    {
-        "bottom": 120.91,
-        "top": 121.16,
-        "datetime": "('NKE', Timestamp('2023-03-09 15:00:00'))"
-    },
-    {
-        "bottom": 117.59,
-        "top": 117.7,
-        "datetime": "('NKE', Timestamp('2023-03-09 20:30:00'))"
-    },
     {
         "bottom": 115.79,
         "top": 115.82,
@@ -2956,10 +2931,30 @@ it("returns a object with the selected supply and demand zones", async () => {
         "bottom": 94.81,
         "top": 94.89,
         "datetime": "('NKE', Timestamp('2023-10-03 19:30:00'))"
+    },
+    {
+        "bottom": 95.43,
+        "top": 95.58,
+        "datetime": "('NKE', Timestamp('2023-10-04 13:30:00'))"
+    },
+    {
+        "bottom": 95.615,
+        "top": 95.66,
+        "datetime": "('NKE', Timestamp('2023-10-04 19:00:00'))"
+    },
+    {
+        "bottom": 95.28,
+        "top": 95.69,
+        "datetime": "('NKE', Timestamp('2023-10-05 13:30:00'))"
+    },
+    {
+        "bottom": 95.62,
+        "top": 95.91,
+        "datetime": "('NKE', Timestamp('2023-10-05 14:00:00'))"
     }
     ];
     
-   const price = 95.635;
+   const price = 89.31;
    const getSupplyDemand = await utilities.findZones(price, supply, demand);
 
    console.log(getSupplyDemand)
