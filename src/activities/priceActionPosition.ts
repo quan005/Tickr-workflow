@@ -582,8 +582,7 @@ export async function waitToSignalOpenPosition(
   openClient();
 
   return new Promise((resolve) => {
-    client.onclose = async function (event) {
-      console.log(`client closed with callOrPut:${state.callOrPut}`, event)
+    client.onclose = async function () {
       if (state.noGoodBuys) {
         return resolve('Could not find any good buying opportunities!');
       }

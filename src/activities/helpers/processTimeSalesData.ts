@@ -3,8 +3,9 @@ import { TimeSales, SocketResponse } from "@src/interfaces/websocketEvent";
 import { DeltaMetrics } from "@src/interfaces/delta";
 import { getDeltaFootprint, getTrend, getVwap } from "../utilities";
 
-export function processTimeSalesData(content: SocketResponse["content"], state: SignalOpenPositionState, utcTime: string): SignalOpenPositionState {
+export function processTimeSalesData(content: SocketResponse["content"], newState: SignalOpenPositionState, utcTime: string): SignalOpenPositionState {
     const lastPrice = content[content.length - 1]["2"];
+    let state = newState;
 
     state.orderArray.push({
         quantity: content.length
@@ -95,19 +96,19 @@ export function processTimeSalesData(content: SocketResponse["content"], state: 
     state.supplyTimeSalesEntryPercentage = state.metSupplyEntryPrice / content.length;
     state.supplyTimeSalesReversalEntryPercentage = state.metSupplyReversalEntryPrice / content.length;
 
-    if (state.demandTimeSalesEntryPercentage >= 0.9) {
+    if (state.demandTimeSalesEntryPercentage >= 0.7) {
         state.demandForming += 1;
     }
     
-    if (state.demandTimeSalesReversalEntryPercentage >= 0.9) {
+    if (state.demandTimeSalesReversalEntryPercentage >= 0.7) {
         state.demandReversalForming += 1;
     } 
     
-    if (state.supplyTimeSalesEntryPercentage >= 0.9) {
+    if (state.supplyTimeSalesEntryPercentage >= 0.7) {
         state.supplyForming += 1;
     } 
     
-    if (state.supplyTimeSalesReversalEntryPercentage >= 0.9) {
+    if (state.supplyTimeSalesReversalEntryPercentage >= 0.7) {
         state.supplyReversalForming += 1;
     }
 
