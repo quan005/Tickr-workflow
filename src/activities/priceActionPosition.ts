@@ -358,13 +358,13 @@ export async function getPositionSetup(
   }
 
   if (supplyZone.length > 0) {
-    position.supply.primary.targetedEntry = supplyZone[0].top;
-    position.supply.primary.reversalEntry = supplyZone[0].bottom;
+    position.supply.primary.targetedEntry = supplyZone[0].bottom;
+    position.supply.primary.reversalEntry = supplyZone[0].top;
   }
 
   if (supplyZone.length > 1) {
-    position.supply.secondary.targetedEntry = supplyZone[1].top;
-    position.supply.secondary.reversalEntry = supplyZone[1].bottom;
+    position.supply.secondary.targetedEntry = supplyZone[1].bottom;
+    position.supply.secondary.reversalEntry = supplyZone[1].top;
   }
 
   return JSON.stringify(position);

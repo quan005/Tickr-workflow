@@ -20,12 +20,12 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 
-// it("returns an object with userid equal to TD_USERNAME env variable", async () => {
-//   const premarketData = mockPremarketData.premarketData;
-//   const currentPrice = await activities.getCurrentPrice(premarketData['symbol'], premarketData["demandZones"], premarketData["supplyZones"]);
-//   console.log('currentPrice', currentPrice);
-// //   expect(typeof code).toEqual('');
-// });
+it("returns an object with userid equal to TD_USERNAME env variable", async () => {
+  const premarketData = mockPremarketData.premarketData;
+  const currentPrice = await activities.getCurrentPrice(premarketData['symbol'], premarketData["demandZones"], premarketData["supplyZones"]);
+  console.log('currentPrice', currentPrice);
+//   expect(typeof code).toEqual('');
+});
 
 it("returns a object with the selected supply and demand zones", async () => {
     const supply = [
