@@ -343,26 +343,26 @@ export async function getPositionSetup(
     }
   }
 
-  if (demandZone.length === 0 && supplyZone.length === 0) {
+  if (!demandZone[0] && !supplyZone[0]) {
     return 'There are no good position setups!';
   }
 
-  if (demandZone.length > 0) {
+  if (demandZone[0]) {
     position.demand.primary.targetedEntry = demandZone[0].top;
     position.demand.primary.reversalEntry = demandZone[0].bottom;
   }
 
-  if (demandZone.length > 1) {
+  if (demandZone[1]) {
     position.demand.secondary.targetedEntry = demandZone[1].top;
     position.demand.secondary.reversalEntry = demandZone[1].bottom;
   }
 
-  if (supplyZone.length > 0) {
+  if (supplyZone[0]) {
     position.supply.primary.targetedEntry = supplyZone[0].bottom;
     position.supply.primary.reversalEntry = supplyZone[0].top;
   }
 
-  if (supplyZone.length > 1) {
+  if (supplyZone[1]) {
     position.supply.secondary.targetedEntry = supplyZone[1].bottom;
     position.supply.secondary.reversalEntry = supplyZone[1].top;
   }
