@@ -25,6 +25,7 @@ export function exponentialRegressionSlope(y: number[]): number | null {
 
 export function isOrderVelocityIncreasing(orderVelocityQueue: FixedSizeQueue<number>): boolean {
     const orderVelocityArray = orderVelocityQueue.getItems();
+    console.log('orderVelocityArray', orderVelocityArray);
     
     const velocity = exponentialRegressionSlope(orderVelocityArray);
 
