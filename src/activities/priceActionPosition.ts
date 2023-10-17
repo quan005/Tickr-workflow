@@ -486,8 +486,6 @@ export async function waitToSignalOpenPosition(
       orderVelocityNow = now;
 
       utcTime = now.toUTCString().slice(17,22);
-
-      orderVelocityNow.setSeconds(orderVelocityNow.getSeconds() + orderVelocityTimerDuration);
       orderVelocityTime = orderVelocityNow.toUTCString().slice(17,25);
 
       if (getMarketClose()) {
@@ -512,6 +510,8 @@ export async function waitToSignalOpenPosition(
             state.orderVelocityAvg = getAverage(state.orderVelocityArray.getItems());
             state.lastOrderVelocity = state.orderVelocity;
             state.orderVelocity = 0;
+            orderVelocityNow.setSeconds(orderVelocityNow.getSeconds() + orderVelocityTimerDuration);
+            state.nextOrderVelocityTime = orderVelocityNow.toUTCString().slice(17,25);
           }
 
           if (utcTime === state.nextTime) {
