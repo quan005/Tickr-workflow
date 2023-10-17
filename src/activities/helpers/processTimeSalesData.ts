@@ -41,6 +41,7 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
             price >= state.newPositionSetup.demand.primary.targetedEntry &&
             price > state.newPositionSetup.demand.primary.reversalEntry
         ){
+            console.log('metDemandEntryPrice');
             state.metDemandEntryPrice += 1;
             state.demandSize += volume;
         }
@@ -49,6 +50,7 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
             price <= state.newPositionSetup.demand.primary.reversalEntry &&
             price < state.newPositionSetup.demand.primary.targetedEntry
         ){
+            console.log('metDemandreversalEntryPrice');
             state.metDemandreversalEntryPrice += 1;
             state.demandReversalSize += volume;
         }
@@ -57,6 +59,7 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
             price <= state.newPositionSetup.supply.primary.targetedEntry &&
             price < state.newPositionSetup.supply.primary.reversalEntry
         ) {
+            console.log('metSupplyEntryPrice');
             state.metSupplyEntryPrice += 1;
             state.supplySize += volume;
         }
@@ -65,6 +68,7 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
             price >= state.newPositionSetup.supply.primary.reversalEntry &&
             price > state.newPositionSetup.supply.primary.targetedEntry
         ) {
+            console.log('metSupplyReversalEntryPrice');
             state.metSupplyReversalEntryPrice += 1;
             state.supplyReversalSize += volume;
         }
@@ -95,6 +99,10 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
     state.demandTimeSalesReversalEntryPercentage = state.metDemandreversalEntryPrice / content.length;
     state.supplyTimeSalesEntryPercentage = state.metSupplyEntryPrice / content.length;
     state.supplyTimeSalesReversalEntryPercentage = state.metSupplyReversalEntryPrice / content.length;
+    console.log('demandTimeSalesEntryPercentage', state.demandTimeSalesEntryPercentage);
+    console.log('demandTimeSalesReversalEntryPercentage', state.demandTimeSalesReversalEntryPercentage);
+    console.log('supplyTimeSalesEntryPercentage', state.supplyTimeSalesEntryPercentage);
+    console.log('supplyTimeSalesReversalEntryPercentage', state.supplyTimeSalesReversalEntryPercentage);
 
     if (state.demandTimeSalesEntryPercentage >= 0.7) {
         state.demandForming += 1;

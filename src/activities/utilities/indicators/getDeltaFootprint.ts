@@ -45,6 +45,8 @@ export function getDeltaFootprint(state: SignalOpenPositionState, order: TimeSal
 
     newState.deltaFootprint[utcTime].footprint = sortedDeltaFootprint;
 
+    console.log('new state', newState);
+
     return newState
 }
 
