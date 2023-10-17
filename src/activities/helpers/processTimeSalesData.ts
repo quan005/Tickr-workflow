@@ -104,6 +104,11 @@ export function processTimeSalesData(content: SocketResponse["content"], newStat
     console.log('supplyTimeSalesEntryPercentage', state.supplyTimeSalesEntryPercentage);
     console.log('supplyTimeSalesReversalEntryPercentage', state.supplyTimeSalesReversalEntryPercentage);
 
+    state.metDemandEntryPrice = 0;
+    state.metDemandreversalEntryPrice = 0;
+    state.metSupplyEntryPrice = 0;
+    state.metSupplyReversalEntryPrice = 0;
+
     if (state.demandTimeSalesEntryPercentage >= 0.7) {
         state.demandForming += 1;
     }
