@@ -532,24 +532,25 @@ export async function waitToSignalOpenPosition(
             const content:SocketResponse["content"] = data.data[0].content;
 
             state = processTimeSalesData(content, state, utcTime);
+            const OrderVelocity = isOrderVelocityIncreasing(state.orderVelocityArray);
   
             if (state.demandForming >= 30) { // in a demand zone
-              if (state.marketTrend === 'uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
+              if (state.marketTrend === 'uptrend' && OrderVelocity) {
                 console.log('Open Demand confirmed due to uptrend and increasing order velocity.');
                 state.demandConfirmation = true;
               }
             } else if (state.demandReversalForming >= 30) { // in a demand zone reversal
-              if (state.marketTrend === 'downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray) || state.marketTrend === 'potential pullback in downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
+              if (state.marketTrend === 'downtrend' && OrderVelocity || state.marketTrend === 'potential pullback in downtrend' && OrderVelocity) {
                 console.log('Potential reversal to the downside detected.');
                 state.demandReversalConfirmation = true;
               }
             } else if (state.supplyForming >= 30) { // in a supply zone
-              if (state.marketTrend === 'downtrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
+              if (state.marketTrend === 'downtrend' && OrderVelocity) {
                 console.log('Open Supply confirmed due to downtrend and increasing order velocity.');
                 state.supplyConfirmation = true;
               }
             } else if (state.supplyReversalForming >= 30) { // in a supply zone reversal
-              if (state.marketTrend === 'uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray) || state.marketTrend === 'potential pullback in uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
+              if (state.marketTrend === 'uptrend' && OrderVelocity || state.marketTrend === 'potential pullback in uptrend' && isOrderVelocityIncreasing(state.orderVelocityArray)) {
                 console.log('Potential reversal to the upside detected.');
                 state.supplyReversalConfirmation = true;
               }
