@@ -500,6 +500,8 @@ export async function waitToSignalOpenPosition(
           client?.send(JSON.stringify(marketRequest));
         } else if (data.data) {
           const service = data.data[0].service;
+          console.log('orderVelocityTime', orderVelocityTime);
+          console.log('nextOrderVelocityTime', state.nextOrderVelocityTime);
 
           if (orderVelocityTime === state.nextOrderVelocityTime){
             const prevOrderVelocityNow = now;
