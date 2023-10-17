@@ -387,9 +387,10 @@ export async function waitToSignalOpenPosition(
 
   now.setSeconds(now.getSeconds() + timerDuration);
   let utcTime = now.toUTCString().slice(17, 22);
+  let utcTimeInMs = now.getTime();
 
   orderVelocityNow.setSeconds(orderVelocityNow.getSeconds() + orderVelocityTimerDuration);
-  let orderVelocityTime = orderVelocityNow.toUTCString().slice(17,25);
+  let orderVelocityTime = orderVelocityNow.getTime();
 
   const initialState: SignalOpenPositionState = {
     principles: null,
@@ -440,7 +441,7 @@ export async function waitToSignalOpenPosition(
     currentPrice: JSON.parse(currentPrice),
     updatedPrice: 0,
     tenPreviousDelta: new FixedSizeQueue<DeltaMetrics>(10),
-    nextTime: utcTime,
+    nextTime: utcTimeInMs,
     marketTrend: 'data insufficient',
     orderVelocity: 0,
     orderVelocityArray: new FixedSizeQueue<number>(30),
@@ -486,7 +487,8 @@ export async function waitToSignalOpenPosition(
       orderVelocityNow = now;
 
       utcTime = now.toUTCString().slice(17,22);
-      orderVelocityTime = orderVelocityNow.toUTCString().slice(17,25);
+      utcTimeInMs = now.getTime();
+      orderVelocityTime = orderVelocityNow.getTime();
 
       if (getMarketClose()) {
         state.noGoodBuys = true;
@@ -503,7 +505,7 @@ export async function waitToSignalOpenPosition(
           console.log('orderVelocityTime', orderVelocityTime);
           console.log('nextOrderVelocityTime', state.nextOrderVelocityTime);
 
-          if (orderVelocityTime === state.nextOrderVelocityTime){
+          if (orderVelocityTime >= state.nextOrderVelocityTime){
             const prevOrderVelocityNow = now;
             prevOrderVelocityNow.setSeconds(prevOrderVelocityNow.getSeconds() - orderVelocityTimerDuration);
             const prevOrderVelocity = prevOrderVelocityNow.toUTCString().slice(17,25);
@@ -513,16 +515,16 @@ export async function waitToSignalOpenPosition(
             state.lastOrderVelocity = state.orderVelocity;
             state.orderVelocity = 0;
             orderVelocityNow.setSeconds(orderVelocityNow.getSeconds() + orderVelocityTimerDuration);
-            state.nextOrderVelocityTime = orderVelocityNow.toUTCString().slice(17,25);
+            state.nextOrderVelocityTime = orderVelocityNow.getTime();
           }
 
-          if (utcTime === state.nextTime) {
+          if (utcTimeInMs >= state.nextTime) {
             state.orderArray = [];
             state.totalOrderVolume = 0;
 
             now.setSeconds(now.getSeconds() + timerDuration);
 
-            state.nextTime = now.toUTCString().slice(17,22);
+            state.nextTime = now.getTime();
           }
 
           if (service === "CHART_EQUITY") {

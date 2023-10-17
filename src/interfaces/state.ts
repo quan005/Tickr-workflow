@@ -57,13 +57,13 @@ export interface SignalOpenPositionState {
     currentPrice: CurrentPriceData,
     updatedPrice: number,
     tenPreviousDelta: FixedSizeQueue<DeltaMetrics>,
-    nextTime: string,
+    nextTime: number,
     marketTrend: Trend,
     orderVelocity: number,
     orderVelocityArray: FixedSizeQueue<number>,
     orderVelocityAvg: number,
     lastOrderVelocity: number,
-    nextOrderVelocityTime: string,
+    nextOrderVelocityTime: number,
     ordervelocityIncreasing: boolean,
 }
 
