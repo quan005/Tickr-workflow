@@ -482,7 +482,6 @@ export async function waitToSignalOpenPosition(
     };
 
     client.onmessage = function (event) {
-      console.log('message event:', event);
       now = new Date();
       orderVelocityNow = now;
 

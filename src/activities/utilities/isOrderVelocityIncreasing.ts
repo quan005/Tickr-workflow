@@ -27,8 +27,10 @@ export function isOrderVelocityIncreasing(orderVelocityQueue: FixedSizeQueue<num
     const velocity = exponentialRegressionSlope(orderVelocityArray);
 
     if (velocity === null || velocity <= 0) {
+        console.log('velocity is not increasing', velocity);
         return false
     }
 
+    console.log('velocity is going up', velocity);
     return true
 };
